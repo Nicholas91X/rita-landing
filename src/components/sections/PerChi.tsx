@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Section from "../Section";
 import { perChi } from "@/content/it";
 
@@ -16,10 +17,14 @@ export default function PerChi() {
             ))}
           </ul>
         </div>
-        <div className="h-64 md:h-80 panel flex items-center justify-center">
-          <span className="font-semibold text-[var(--brand)]">
-            (Immagine target)
-          </span>
+        <div className="relative h-64 md:h-100 rounded-3xl overflow-hidden border border-[var(--border)]">
+          <Image
+            src="/perchi/perchi-1.jpg"
+            alt="Donne che si allenano: il target del metodo"
+            fill
+            className="object-cover"
+            sizes="(min-width: 1024px) 40vw, 90vw"
+          />
         </div>
       </div>
     </Section>

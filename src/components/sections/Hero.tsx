@@ -1,4 +1,5 @@
 "use client";
+import Image from "next/image";
 import { CtaRow, CtaWhatsApp } from "../Cta";
 import Section from "../Section";
 import { site } from "@/content/it";
@@ -14,12 +15,21 @@ export default function Hero() {
           <h1 className="h1">
             NON FAR VINCERE LA PAURA,
             <br />
-            <span className="text-[var(--brand)]">FAI VIVERE I TUOI SOGNI</span>
+            <span className="text-[var(--brand)] ts-white">
+              FAI VIVERE I TUOI SOGNI
+            </span>
           </h1>
           <p className="mt-5 text-lg lead">
-            Ciao, sono Rita, laureata in Scienze Motorie. Ho creato un{" "}
-            <strong>metodo al femminile</strong>
-            con allenamenti brevissimi ma efficaci.
+            Benvenuto, mi chiamo <strong className="text-[var(--accent-foreground)]">Rita Zanicchi</strong>, sono laureata in scienze motorie
+            e mi occupo di benessere psico-fisico. Da sempre la mia passione è
+            il fitness, da quasi 30 anni è il mio mondo, ed essendo donna ho
+            deciso di affrontare più da vicino{" "}
+            <strong className="text-[var(--accent-foreground)]">l'allenamento femminile</strong>. Le esigenze di noi donne
+            sono tante, tanti impegni e poco tempo. Ho creato un MIO{" "}
+            <strong className="text-[var(--accent-foreground)]">allenamento al femminile</strong>. Allenamenti
+            personalizzati, brevi ed efficaci. 6 settimane per i primi
+            risultati. Richiedi una consulenza gratuita.{" "}
+            <strong className="text-[var(--accent-foreground)]">IL TEMPO: 30 MINUTI</strong>
           </p>
           <CtaRow>
             <CtaWhatsApp phone={site.phone} message={site.whatsappMessage} />
@@ -31,12 +41,19 @@ export default function Hero() {
               Scopri il metodo
             </a>
           </CtaRow>
-          <p className="mt-3 text-xs text-slate-500">
+          <p className="mt-3 text-xs text-[var(--muted-foreground)]">
             {site.address.placeLabel}
           </p>
         </div>
-        <div className="h-64 md:h-80 panel flex items-center justify-center">
-          (placeholder immagine hero)
+        <div className="relative h-64 md:h-100 rounded-3xl overflow-hidden border border-[var(--border)]">
+          <Image
+            src="/hero/rita-hero.jpg"
+            alt="Rita Zanicchi durante un allenamento personalizzato"
+            fill
+            className="object-cover"
+            priority
+            sizes="(min-width: 1024px) 40vw, 90vw"
+          />
         </div>
       </div>
     </Section>

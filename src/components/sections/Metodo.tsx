@@ -3,14 +3,14 @@ import { Card } from "@/components/ui/card";
 
 export default function Metodo() {
   const steps = [
-    { t: "1) Consulenza gratuita", d: "Anamnesi e piccoli test (30–40')." },
+    { t: "1) Consulenza gratuita", d: "Qualche domanda per conoscerci e piccoli test per conoscere le tue capacità fisiche  (30' - 40')." },
     {
       t: "2) Protocollo personalizzato",
-      d: "2 o 3 allenamenti settimanali da 30'.",
+      d: "Con 2 o 3 allenamenti settimanali di 30' ciascuno per 6 settimane.",
     },
     {
       t: "3) Compiti a casa",
-      d: "Micro‑abitudini quotidiane per accelerare i risultati.",
+      d: "Facili compiti per abbandonare le cattive abitudini solo pochi minuti al giorno.",
     },
   ];
   return (
