@@ -7,31 +7,35 @@ export default function Contact() {
       <div className="grid md:grid-cols-2 gap-8">
         <div>
           <h2 className="text-3xl md:text-4xl font-extrabold">Contatti</h2>
-          <div className="mt-4 space-y-2 text-slate-700">
+          <div className="mt-4 space-y-2 text-[var(--foreground)]">
             <p>
               <strong>Email:</strong>{" "}
-              <a className="underline" href="mailto:ritazanicchi73@libero.it">
+              <a className="underline text-[var(--muted-foreground)]" href="mailto:ritazanicchi73@libero.it">
                 ritazanicchi73@libero.it
               </a>
             </p>
             <p>
               <strong>Telefono:</strong>{" "}
-              <a className="underline" href="tel:+393472292627">
+              <a className="underline text-[var(--muted-foreground)]" href="tel:+393472292627">
                 +39 347 229 2627
               </a>
             </p>
             <p>
-              <strong>Indirizzo:</strong> Palestra Pegaso · Via Ameglia, 74 ·
-              Romito Magra (SP) 19021
+              <strong>Indirizzo:</strong> <span className="text-[var(--muted-foreground)]">Palestra Pegaso · Via Ameglia, 74 ·
+              Romito Magra (SP) 19021</span>
             </p>
             <Button asChild className="mt-2">
-              <a href="https://wa.me/393472292627?text=Ciao%20Rita%21%20Vorrei%20una%20consulenza.">
+              <a
+                className="inline-flex items-center rounded-full px-5 py-3 text-sm font-medium
++               bg-[var(--primary)] text-[var(--primary-foreground)] hover:opacity-90 border-1 border-black"
+                href="https://wa.me/393472292627?text=Ciao%20Rita%21%20Vorrei%20una%20consulenza."
+              >
                 Scrivimi su WhatsApp
               </a>
             </Button>
           </div>
         </div>
-        <div className="h-72 rounded-3xl border bg-white/70 p-2">
+        <div className="h-72 rounded-3xl border border-[var(--border)] bg-[var(--panel)] p-2">
           <iframe
             title="Mappa Palestra Pegaso"
             className="w-full h-full rounded-2xl"

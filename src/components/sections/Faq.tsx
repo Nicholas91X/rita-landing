@@ -29,8 +29,8 @@ export default function Faq() {
       <Accordion type="single" collapsible className="mt-8 max-w-3xl mx-auto">
         {faqs.map(({ q, a }, i) => (
           <AccordionItem key={i} value={`item-${i}`}>
-            <AccordionTrigger>{q}</AccordionTrigger>
-            <AccordionContent>{a}</AccordionContent>
+            <AccordionTrigger className="text-xl">{q}</AccordionTrigger>
+            <AccordionContent className="text-[var(--muted-foreground)]">{a}</AccordionContent>
           </AccordionItem>
         ))}
       </Accordion>

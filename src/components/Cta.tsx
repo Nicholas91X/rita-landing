@@ -18,7 +18,13 @@ export function CtaWhatsApp({
 }: WhatsAppProps) {
   return (
     <Button asChild className={className}>
-      <a href={waLink(phone, message)}>{children}</a>
+      <a
+        className="inline-flex items-center rounded-full px-5 py-3 text-sm font-medium
++               bg-[var(--primary)] text-[var(--primary-foreground)] hover:opacity-90 border-1 border-black"
+        href={waLink(phone, message)}
+      >
+        {children}
+      </a>
     </Button>
   );
 }

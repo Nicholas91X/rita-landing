@@ -8,6 +8,10 @@ export default function SeoJsonLd() {
     name: "Rita Zanicchi – Personal Trainer",
     url: "https://ritapt.example",
     image: "https://ritapt.example/og.jpg",
+    logo: {
+      "@type": "ImageObject",
+      url: site.assets.logo,
+    },
     telephone: site.phone,
     address: {
       "@type": "PostalAddress",

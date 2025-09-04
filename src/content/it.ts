@@ -10,6 +10,13 @@ export const site = {
     placeLabel: "Palestra Pegaso · Via Ameglia, 74 · Romito Magra (SP) 19021",
   },
   whatsappMessage: "Ciao Rita! Vorrei prenotare una consulenza gratuita.",
+  assets: {
+    logo: "/logo/logo.png",
+    logoAlt: "Logo Rita Zanicchi Personal Trainer",
+    logoWidth: 180,
+    logoHeight: 48,
+    ogImage: "/og.jpg",
+  },
 };
 
 export const perChi = [
@@ -23,8 +30,8 @@ export const storia = {
   title: "La mia storia",
   body: "Da sempre innamorata del mio lavoro, ho coltivato passione e curiosità fino alla laurea in Scienze Motorie (2021). Oggi aiuto donne con poco tempo a ritrovare energia, fiducia e forma fisica con un percorso su misura.",
   facts: [
-    "🎓 Laurea in Scienze Motorie",
-    "🕒 ~30 anni di esperienza",
-    "📍 Romito Magra (SP)",
+    "🎓   Laurea in Scienze Motorie",
+    "🕒   ~30 anni di esperienza",
+    "📍   Romito Magra (SP)",
   ],
 };

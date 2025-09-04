@@ -7,11 +7,11 @@ export default function PerChi() {
       <div className="grid md:grid-cols-2 gap-8 items-center">
         <div>
           <h2 className="h2">A chi mi rivolgo?</h2>
-          <ul className="mt-6 space-y-2 text-slate-700">
+          <ul className="mt-6 space-y-2">
             {perChi.map((item, idx) => (
               <li key={idx} className="flex items-start gap-3">
                 <span>•</span>
-                <span>{item}</span>
+                <span className=" text-[var(--muted-foreground)]">{item}</span>
               </li>
             ))}
           </ul>

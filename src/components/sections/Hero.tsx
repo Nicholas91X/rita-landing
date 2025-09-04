@@ -1,7 +1,6 @@
 "use client";
 import { CtaRow, CtaWhatsApp } from "../Cta";
 import Section from "../Section";
-import { Button } from "@/components/ui/button";
 import { site } from "@/content/it";
 
 const CTA_WA =
@@ -26,7 +25,8 @@ export default function Hero() {
             <CtaWhatsApp phone={site.phone} message={site.whatsappMessage} />
             <a
               href="#metodo"
-              className="inline-flex items-center rounded-full border px-5 py-3 text-sm font-medium hover:bg-white"
+              className="inline-flex items-center rounded-full border border-[var(--border)] px-5 py-3 text-sm font-medium bg-[var(--accent-foreground)]
++            text-white hover:bg-[var(--secondary)] hover:text-[var(--secondary-foreground)]"
             >
               Scopri il metodo
             </a>

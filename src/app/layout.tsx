@@ -3,6 +3,7 @@ import "./globals.css";
 import { fontSans } from "./font";
 import Nav from "@/components/Nav";
 import SeoJsonLd from "@/components/SeoJsonLd";
+import Footer from "@/components/Footer";
 
 export const metadata: Metadata = {
   title: "Rita Zanicchi · Personal Trainer",
@@ -20,6 +21,11 @@ export const metadata: Metadata = {
     title: "Rita Zanicchi · Personal Trainer",
     description: "Allenamenti brevi ed efficaci per donne con poco tempo.",
   },
+  icons: {
+    icon: "/icon.png",
+    shortcut: "/favicon.ico",
+    apple: "/apple-icon.png",
+  },
   alternates: { canonical: "/" },
 };
 
@@ -35,6 +41,7 @@ export default function RootLayout({
       >
         <Nav />
         {children}
+        <Footer />
         <SeoJsonLd />
       </body>
     </html>
