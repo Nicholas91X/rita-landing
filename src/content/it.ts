@@ -18,10 +18,10 @@ export const site = {
     ogImage: "/og.jpg",
   },
   socials: {
-    facebook: "https://facebook.com/tuapagina",
-    instagram: "https://instagram.com/tuoprofilo",
-    youtube: "https://youtube.com/@tuocanale",
-    tiktok: "https://www.tiktok.com/@tuoprofilo",
+    facebook: "https://www.facebook.com/share/19nybERnXM/",
+    instagram: "https://www.instagram.com/fitesmile?igsh=aDh0bWxya2VtcXdi ",
+    youtube: "https://www.youtube.com/@ritazanicchipersonaltraine596",
+    tiktok: "https://www.tiktok.com/@ritazanicchipt?_t=ZN-8zTdyeqs5Wo&_r=1 ",
   },
 };
 
