@@ -17,7 +17,7 @@ function TikTokGlyph(props: React.SVGProps<SVGSVGElement>) {
   );
 }
 
-const ICONS: Record<string, React.ComponentType<any>> = {
+const ICONS: Record<string, React.ComponentType<React.SVGProps<SVGSVGElement>>> = {
   facebook: Icons.Facebook,
   instagram: Icons.Instagram,
   youtube: Icons.Youtube,
