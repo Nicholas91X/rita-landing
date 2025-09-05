@@ -6,7 +6,7 @@ export default function Contact() {
   return (
     <Section id="contatti">
       <div className="grid md:grid-cols-2 gap-8">
-        <div>
+        <div className="pr-2">
           <h2 className="text-3xl md:text-4xl font-extrabold">Contatti</h2>
           <div className="mt-4 space-y-2 text-[var(--foreground)]">
             <p>
