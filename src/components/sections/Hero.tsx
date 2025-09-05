@@ -64,7 +64,7 @@ export default function Hero() {
             {site.address.placeLabel}
           </p>
         </div>
-        <div className="relative h-64 md:h-100 rounded-3xl overflow-hidden border border-[var(--border)]">
+        <div className="relative h-64 md:h-140 rounded-3xl overflow-hidden border border-[var(--border)]">
           <Image
             src="/hero/rita-hero.jpg"
             alt="Rita Zanicchi durante un allenamento personalizzato"
