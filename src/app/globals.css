@@ -122,5 +122,13 @@ body {
 }
 .marquee--reverse { animation-name: marquee-down; }
 
+.scrollbar-none { -ms-overflow-style: none; scrollbar-width: none; }
+.scrollbar-none::-webkit-scrollbar { display: none; }
+
+.richtext strong { color: var(--foreground); }
+
+.tw-caret { animation: tw-blink 1s steps(1, end) infinite; }
+@keyframes tw-blink { 50% { opacity: 0; } }
+
 @keyframes marquee-up   { from { transform: translateY(0);    } to { transform: translateY(-50%); } }
 @keyframes marquee-down { from { transform: translateY(-50%); } to { transform: translateY(0);    } }

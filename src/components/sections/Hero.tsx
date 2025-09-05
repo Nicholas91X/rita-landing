@@ -3,6 +3,7 @@ import Image from "next/image";
 import { CtaRow, CtaWhatsApp } from "../Cta";
 import Section from "../Section";
 import { site } from "@/content/it";
+import Typewriter from "@/components/Typewriter";
 
 const CTA_WA =
   "https://wa.me/393472292627?text=Ciao%20Rita%21%20Vorrei%20una%20consulenza.";
@@ -12,24 +13,42 @@ export default function Hero() {
     <Section id="top" className="section">
       <div className="grid md:grid-cols-2 gap-8 items-center">
         <div>
-          <h1 className="h1">
-            NON FAR VINCERE LA PAURA,
+          <h1 className="h1 ts-white leading-tight">
+            <Typewriter
+              text="NON FAR VINCERE LA PAURA,"
+              speed={65}
+              startDelay={150}
+            />
             <br />
-            <span className="text-[var(--brand)] ts-white">
-              FAI VIVERE I TUOI SOGNI
-            </span>
+            <Typewriter
+              text="FAI VIVERE I TUOI SOGNI"
+              speed={65}
+              startDelay={2100}
+              className="text-[var(--brand)]"
+            />
           </h1>
           <p className="mt-5 text-lg lead">
-            Benvenuto, mi chiamo <strong className="text-[var(--accent-foreground)]">Rita Zanicchi</strong>, sono laureata in scienze motorie
-            e mi occupo di benessere psico-fisico. Da sempre la mia passione è
-            il fitness, da quasi 30 anni è il mio mondo, ed essendo donna ho
-            deciso di affrontare più da vicino{" "}
-            <strong className="text-[var(--accent-foreground)]">l'allenamento femminile</strong>. Le esigenze di noi donne
-            sono tante, tanti impegni e poco tempo. Ho creato un MIO{" "}
-            <strong className="text-[var(--accent-foreground)]">allenamento al femminile</strong>. Allenamenti
-            personalizzati, brevi ed efficaci. 6 settimane per i primi
-            risultati. Richiedi una consulenza gratuita.{" "}
-            <strong className="text-[var(--accent-foreground)]">IL TEMPO: 30 MINUTI</strong>
+            Benvenuto, mi chiamo{" "}
+            <strong className="text-[var(--accent-foreground)]">
+              Rita Zanicchi
+            </strong>
+            , sono laureata in scienze motorie e mi occupo di benessere
+            psico-fisico. Da sempre la mia passione è il fitness, da quasi 30
+            anni è il mio mondo, ed essendo donna ho deciso di affrontare più da
+            vicino
+            <strong className="text-[var(--accent-foreground)]">
+              l'allenamento femminile
+            </strong>
+            . Le esigenze di noi donne sono tante, tanti impegni e poco tempo.
+            Ho creato un MIO
+            <strong className="text-[var(--accent-foreground)]">
+              allenamento al femminile
+            </strong>
+            . Allenamenti personalizzati, brevi ed efficaci. 6 settimane per i
+            primi risultati. Richiedi una consulenza gratuita.
+            <strong className="text-[var(--accent-foreground)]">
+              IL TEMPO: 30 MINUTI
+            </strong>
           </p>
           <CtaRow>
             <CtaWhatsApp phone={site.phone} message={site.whatsappMessage} />
