@@ -14,7 +14,7 @@ export default function Nav() {
       <div className="max-w-6xl mx-auto px-4 md:px-8 py-2">
         {/* riga principale */}
         <div className="h-16 md:h-20 flex items-center justify-between gap-3">
-          <Logo variant="circle" height={40} showText={false} />
+          <Logo variant="circle" height={60} showText={false} />
           <Link
             href="#top"
             className="inline-block text-2xl font-semibold tracking-tight"

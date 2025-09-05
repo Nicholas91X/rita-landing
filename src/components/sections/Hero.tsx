@@ -28,24 +28,24 @@ export default function Hero() {
             />
           </h1>
           <p className="mt-5 text-lg lead">
-            Benvenuto, mi chiamo{" "}
+            Benvenuta, mi chiamo{" "}
             <strong className="text-[var(--accent-foreground)]">
-              Rita Zanicchi
+               Rita Zanicchi
             </strong>
             , sono laureata in scienze motorie e mi occupo di benessere
             psico-fisico. Da sempre la mia passione è il fitness, da quasi 30
             anni è il mio mondo, ed essendo donna ho deciso di affrontare più da
-            vicino 
+            vicino{" "}
             <strong className="text-[var(--accent-foreground)]">
                l&apos;allenamento femminile
             </strong>
             . Le esigenze di noi donne sono tante, tanti impegni e poco tempo.
-            Ho creato un MIO
+            Ho creato un MIO{" "}
             <strong className="text-[var(--accent-foreground)]">
               allenamento al femminile
-            </strong>
+            </strong>{" "}
             . Allenamenti personalizzati, brevi ed efficaci. 6 settimane per i
-            primi risultati. Richiedi una consulenza gratuita.
+            primi risultati. Richiedi una consulenza gratuita.{" "}
             <strong className="text-[var(--accent-foreground)]">
               IL TEMPO: 30 MINUTI
             </strong>
