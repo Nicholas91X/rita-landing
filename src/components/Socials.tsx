@@ -18,10 +18,10 @@ function TikTokGlyph(props: React.SVGProps<SVGSVGElement>) {
 }
 
 const ICONS: Record<string, React.ComponentType<any>> = {
-  facebook: (Icons as any).Facebook,
-  instagram: (Icons as any).Instagram,
-  youtube: (Icons as any).Youtube,
-  tiktok: (Icons as any).Tiktok || TikTokGlyph,
+  facebook: Icons.Facebook,
+  instagram: Icons.Instagram,
+  youtube: Icons.Youtube,
+  tiktok: TikTokGlyph,
 };
 
 export default function Socials({
@@ -29,7 +29,7 @@ export default function Socials({
   variant = "light",
   size = 36,
 }: Props) {
-  const socials = (site as any)?.socials || {};
+  const socials: Record<string, string | undefined> = site.socials ?? {};
   const entries = Object.entries(socials).filter(([, url]) => !!url);
 
   const btnBase =

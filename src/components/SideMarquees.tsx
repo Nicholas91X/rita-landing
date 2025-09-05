@@ -55,12 +55,13 @@ function Column({
   speedSec: number;
   reverse?: boolean;
 }) {
-  const style: React.CSSProperties = {
+  const style: React.CSSProperties & {
+    "--marquee-gap"?: string;
+    "--marquee-duration"?: string;
+  } = {
     width,
-    // CSS vars per controllare animazione e spacings da Tailwind
-    // (usiamo classi custom in globals.css)
-    ["--marquee-gap" as any]: `${gap}px`,
-    ["--marquee-duration" as any]: `${speedSec}s`,
+    "--marquee-gap": `${gap}px`,
+    "--marquee-duration": `${speedSec}s`,
   };
 
   return (

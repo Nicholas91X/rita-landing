@@ -38,7 +38,7 @@ export default function Storia() {
         <div className="md:col-span-3 mt-6">
           <p className="leading-relaxed text-white">
             Sì è stato difficile tornare a studiare alla mia età, ma la +
-            soddisfazione nell'essere arrivata fino alla fine è
+            soddisfazione nell&apos;essere arrivata fino alla fine è
             <strong className="text-black"> IMPAGABILE</strong>!!!
             <br />
             <br />
@@ -48,7 +48,7 @@ export default function Storia() {
             <br />
             <br />
             Ridare forza e coraggio a donne che hanno voglia di cambiare e di
-            migliorarsi. Il tempo non dev'essere un ostacolo alle proprie +
+            migliorarsi. Il tempo non dev&apos;essere un ostacolo alle proprie +
             ambizioni. Donne che: la famiglia, il lavoro, la casa, hanno
             travolto lasciandole quasi senza respiro. Basta fare solo un passo
             alla volta, per cambiare completamente. Ritrovare tempo per se
@@ -75,7 +75,7 @@ export default function Storia() {
                   </p>
 
                   <p className="text-sm text-[var(--accent-foreground)]">
-                    per costruire l'allenamento su misura per te
+                    per costruire l&apos;allenamento su misura per te
                   </p>
                 </div>
               </div>
@@ -89,7 +89,7 @@ export default function Storia() {
                   <p className="font-semibold">Allenamento personalizzato</p>
 
                   <p className="text-sm text-[var(--accent-foreground)]">
-                    2 o 3 sedute settimanali da 30'
+                    2 o 3 sedute settimanali da 30&apos;
                   </p>
                 </div>
               </div>
@@ -109,7 +109,7 @@ export default function Storia() {
             </div>
 
             <p className="mt-6 text-[var(--foreground)] leading-relaxed">
-              Un programma personalizzato con 2 o 3 sedute settimanali da 30',
+              Un programma personalizzato con 2 o 3 sedute settimanali da 30&apos;,
               che permette già in <strong>6 settimane</strong> di vedere i primi
               cambiamenti!
             </p>

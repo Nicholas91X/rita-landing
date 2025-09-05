@@ -16,8 +16,8 @@ export default function Typewriter({
 }) {
   const [i, setI] = useState(0);
   useEffect(() => {
-    let t1: any;
-    let t2: any;
+    let t1: ReturnType<typeof setTimeout> | undefined;
+    let t2: ReturnType<typeof setInterval> | undefined;
     t1 = setTimeout(() => {
       t2 = setInterval(() => {
         setI((n) => {
