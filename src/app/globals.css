@@ -90,7 +90,7 @@ body {
 
 /* Offset per header sticky */
 .section {
-  padding-block: clamp(3rem, 6vw, 6rem);
+  padding-block: clamp(3rem, 6vw, 5rem);
   scroll-margin-top: 7rem;
 }
 
