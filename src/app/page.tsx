@@ -34,7 +34,7 @@ export default function Page() {
         speedSec={22}
       />
 
-      <div className="max-w-6xl mx-auto px-8 md:px-8 lg:px-12">
+      <div className="max-w-6xl mx-auto px-8 md:px-8 lg:px-24 xl:px-18">
         <Hero />
         <Metodo />
         <PerChi />
