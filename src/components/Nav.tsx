@@ -4,11 +4,24 @@ import { Button } from "@/components/ui/button";
 import Logo from "@/components/Logo";
 import { Phone } from "lucide-react";
 import Socials from "@/components/Socials";
+import { createClient } from "@/utils/supabase/client";
+import { useEffect, useState } from "react";
 
 const CTA_WA =
   "https://wa.me/393472292627?text=Ciao%20Rita%2C%20vorrei%20prenotare%20una%20consulenza%20gratuita";
 
 export default function Nav() {
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+  useEffect(() => {
+    const supabase = createClient();
+    const checkUser = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      setIsLoggedIn(!!user);
+    };
+    checkUser();
+  }, []);
+
   return (
     <header className="sticky top-0 z-50 border-b bg-[var(--steel)] text-white backdrop-blur">
       <div className="max-w-6xl mx-auto px-4 md:px-8 py-2">
@@ -34,6 +47,9 @@ export default function Nav() {
             <a href="#contatti" className="hover:opacity-80">
               Contatti
             </a>
+            <Link href="/dashboard" className="font-medium text-[var(--brand)] hover:opacity-80">
+              {isLoggedIn ? "Area Riservata" : "Accedi"}
+            </Link>
           </nav>
 
           {/* Socials desktop */}
