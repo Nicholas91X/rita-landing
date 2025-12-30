@@ -5,8 +5,6 @@ import Section from "../Section";
 import { site } from "@/content/it";
 import Typewriter from "@/components/Typewriter";
 
-const CTA_WA =
-  "https://wa.me/393472292627?text=Ciao%20Rita%21%20Vorrei%20una%20consulenza.";
 
 export default function Hero() {
   return (
@@ -30,14 +28,14 @@ export default function Hero() {
           <p className="mt-5 text-lg lead">
             Benvenuta, mi chiamo{" "}
             <strong className="text-[var(--accent-foreground)]">
-               Rita Zanicchi
+              Rita Zanicchi
             </strong>
             , sono laureata in scienze motorie e mi occupo di benessere
             psico-fisico. Da sempre la mia passione è il fitness, da quasi 30
             anni è il mio mondo, ed essendo donna ho deciso di affrontare più da
             vicino{" "}
             <strong className="text-[var(--accent-foreground)]">
-               l&apos;allenamento femminile
+              l&apos;allenamento femminile
             </strong>
             . Le esigenze di noi donne sono tante, tanti impegni e poco tempo.
             Ho creato un MIO{" "}

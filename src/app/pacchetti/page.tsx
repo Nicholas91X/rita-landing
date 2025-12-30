@@ -43,6 +43,7 @@ const packages = [
       "Supporto chat asincrono dal lunedi al venerdi",
     ],
     cta: "Prenota lo Start",
+    highlight: false,
   },
   {
     name: "Progress 12 Weeks",
@@ -76,6 +77,7 @@ const packages = [
       "Coordinamento con specialisti esterni su richiesta",
     ],
     cta: "Parliamo della Signature",
+    highlight: false,
   },
 ] as const;
 
@@ -109,7 +111,7 @@ export default function PackagesPage() {
                 Scegli il ritmo giusto per te
               </h1>
               <p className="text-lg lead">
-                Ogni percorso nasce dall'ascolto delle tue esigenze, dal tempo
+                Ogni percorso nasce dall&apos;ascolto delle tue esigenze, dal tempo
                 che hai a disposizione e dal risultato che vuoi raggiungere.
                 Tutti i pacchetti includono il mio supporto personale e la
                 possibilita di adattare il carico settimanale.
@@ -160,11 +162,10 @@ export default function PackagesPage() {
             {packages.map((pkg) => (
               <Card
                 key={pkg.name}
-                className={`h-full border-[var(--border)] bg-[var(--panel)] text-[var(--accent-foreground)] backdrop-blur transition-all duration-200 ${
-                  pkg.highlight
-                    ? "ring-2 ring-[var(--brand)] shadow-2xl md:-translate-y-2"
-                    : "shadow-lg"
-                }`}
+                className={`h-full border-[var(--border)] bg-[var(--panel)] text-[var(--accent-foreground)] backdrop-blur transition-all duration-200 ${pkg.highlight
+                  ? "ring-2 ring-[var(--brand)] shadow-2xl md:-translate-y-2"
+                  : "shadow-lg"
+                  }`}
               >
                 <CardHeader className="border-b border-white/30 pb-6">
                   <div>
