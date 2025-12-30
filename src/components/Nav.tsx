@@ -19,12 +19,15 @@ export default function Nav() {
             href="#top"
             className="inline-block text-2xl font-semibold tracking-tight"
           >
-            Rita Zanicchi · PT
+            Rita Zanicchi {"\u00B7"} PT
           </Link>
           <nav className="hidden md:flex items-center gap-6 text-lg">
             <a href="#metodo" className="hover:opacity-80">
               Metodo
             </a>
+            <Link href="/pacchetti" className="hover:opacity-80">
+              Pacchetti
+            </Link>
             <a href="#faq" className="hover:opacity-80">
               FAQ
             </a>
@@ -41,7 +44,7 @@ export default function Nav() {
             size="icon"
             asChild
             className="inline-flex items-center rounded-full px-5 py-3 text-sm font-medium
--+               bg-[var(--primary)] text-[var(--primary-foreground)] hover:opacity-90 border-1 border-black sm:hidden rounded-full"
+               bg-[var(--primary)] text-[var(--primary-foreground)] hover:opacity-90 border-1 border-black sm:hidden rounded-full"
           >
             <a href="tel:393472292627" aria-label="Chiama Rita">
               <Phone className="h-5 w-5" />
@@ -51,7 +54,7 @@ export default function Nav() {
           <Button
             asChild
             className="inline-flex items-center rounded-full px-5 py-3 text-sm font-medium
--+               bg-[var(--primary)] text-[var(--primary-foreground)] hover:opacity-90 border-1 border-black hidden sm:inline-flex rounded-full"
+               bg-[var(--primary)] text-[var(--primary-foreground)] hover:opacity-90 border-1 border-black hidden sm:inline-flex rounded-full"
           >
             <a href={CTA_WA}>Prenota consulenza</a>
           </Button>
