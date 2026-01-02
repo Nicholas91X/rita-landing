@@ -10,6 +10,7 @@ export type Package = {
     description: string
     course_id: string
     stripe_price_id: string
+    price: number;
     isPurchased?: boolean
 }
 
@@ -54,7 +55,8 @@ export async function getContentHierarchy() {
                     id, 
                     name, 
                     description, 
-                    stripe_price_id 
+                    stripe_price_id,
+                    price
                 )
             )
         `)

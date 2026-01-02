@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import Image from 'next/image'
 import { CheckCircle2, Lock, PlayCircle } from 'lucide-react'
+import BuyButton from '@/components/BuyButton'
 
 // Mappa delle immagini per livello
 const LEVEL_IMAGES: Record<string, string> = {
@@ -100,19 +101,16 @@ export default async function DashboardPage() {
                                                             </CardDescription>
                                                         </CardHeader>
 
-                                                        <CardFooter className="mt-auto pt-6 pb-8 px-6">
+                                                        <CardFooter className="mt-auto">
                                                             {pkg.isPurchased ? (
-                                                                <Button asChild className="w-full h-12 text-base rounded-xl bg-[var(--brand)] text-white hover:bg-[var(--brand)]/90 shadow-lg shadow-[var(--brand)]/20 group-hover:scale-[1.02] transition-transform">
-                                                                    <Link href={`/dashboard/package/${pkg.id}`} className="flex items-center gap-2">
-                                                                        <PlayCircle className="h-5 w-5" />
+                                                                <Button asChild className="w-full bg-[var(--brand)] text-white hover:opacity-90">
+                                                                    <Link href={`/dashboard/package/${pkg.id}`}>
                                                                         Guarda i Video
                                                                     </Link>
                                                                 </Button>
                                                             ) : (
-                                                                <Button className="w-full h-12 text-base rounded-xl bg-[var(--steel)] text-white hover:bg-[var(--steel)]/90 flex items-center gap-2">
-                                                                    <Lock className="h-4 w-4" />
-                                                                    Sblocca Pacchetto
-                                                                </Button>
+                                                                /* Usa il nuovo componente qui */
+                                                                <BuyButton packageId={pkg.id} price={pkg.price} />
                                                             )}
                                                         </CardFooter>
                                                     </Card>
