@@ -73,6 +73,7 @@ export default function VideoPlayer({ videoId }: VideoPlayerProps) {
             {url && (
                 <iframe
                     src={url}
+                    referrerPolicy="origin"
                     className={`h-full w-full transition-opacity duration-700 ease-in-out ${iframeLoaded ? 'opacity-100' : 'opacity-0'
                         }`}
                     allow="accelerometer; gyroscope; autoplay; encrypted-media; picture-in-picture; fullscreen"

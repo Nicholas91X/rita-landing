@@ -1,149 +1,97 @@
 import { createClient } from '@/utils/supabase/server'
 import { redirect } from 'next/navigation'
-import Link from 'next/link'
-import VideoPlayer from '@/components/video/VideoPlayer'
-import { Button } from '@/components/ui/button'
-import { ArrowLeft, PlayCircle } from 'lucide-react'
+import VideoPlayer from '@/components/video/VideoPlayer' // Controlla che il path sia giusto
 import Section from '@/components/Section'
+import Link from 'next/link'
+import { ChevronLeft } from 'lucide-react'
 
-type Props = {
-    params: Promise<{ id: string }>
-    searchParams: Promise<{ v?: string }>
-}
-
-export default async function PackagePage(props: Props) {
-    const params = await props.params
-    const searchParams = await props.searchParams
-
-    const packageId = params.id
-    const videoParam = searchParams.v
+export default async function PackagePage(props: { params: Promise<{ id: string }> }) {
+    // 1. Attendi i parametri (Risolve il warning di Next.js)
+    const params = await props.params;
+    const packageId = params.id;
 
     const supabase = await createClient()
+
+    // 2. Verifica autenticazione
     const { data: { user } } = await supabase.auth.getUser()
+    if (!user) redirect('/login')
 
-    if (!user) {
-        redirect('/login')
-    }
-
-    // Check subscription
-    const { data: subscription } = await supabase
+    // 3. Verifica abbonamento usando packageId
+    const { data: sub } = await supabase
         .from('user_subscriptions')
-        .select('status')
+        .select('id')
         .eq('user_id', user.id)
         .eq('package_id', packageId)
         .eq('status', 'active')
-        .single()
+        .maybeSingle()
 
-    if (!subscription) {
-        redirect('/dashboard')
-    }
+    if (!sub) redirect('/dashboard')
 
-    // Fetch package info
+    // 4. Recupera info Pacchetto e Video usando packageId
     const { data: pkg } = await supabase
         .from('packages')
-        .select('name')
+        .select('name, description')
         .eq('id', packageId)
         .single()
 
-    if (!pkg) redirect('/dashboard')
-
-    // Fetch videos
     const { data: videos } = await supabase
         .from('videos')
-        .select('*')
+        .select('id, title, bunny_video_id')
         .eq('package_id', packageId)
         .order('order_index', { ascending: true })
 
-    const safeVideos = videos || []
+    if (!videos || videos.length === 0) {
+        return (
+            <Section className="py-20 text-center">
+                <h1 className="h2 mb-4">{pkg?.name}</h1>
+                <p>Nessun video presente in questo pacchetto.</p>
+                <Link href="/dashboard" className="text-[var(--brand)] underline mt-4 block">Torna indietro</Link>
+            </Section>
+        )
+    }
 
-    // Determine active video
-    const activeVideo = safeVideos.find(v => v.id === videoParam) || safeVideos[0]
+    // Usiamo il primo video della lista come default
+    const firstVideo = videos[0]
 
     return (
-        <main className="min-h-screen bg-[var(--bg)] text-[var(--foreground)] pb-20">
-            {/* Header */}
-            <div className="bg-[var(--panel)] border-b border-[var(--border)] sticky top-0 z-10">
-                <Section className="py-4">
-                    <div className="flex items-center gap-4">
-                        <Button asChild variant="ghost" className="hover:bg-transparent pl-0 hover:text-[var(--brand)]">
-                            <Link href="/dashboard" className="flex items-center gap-2">
-                                <ArrowLeft className="h-5 w-5" />
-                                <span className="hidden md:inline">Torna alla Dashboard</span>
-                            </Link>
-                        </Button>
-                        <div className="h-6 w-px bg-[var(--border)] mx-2" />
-                        <h1 className="text-xl font-bold truncate">{pkg.name}</h1>
-                    </div>
-                </Section>
-            </div>
-
+        <main className="min-h-screen bg-background pb-20">
             <Section className="py-8">
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                    {/* Main Player Area */}
-                    <div className="lg:col-span-2 space-y-6">
-                        {activeVideo ? (
-                            <div className="space-y-4">
-                                <div className="rounded-2xl overflow-hidden shadow-2xl bg-black aspect-video relative">
-                                    <VideoPlayer videoId={activeVideo.bunny_video_id} />
-                                </div>
-                                <div>
-                                    <h2 className="text-2xl font-bold">{activeVideo.title}</h2>
-                                    {activeVideo.description && (
-                                        <p className="text-[var(--foreground)]/70 mt-2">{activeVideo.description}</p>
-                                    )}
-                                </div>
-                            </div>
-                        ) : (
-                            <div className="aspect-video bg-[var(--panel)] rounded-2xl flex items-center justify-center text-[var(--muted-foreground)]">
-                                Nessun video disponibile
-                            </div>
-                        )}
+                <Link href="/dashboard" className="flex items-center text-sm text-muted-foreground hover:text-[var(--brand)] transition-colors mb-6">
+                    <ChevronLeft className="h-4 w-4 mr-1" />
+                    Torna alla Dashboard
+                </Link>
+
+                <h1 className="h2 text-[var(--foreground)] mb-2">{pkg?.name}</h1>
+                <p className="text-[var(--muted-foreground)] mb-8">{pkg?.description}</p>
+
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
+                    {/* Player Area */}
+                    <div className="lg:col-span-2">
+                        {/* QUI PASSIAMO L'ID DEL VIDEO (ab1ad388...), NON DEL PACCHETTO! */}
+                        <VideoPlayer videoId={firstVideo.id} />
+
+                        <div className="mt-6">
+                            <h2 className="text-xl font-bold mb-2">{firstVideo.title}</h2>
+                        </div>
                     </div>
 
-                    {/* Playlist Sidebar */}
+                    {/* Playlist Area */}
                     <div className="space-y-4">
-                        <h3 className="font-semibold text-lg px-2">Lezioni del corso</h3>
-                        <div className="space-y-2 max-h-[calc(100vh-200px)] overflow-y-auto pr-2 custom-scrollbar">
-                            {safeVideos.map((video, index) => {
-                                const isActive = video.id === activeVideo?.id
-                                return (
-                                    <Link
-                                        key={video.id}
-                                        href={`/dashboard/package/${packageId}?v=${video.id}`}
-                                        className={`
-                                    block p-4 rounded-xl border transition-all duration-200
-                                    ${isActive
-                                                ? 'bg-[var(--brand)]/10 border-[var(--brand)] shadow-sm'
-                                                : 'bg-[var(--panel)] border-transparent hover:border-[var(--border)] hover:bg-[var(--panel)]/80'
-                                            }
-                                `}
-                                    >
-                                        <div className="flex items-start gap-3">
-                                            <div className={`
-                                        mt-1 flex-shrink-0 h-6 w-6 rounded-full flex items-center justify-center text-xs font-bold
-                                        ${isActive ? 'bg-[var(--brand)] text-white' : 'bg-[var(--bg)] text-[var(--foreground)]/50'}
-                                    `}>
-                                                {index + 1}
-                                            </div>
-                                            <div className="space-y-1">
-                                                <p className={`font-medium text-sm ${isActive ? 'text-[var(--brand)]' : 'text-[var(--foreground)]'}`}>
-                                                    {video.title}
-                                                </p>
-                                                <div className="flex items-center gap-2 text-xs text-[var(--foreground)]/50">
-                                                    <PlayCircle className="h-3 w-3" />
-                                                    <span>Guarda ora</span>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </Link>
-                                )
-                            })}
-
-                            {safeVideos.length === 0 && (
-                                <p className="text-sm text-[var(--muted-foreground)] px-2">
-                                    Non ci sono ancora lezioni caricate per questo pacchetto.
-                                </p>
-                            )}
+                        <h3 className="font-semibold uppercase text-xs tracking-widest text-muted-foreground px-2">
+                            Lezioni nel pacchetto
+                        </h3>
+                        <div className="flex flex-col gap-2">
+                            {videos.map((v) => (
+                                <div
+                                    key={v.id}
+                                    className={`p-4 rounded-xl border transition-all cursor-pointer ${v.id === firstVideo.id
+                                        ? 'border-[var(--brand)] bg-[var(--brand-muted)] text-[var(--brand)]'
+                                        : 'border-[var(--border)] hover:bg-[var(--panel)]'
+                                        }`}
+                                >
+                                    <p className="text-sm font-medium">{v.title}</p>
+                                </div>
+                            ))}
                         </div>
                     </div>
                 </div>
