@@ -45,7 +45,9 @@ export async function POST(req: Request) {
                     package_id: packageId,
                     status: 'active',
                     stripe_subscription_id: session.subscription as string,
-                    updated_at: new Date().toISOString(),
+                    current_period_end: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+                }, {
+                    onConflict: 'user_id, package_id'
                 })
 
             if (error) {
