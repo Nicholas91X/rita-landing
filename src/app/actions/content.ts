@@ -65,11 +65,14 @@ export async function getContentHierarchy() {
     }
 
     // 3. Mappatura per aggiungere la flag isPurchased
-    const hierarchy = (data as any[]).map(level => ({
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const hierarchy = (data as any[] || []).map((level: any) => ({
         ...level,
-        courses: level.courses.map((course: any) => ({
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        courses: (level.courses || []).map((course: any) => ({
             ...course,
-            packages: course.packages.map((pkg: any) => ({
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            packages: (course.packages || []).map((pkg: any) => ({
                 ...pkg,
                 isPurchased: purchasedIds.includes(pkg.id)
             }))
