@@ -8,9 +8,11 @@ import { Loader2 } from 'lucide-react'
 interface BuyButtonProps {
     packageId: string
     price?: number
+    customLabel?: string
+    className?: string
 }
 
-export default function BuyButton({ packageId, price }: BuyButtonProps) {
+export default function BuyButton({ packageId, price, customLabel, className }: BuyButtonProps) {
     const [isLoading, setIsLoading] = useState(false)
 
     const handlePurchase = async () => {
@@ -29,11 +31,13 @@ export default function BuyButton({ packageId, price }: BuyButtonProps) {
         }
     }
 
+    const defaultLabel = `Sblocca Pacchetto ${price ? `(€${price})` : ''}`
+
     return (
         <Button
             onClick={handlePurchase}
             disabled={isLoading}
-            className="w-full bg-[var(--foreground)] text-[var(--background)] hover:opacity-90 transition-opacity rounded-full font-semibold"
+            className={className || "w-full bg-[var(--foreground)] text-[var(--background)] hover:opacity-90 transition-opacity rounded-full font-semibold"}
         >
             {isLoading ? (
                 <>
@@ -41,7 +45,7 @@ export default function BuyButton({ packageId, price }: BuyButtonProps) {
                     Elaborazione...
                 </>
             ) : (
-                `Sblocca Pacchetto ${price ? `(€${price})` : ''}`
+                customLabel || defaultLabel
             )}
         </Button>
     )

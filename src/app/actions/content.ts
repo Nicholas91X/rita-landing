@@ -83,3 +83,48 @@ export async function getContentHierarchy() {
 
     return hierarchy as Level[]
 }
+
+export async function getPublicContentHierarchy() {
+    const supabase = await createClient()
+
+    // Query con i nomi colonne corretti
+    const { data, error } = await supabase
+        .from('levels')
+        .select(`
+            id, 
+            name,
+            courses (
+                id, 
+                name,
+                packages ( 
+                    id, 
+                    name, 
+                    description, 
+                    stripe_price_id,
+                    price
+                )
+            )
+        `)
+
+    if (error) {
+        console.error('Error fetching public content hierarchy:', error)
+        return []
+    }
+
+    // Mappatura per struttura coerente (isPurchased = false per default)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const hierarchy = (data as any[] || []).map((level: any) => ({
+        ...level,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        courses: (level.courses || []).map((course: any) => ({
+            ...course,
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            packages: (course.packages || []).map((pkg: any) => ({
+                ...pkg,
+                isPurchased: false
+            }))
+        }))
+    }))
+
+    return hierarchy as Level[]
+}

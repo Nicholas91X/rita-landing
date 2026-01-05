@@ -10,8 +10,10 @@ import {
 } from "@/components/ui/card";
 import { CtaRow, CtaWhatsApp } from "@/components/Cta";
 import { site } from "@/content/it";
-import { Check } from "lucide-react";
+import { Dumbbell } from "lucide-react";
 import SideMarquees from "@/components/SideMarquees";
+import { getPublicContentHierarchy } from "../actions/content";
+import BuyButton from "@/components/BuyButton";
 
 const leftImgs = [
   "/side/left-1.jpg",
@@ -29,58 +31,6 @@ const rightImgs = [
   "/side/right-5.jpg",
 ];
 
-const packages = [
-  {
-    name: "Start 6 Weeks",
-    price: "\u20AC149",
-    billing: "Percorso intensivo di 6 settimane",
-    description: "Riparti dalle basi e crea una routine sostenibile.",
-    duration: "6 settimane",
-    features: [
-      "Colloquio iniziale di valutazione (30 minuti)",
-      "Programma di allenamento personalizzato con 3 sessioni a settimana",
-      "Video tutorial degli esercizi con correzioni tecniche",
-      "Supporto chat asincrono dal lunedi al venerdi",
-    ],
-    cta: "Prenota lo Start",
-    highlight: false,
-  },
-  {
-    name: "Progress 12 Weeks",
-    price: "\u20AC279",
-    billing: "Accompagnamento completo per 3 mesi",
-    description:
-      "Stabilizza i risultati e lavora sulla forma fisica nel lungo periodo.",
-    duration: "12 settimane",
-    features: [
-      "Call di allineamento ogni 2 settimane",
-      "Doppio programma mensile con progressione guidata",
-      "Integrazione piano mobilita e recupero",
-      "Revisione alimentare di base con diario condiviso",
-      "Supporto chat rapido entro 24 ore",
-    ],
-    highlight: true,
-    cta: "Voglio il Progress",
-  },
-  {
-    name: "Signature Coaching",
-    price: "\u20AC449",
-    billing: "Percorso premium su misura",
-    description:
-      "Coaching individuale totale per obiettivi specifici e timeline serrate.",
-    duration: "3 mesi rinnovabili",
-    features: [
-      "Assessment funzionale in presenza o live",
-      "Programma personalizzato aggiornato ogni settimana",
-      "Sessioni one-to-one mensili (60 minuti)",
-      "Analisi video illimitata con feedback entro 12 ore",
-      "Coordinamento con specialisti esterni su richiesta",
-    ],
-    cta: "Parliamo della Signature",
-    highlight: false,
-  },
-] as const;
-
 export const metadata: Metadata = {
   title: "Pacchetti e prezzi | Rita Zanicchi PT",
   description:
@@ -90,9 +40,27 @@ export const metadata: Metadata = {
   },
 };
 
-export default function PackagesPage() {
+export default async function PackagesPage() {
+  const levels = await getPublicContentHierarchy();
+
+  // Helper per estrarre tutti i pacchetti in una lista piatta o raggruppata
+  // Qui manteniamo la struttura visuale a griglia.
+  // Se vogliamo mostrare tutto piatto, possiamo fare flatMap.
+  // Ma preserviamo la logica 'livello' se ha senso, o appiattiamo.
+  // L'utente chiede "tutti i pacchetti disponibili".
+
+  const allPackages = levels.flatMap(level =>
+    level.courses.flatMap(course =>
+      course.packages.map(pkg => ({
+        ...pkg,
+        levelName: level.name,
+        courseName: course.name
+      }))
+    )
+  );
+
   return (
-    <main className="relative">
+    <main className="relative bg-[var(--bg)] text-[var(--foreground)]">
       <SideMarquees
         left={leftImgs}
         right={rightImgs}
@@ -100,7 +68,7 @@ export default function PackagesPage() {
         gap={12}
         speedSec={22}
       />
-      <div className="max-w-6xl mx-auto px-8 md:px-10 lg:px-26 xl:px-26">
+      <div className="max-w-7xl mx-auto px-8 md:px-10 lg:px-26 xl:px-26 py-20">
         <Section className="section">
           <div className="grid gap-10 md:grid-cols-[minmax(0,0.75fr)_minmax(0,1fr)] items-center">
             <div className="space-y-4">
@@ -108,13 +76,11 @@ export default function PackagesPage() {
                 Pacchetti coaching
               </p>
               <h1 className="h1 text-white ts-white">
-                Scegli il ritmo giusto per te
+                Scegli il tuo percorso
               </h1>
               <p className="text-lg lead">
-                Ogni percorso nasce dall&apos;ascolto delle tue esigenze, dal tempo
-                che hai a disposizione e dal risultato che vuoi raggiungere.
-                Tutti i pacchetti includono il mio supporto personale e la
-                possibilita di adattare il carico settimanale.
+                Dai primi passi al perfezionamento tecnico.
+                Trova il pacchetto adatto al tuo livello e inizia ad allenarti oggi stesso.
               </p>
               <CtaRow>
                 <CtaWhatsApp
@@ -126,30 +92,32 @@ export default function PackagesPage() {
                 </CtaWhatsApp>
               </CtaRow>
             </div>
-            <div className="panel p-8 border-[var(--border)] shadow-lg">
-              <p className="text-sm font-semibold text-[var(--accent-foreground)] uppercase tracking-wide">
-                Come funziona
-              </p>
-              <ul className="mt-4 space-y-3 text-sm">
+
+            {/* Info Box */}
+            <div className="panel p-8 border-[var(--border)] shadow-lg backdrop-blur-md bg-[var(--panel)]/80">
+              <div className="flex items-center gap-3 mb-4">
+                <Dumbbell className="h-6 w-6 text-[var(--brand)]" />
+                <p className="text-sm font-semibold text-[var(--accent-foreground)] uppercase tracking-wide">
+                  Come iniziare
+                </p>
+              </div>
+              <ul className="space-y-4 text-sm">
                 <li className="flex gap-3">
                   <span className="font-semibold text-[var(--brand)]">1.</span>
                   <span>
-                    Compili il questionario iniziale e mi racconti obiettivi,
-                    disponibilita e eventuali limitazioni.
+                    Scegli il pacchetto che preferisci qui sotto.
                   </span>
                 </li>
                 <li className="flex gap-3">
                   <span className="font-semibold text-[var(--brand)]">2.</span>
                   <span>
-                    Definiamo il percorso piu adatto e ricevi il tuo primo
-                    programma personalizzato.
+                    Acquista in sicurezza tramite Stripe.
                   </span>
                 </li>
                 <li className="flex gap-3">
                   <span className="font-semibold text-[var(--brand)]">3.</span>
                   <span>
-                    Restiamo in contatto costante per monitorare progressi e
-                    modulare allenamenti e recupero.
+                    Accedi subito alla tua Area Riservata e inizia ad allenarti.
                   </span>
                 </li>
               </ul>
@@ -157,68 +125,63 @@ export default function PackagesPage() {
           </div>
         </Section>
 
-        <Section className="section">
+        {/* Dynamic Packages Grid */}
+        <Section className="section mt-20">
           <div className="grid gap-8 md:grid-cols-2 xl:grid-cols-3">
-            {packages.map((pkg) => (
+            {allPackages.map((pkg) => (
               <Card
-                key={pkg.name}
-                className={`h-full border-[var(--border)] bg-[var(--panel)] text-[var(--accent-foreground)] backdrop-blur transition-all duration-200 ${pkg.highlight
-                  ? "ring-2 ring-[var(--brand)] shadow-2xl md:-translate-y-2"
-                  : "shadow-lg"
-                  }`}
+                key={pkg.id}
+                className="h-full border-[var(--border)] bg-[var(--panel)] text-[var(--accent-foreground)] backdrop-blur transition-all duration-200 shadow-lg hover:shadow-xl hover:border-[var(--brand)]/50"
               >
-                <CardHeader className="border-b border-white/30 pb-6">
+                <CardHeader className="border-b border-[var(--border)] pb-6">
                   <div>
-                    <CardTitle className="text-2xl font-bold text-white">
+                    <div className="text-xs uppercase tracking-wide text-[var(--brand)] mb-2 font-bold">
+                      {pkg.levelName} - {pkg.courseName}
+                    </div>
+                    <CardTitle className="text-2xl font-bold text-[var(--foreground)]">
                       {pkg.name}
                     </CardTitle>
-                    <CardDescription className="text-sm text-[var(--muted-foreground)]">
+                    <CardDescription className="text-sm text-gray-700 mt-2 line-clamp-3">
                       {pkg.description}
                     </CardDescription>
-                  </div>
-                  <div className="text-right text-xs uppercase tracking-wide text-[var(--muted-foreground)]">
-                    {pkg.duration}
                   </div>
                 </CardHeader>
                 <CardContent className="space-y-6 py-6">
                   <div>
                     <p className="text-4xl font-extrabold text-[var(--brand)]">
-                      {pkg.price}
+                      {pkg.price ? `€${pkg.price}` : 'Gratis'}
                     </p>
-                    <p className="text-sm text-[var(--muted-foreground)]">
-                      {pkg.billing}
+                    <p className="text-xs text-gray-600 uppercase mt-1">
+                      Accesso completo
                     </p>
                   </div>
-                  <ul className="space-y-3 text-sm">
-                    {pkg.features.map((feature) => (
-                      <li key={feature} className="flex items-start gap-3">
-                        <Check className="mt-1 h-4 w-4 text-[var(--brand)]" />
-                        <span>{feature}</span>
-                      </li>
-                    ))}
-                  </ul>
                 </CardContent>
                 <CardFooter className="mt-auto pb-6">
-                  <CtaWhatsApp
-                    phone={site.phone}
-                    message={`Ciao Rita! Vorrei attivare il pacchetto ${pkg.name}.`}
-                    className="w-full justify-center"
-                  >
-                    {pkg.cta}
-                  </CtaWhatsApp>
+                  <div className="w-full">
+                    <BuyButton
+                      packageId={pkg.id}
+                      price={pkg.price}
+                      customLabel="Acquista Ora"
+                    />
+                  </div>
                 </CardFooter>
               </Card>
             ))}
           </div>
+
+          {allPackages.length === 0 && (
+            <div className="text-center py-20 text-[var(--muted-foreground)]">
+              Al momento non ci sono pacchetti disponibili. Torna a trovarci presto!
+            </div>
+          )}
         </Section>
 
-        <Section className="section">
-          <div className="panel p-8 md:p-12 text-center space-y-6 border-[var(--border)]">
+        <Section className="section mt-12">
+          <div className="panel p-8 md:p-12 text-center space-y-6 border-[var(--border)] bg-[var(--panel)]/50">
             <h2 className="h2 text-[var(--accent-foreground)]">Hai dubbi o esigenze particolari?</h2>
             <p className="mx-auto max-w-2xl text-[var(--accent-foreground)]">
               Possiamo costruire un percorso completamente personalizzato anche
-              oltre i pacchetti indicati. Raccontami da dove parti, che
-              risultati desideri e troviamo la strategia migliore per te.
+              oltre i pacchetti indicati.
             </p>
             <CtaRow>
               <CtaWhatsApp
