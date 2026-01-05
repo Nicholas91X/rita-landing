@@ -1,11 +1,12 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Level } from '@/app/actions/content'
 import { Card, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
 import Image from 'next/image'
+import { useSearchParams } from 'next/navigation'
 import { CheckCircle2, PlayCircle, Dumbbell, Compass } from 'lucide-react'
 import BuyButton from '@/components/BuyButton'
 import Section from '@/components/Section'
@@ -21,6 +22,45 @@ type Tab = 'my-workouts' | 'discover'
 
 export default function DashboardClient({ levels }: { levels: Level[] }) {
     const [activeTab, setActiveTab] = useState<Tab>('my-workouts')
+    const searchParams = useSearchParams()
+
+    // Auto-select tab logic
+    useEffect(() => {
+        const pkgId = searchParams.get('packageId')
+        if (pkgId) {
+            // Find the package
+            let foundPkg = null
+            for (const level of levels) {
+                for (const course of level.courses) {
+                    for (const p of course.packages) {
+                        if (p.id === pkgId) {
+                            foundPkg = p
+                            break
+                        }
+                    }
+                    if (foundPkg) break
+                }
+                if (foundPkg) break
+            }
+
+            if (foundPkg) {
+                // Switch tab
+                const targetTab = foundPkg.isPurchased ? 'my-workouts' : 'discover'
+                setActiveTab(targetTab)
+
+                // Scroll to element after a slight delay to allow render
+                setTimeout(() => {
+                    const el = document.getElementById(`package-${pkgId}`)
+                    if (el) {
+                        el.scrollIntoView({ behavior: 'smooth', block: 'center' })
+                        // Add temporary highlight effect
+                        el.classList.add('ring-4', 'ring-[var(--brand)]')
+                        setTimeout(() => el.classList.remove('ring-4', 'ring-[var(--brand)]'), 2000)
+                    }
+                }, 100) // Small delay for tab switch
+            }
+        }
+    }, [searchParams, levels])
 
     // Filter logic
     const filteredLevels = levels.map(level => {
@@ -34,9 +74,6 @@ export default function DashboardClient({ levels }: { levels: Level[] }) {
 
         return { ...level, courses: filteredCourses };
     }).filter(level => level.courses.length > 0);
-
-    // Auto-switch to 'discover' if user has no purchases and is on 'my-workouts' initially?
-    // Better to let them see the empty state so they know they need to buy.
 
     return (
         <div className="pb-20">

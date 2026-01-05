@@ -12,8 +12,8 @@ import { CtaRow, CtaWhatsApp } from "@/components/Cta";
 import { site } from "@/content/it";
 import { Dumbbell } from "lucide-react";
 import SideMarquees from "@/components/SideMarquees";
+import Link from "next/link";
 import { getPublicContentHierarchy } from "../actions/content";
-import BuyButton from "@/components/BuyButton";
 
 const leftImgs = [
   "/side/left-1.jpg",
@@ -158,11 +158,12 @@ export default async function PackagesPage() {
                 </CardContent>
                 <CardFooter className="mt-auto pb-6">
                   <div className="w-full">
-                    <BuyButton
-                      packageId={pkg.id}
-                      price={pkg.price}
-                      customLabel="Acquista Ora"
-                    />
+                    <Link
+                      href={`/dashboard?packageId=${pkg.id}`}
+                      className="inline-flex w-full items-center justify-center rounded-full bg-[var(--foreground)] px-4 py-3 text-sm font-semibold text-[var(--background)] transition-transform hover:scale-[1.02] hover:opacity-90 active:scale-[0.98]"
+                    >
+                      Vai al pacchetto
+                    </Link>
                   </div>
                 </CardFooter>
               </Card>
