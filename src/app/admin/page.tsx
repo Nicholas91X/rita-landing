@@ -19,14 +19,18 @@ export default async function AdminPage() {
         <main className="min-h-screen bg-[var(--bg)] pb-20">
             <div className="bg-slate-900 text-white py-12 mb-8">
                 <Section>
-                    <h1 className="text-3xl font-bold">Pannello Super Admin</h1>
-                    <p className="opacity-70">Carica nuovi contenuti e gestisci i video.</p>
+                    <div className="container mx-auto px-4 md:px-8">
+                        <h1 className="text-3xl font-bold">Pannello Super Admin</h1>
+                        <p className="opacity-70">Carica nuovi contenuti e gestisci i video.</p>
+                    </div>
                 </Section>
             </div>
 
             <Section>
-                <div className="grid grid-cols-1 gap-8">
-                    <AdminDashboardClient packages={packages} libraryId={libraryId} stats={stats} />
+                <div className="container mx-auto px-4 md:px-8">
+                    <div className="grid grid-cols-1 gap-8">
+                        <AdminDashboardClient packages={packages} libraryId={libraryId} stats={stats} />
+                    </div>
                 </div>
             </Section>
         </main>

@@ -1,18 +1,18 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { createBunnyVideo, saveVideoToDb, getAdminVideos, deleteVideo, updateVideo } from '@/app/actions/admin'
 import AdminStats from './AdminStats' // Import Stats
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Loader2, UploadCloud, CheckCircle, AlertCircle, Trash2, Edit2, Save, X, PlayCircle } from 'lucide-react'
+import { Loader2, UploadCloud, CheckCircle, AlertCircle, Trash2, Edit2, Save, X, PlayCircle, Video } from 'lucide-react'
 
 type Package = {
     id: string
     name: string
 }
 
-type Video = {
+
+type VideoRecord = {
     id: string
     title: string
     bunny_video_id: string
@@ -44,30 +44,30 @@ export default function AdminDashboardClient({ packages, libraryId, stats }: { p
     const [status, setStatus] = useState<'idle' | 'creating' | 'uploading' | 'saving' | 'success' | 'error'>('idle')
 
     // Management State
-    const [videos, setVideos] = useState<Video[]>([])
+    const [videos, setVideos] = useState<VideoRecord[]>([])
     const [loadingVideos, setLoadingVideos] = useState(true)
     const [filterPackage, setFilterPackage] = useState('')
     const [editingVideo, setEditingVideo] = useState<string | null>(null) // Video ID being edited
     const [editForm, setEditForm] = useState({ title: '', packageId: '' })
 
 
-    const fetchVideos = async () => {
+    const fetchVideos = useCallback(async () => {
         try {
             setLoadingVideos(true)
             const data = await getAdminVideos(filterPackage || undefined)
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            setVideos(data as any as Video[])
+            setVideos(data as any as VideoRecord[])
         } catch (error) {
             console.error('Failed to fetch videos', error)
         } finally {
             setLoadingVideos(false)
         }
-    }
+    }, [filterPackage])
 
     // Initial fetch and on filter change
     useEffect(() => {
         fetchVideos()
-    }, [filterPackage])
+    }, [fetchVideos])
 
     const handleUpload = async () => {
         if (!title || !selectedPackage || !file) return
@@ -130,7 +130,7 @@ export default function AdminDashboardClient({ packages, libraryId, stats }: { p
         }
     }
 
-    const startEdit = (video: Video) => {
+    const startEdit = (video: VideoRecord) => {
         setEditingVideo(video.id)
         setEditForm({ title: video.title, packageId: video.package_id })
     }
@@ -155,201 +155,246 @@ export default function AdminDashboardClient({ packages, libraryId, stats }: { p
     }
 
     return (
-        <div className="space-y-12">
+        <div className="space-y-8 animate-in fade-in duration-500">
             {/* --- STATS SECTION --- */}
-            {stats && <AdminStats stats={stats} />}
+            <div className="mb-12">
+                <h2 className="text-lg font-semibold text-muted-foreground mb-4 tracking-tight">Panoramica Attività</h2>
+                {stats && <AdminStats stats={stats} />}
+            </div>
 
-            {/* --- UPLOAD SECTION --- */}
-            <Card className="max-w-xl mx-auto mt-8 relative overflow-hidden">
-                {status === 'creating' || status === 'uploading' || status === 'saving' ? (
-                    <div className="absolute inset-0 bg-white/80 backdrop-blur-sm z-50 flex flex-col items-center justify-center p-8">
-                        <Loader2 className="h-12 w-12 text-[var(--brand)] animate-spin mb-4" />
-                        <p className="text-xl font-semibold animate-pulse">
-                            {status === 'creating' && 'Inizializzazione...'}
-                            {status === 'uploading' && 'Caricamento su Bunny...'}
-                            {status === 'saving' && 'Salvataggio nel Database...'}
-                        </p>
-                    </div>
-                ) : null}
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
 
-                <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                        <UploadCloud className="h-6 w-6" />
-                        Carica Nuova Lezione
-                    </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                    {status === 'success' && (
-                        <div className="bg-green-100 text-green-700 p-4 rounded-xl flex items-center gap-2 mb-4">
-                            <CheckCircle className="h-5 w-5" />
-                            Video caricato e salvato con successo!
+                {/* --- LEFT COLUMN: UPLOAD (Sticky on Desktop) --- */}
+                <div className="lg:col-span-4 lg:sticky lg:top-8">
+                    <div className="bg-card rounded-xl border shadow-sm p-6 space-y-6">
+                        <div className="space-y-2">
+                            <h3 className="text-xl font-bold flex items-center gap-2">
+                                <UploadCloud className="h-5 w-5 text-primary" />
+                                Carica Video
+                            </h3>
+                            <p className="text-sm text-muted-foreground">
+                                Aggiungi una nuova lezione alla libreria.
+                            </p>
                         </div>
-                    )}
 
-                    {status === 'error' && (
-                        <div className="bg-red-100 text-red-700 p-4 rounded-xl flex items-center gap-2 mb-4">
-                            <AlertCircle className="h-5 w-5" />
-                            Errore durante il caricamento. Riprova.
-                        </div>
-                    )}
+                        {/* Status Messages */}
+                        {status === 'creating' || status === 'uploading' || status === 'saving' ? (
+                            <div className="p-6 bg-primary/5 rounded-lg border border-primary/10 flex flex-col items-center justify-center text-center space-y-3 animate-pulse">
+                                <Loader2 className="h-8 w-8 text-primary animate-spin" />
+                                <p className="text-sm font-medium text-primary">
+                                    {status === 'creating' && '1/3 Creazione record...'}
+                                    {status === 'uploading' && '2/3 Upload su BunnyCDN...'}
+                                    {status === 'saving' && '3/3 Salvataggio DB...'}
+                                </p>
+                            </div>
+                        ) : status === 'success' ? (
+                            <div className="p-4 bg-green-500/10 text-green-600 rounded-lg flex items-center gap-3 border border-green-500/20">
+                                <CheckCircle className="h-5 w-5 shrink-0" />
+                                <div className="text-sm font-medium">Video pubblicato online!</div>
+                            </div>
+                        ) : status === 'error' ? (
+                            <div className="p-4 bg-red-500/10 text-red-600 rounded-lg flex items-center gap-3 border border-red-500/20">
+                                <AlertCircle className="h-5 w-5 shrink-0" />
+                                <div className="text-sm font-medium">Errore durante l&apos;upload.</div>
+                            </div>
+                        ) : null}
 
-                    <div className="space-y-2">
-                        <label htmlFor="title" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-                            Titolo Video
-                        </label>
-                        <input
-                            id="title"
-                            value={title}
-                            onChange={(e) => setTitle(e.target.value)}
-                            placeholder="Es. Lezione 1: Fondamentali"
-                            className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                        />
-                    </div>
+                        {/* Form */}
+                        <div className="space-y-4">
+                            <div className="space-y-2">
+                                <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                                    Titolo
+                                </label>
+                                <input
+                                    value={title}
+                                    onChange={(e) => setTitle(e.target.value)}
+                                    placeholder="Es. Lezione 1: introduzione"
+                                    className="flex h-10 w-full rounded-md border border-input bg-background/50 px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 transition-all font-medium"
+                                />
+                            </div>
 
-                    <div className="space-y-2">
-                        <label htmlFor="package" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-                            Pacchetto
-                        </label>
-                        <select
-                            id="package"
-                            value={selectedPackage}
-                            onChange={(e) => setSelectedPackage(e.target.value)}
-                            className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                        >
-                            <option value="" disabled>Seleziona un pacchetto</option>
-                            {packages.map(p => (
-                                <option key={p.id} value={p.id}>{p.name}</option>
-                            ))}
-                        </select>
-                    </div>
-
-                    <div className="space-y-2">
-                        <label htmlFor="file" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-                            File Video
-                        </label>
-                        <div className="border-2 border-dashed border-[var(--border)] rounded-xl p-8 text-center hover:bg-[var(--panel)] transition-colors cursor-pointer relative">
-                            <input
-                                id="file"
-                                type="file"
-                                accept="video/*"
-                                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFile(e.target.files?.[0] || null)}
-                                className="absolute inset-0 opacity-0 cursor-pointer"
-                            />
-                            {file ? (
-                                <div className="text-[var(--brand)] font-semibold">
-                                    {file.name}
+                            <div className="space-y-2">
+                                <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                                    Pacchetto
+                                </label>
+                                <div className="relative">
+                                    <select
+                                        value={selectedPackage}
+                                        onChange={(e) => setSelectedPackage(e.target.value)}
+                                        className="flex h-10 w-full appearance-none rounded-md border border-input bg-background/50 px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 font-medium"
+                                    >
+                                        <option value="" disabled>Seleziona destinazione</option>
+                                        {packages.map(p => (
+                                            <option key={p.id} value={p.id}>{p.name}</option>
+                                        ))}
+                                    </select>
+                                    <div className="absolute right-3 top-3 pointer-events-none opacity-50">
+                                        <svg width="10" height="6" viewBox="0 0 10 6" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M1 1L5 5L9 1" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
+                                    </div>
                                 </div>
-                            ) : (
-                                <div className="text-[var(--muted-foreground)]">
-                                    <UploadCloud className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                                    <p>Clicca o trascina il video qui</p>
+                            </div>
+
+                            <div className="space-y-2">
+                                <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                                    Media
+                                </label>
+                                <div
+                                    className={`
+                                        border-2 border-dashed rounded-xl p-8 text-center transition-all cursor-pointer relative group
+                                        ${file ? 'border-primary bg-primary/5' : 'border-muted-foreground/25 hover:border-primary/50 hover:bg-neutral-50'}
+                                    `}
+                                >
+                                    <input
+                                        type="file"
+                                        accept="video/*"
+                                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFile(e.target.files?.[0] || null)}
+                                        className="absolute inset-0 opacity-0 cursor-pointer z-10"
+                                    />
+                                    {file ? (
+                                        <div className="text-primary font-semibold flex flex-col items-center gap-2">
+                                            <Video className="h-8 w-8" />
+                                            <span className="text-sm truncate max-w-full px-2">{file.name}</span>
+                                        </div>
+                                    ) : (
+                                        <div className="text-muted-foreground group-hover:text-primary transition-colors flex flex-col items-center gap-2">
+                                            <div className="h-10 w-10 rounded-full bg-muted flex items-center justify-center group-hover:bg-white group-hover:shadow-sm transition-all">
+                                                <UploadCloud className="h-5 w-5" />
+                                            </div>
+                                            <p className="text-sm font-medium">Clicca per selezionare</p>
+                                        </div>
+                                    )}
                                 </div>
-                            )}
+                            </div>
+
+                            <Button
+                                onClick={handleUpload}
+                                disabled={!title || !selectedPackage || !file || (status !== 'idle' && status !== 'success' && status !== 'error')}
+                                className="w-full h-11 bg-primary text-primary-foreground hover:opacity-90 font-semibold shadow-md mt-4"
+                            >
+                                {status === 'uploading' ? 'Caricamento...' : 'Pubblica Video'}
+                            </Button>
                         </div>
-                    </div>
-
-                    <Button
-                        onClick={handleUpload}
-                        disabled={!title || !selectedPackage || !file || status !== 'idle' && status !== 'success' && status !== 'error'}
-                        className="w-full bg-[var(--brand)] text-white hover:opacity-90"
-                    >
-                        Avvia Upload
-                    </Button>
-                </CardContent>
-            </Card>
-
-            {/* --- MANAGEMENT SECTION --- */}
-            <div className="max-w-4xl mx-auto pb-20">
-                <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-6 gap-4">
-                    <h2 className="text-2xl font-bold">Gestione Contenuti</h2>
-
-                    <div className="flex items-center gap-2 w-full md:w-auto">
-                        <span className="text-sm font-medium whitespace-nowrap">Filtra per:</span>
-                        <select
-                            value={filterPackage}
-                            onChange={(e) => setFilterPackage(e.target.value)}
-                            className="flex h-9 w-full md:w-[250px] rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-                        >
-                            <option value="">Tutti i Pacchetti</option>
-                            {packages.map(p => (
-                                <option key={p.id} value={p.id}>{p.name}</option>
-                            ))}
-                        </select>
                     </div>
                 </div>
 
-                <div className="bg-card text-card-foreground rounded-xl border shadow-sm overflow-hidden">
-                    {loadingVideos ? (
-                        <div className="p-12 flex justify-center">
-                            <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+                {/* --- RIGHT COLUMN: LIST --- */}
+                <div className="lg:col-span-8 space-y-6">
+                    <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 bg-card p-4 rounded-xl border shadow-sm">
+                        <div>
+                            <h2 className="text-xl font-bold">Libreria Contenuti</h2>
+                            <p className="text-sm text-muted-foreground">{videos.length} video totali</p>
                         </div>
-                    ) : videos.length === 0 ? (
-                        <div className="p-12 text-center text-muted-foreground">
-                            Nessun video trovato.
+
+                        <div className="flex items-center gap-2 w-full md:w-auto">
+                            <select
+                                value={filterPackage}
+                                onChange={(e) => setFilterPackage(e.target.value)}
+                                className="flex h-10 w-full md:w-[220px] rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                            >
+                                <option value="">Tutti i Pacchetti</option>
+                                {packages.map(p => (
+                                    <option key={p.id} value={p.id}>{p.name}</option>
+                                ))}
+                            </select>
                         </div>
-                    ) : (
-                        <div className="divide-y">
-                            {videos.map(video => (
-                                <div key={video.id} className="p-4 flex flex-col md:flex-row items-start md:items-center gap-4 hover:bg-[var(--panel)] transition-colors">
-                                    <div className="h-10 w-10 bg-zinc-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                                        <PlayCircle className="h-5 w-5 text-zinc-400" />
-                                    </div>
+                    </div>
 
-                                    <div className="flex-1 min-w-0 space-y-1">
-                                        {editingVideo === video.id ? (
-                                            <input
-                                                value={editForm.title}
-                                                onChange={(e) => setEditForm({ ...editForm, title: e.target.value })}
-                                                className="flex h-8 w-full rounded-md border border-input bg-background px-3 text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-                                            />
-                                        ) : (
-                                            <p className="font-medium truncate">{video.title}</p>
-                                        )}
-
-                                        {editingVideo === video.id ? (
-                                            <select
-                                                value={editForm.packageId}
-                                                onChange={(e) => setEditForm({ ...editForm, packageId: e.target.value })}
-                                                className="flex h-8 w-full md:w-[200px] rounded-md border border-input bg-background px-2 text-xs focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-                                            >
-                                                {packages.map(p => (
-                                                    <option key={p.id} value={p.id}>{p.name}</option>
-                                                ))}
-                                            </select>
-                                        ) : (
-                                            <p className="text-sm text-muted-foreground flex items-center gap-2">
-                                                <span className="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 border-transparent bg-secondary text-secondary-foreground hover:bg-secondary/80">
-                                                    {video.packages?.name || 'Nessun Pacchetto'}
-                                                </span>
-                                            </p>
-                                        )}
-                                    </div>
-
-                                    <div className="flex items-center gap-2 self-end md:self-center">
-                                        {editingVideo === video.id ? (
-                                            <>
-                                                <Button size="sm" variant="ghost" onClick={cancelEdit} className="h-8 w-8 p-0">
-                                                    <X className="h-4 w-4" />
-                                                </Button>
-                                                <Button size="sm" onClick={() => handleUpdate(video.id)} className="h-8 w-8 p-0 bg-green-600 hover:bg-green-700 text-white">
-                                                    <Save className="h-4 w-4" />
-                                                </Button>
-                                            </>
-                                        ) : (
-                                            <>
-                                                <Button size="sm" variant="ghost" onClick={() => startEdit(video)} className="h-8 w-8 p-0 hover:bg-zinc-100">
-                                                    <Edit2 className="h-4 w-4 text-zinc-500" />
-                                                </Button>
-                                                <Button size="sm" variant="ghost" onClick={() => handleDelete(video.id)} className="h-8 w-8 p-0 hover:bg-red-50">
-                                                    <Trash2 className="h-4 w-4 text-red-500" />
-                                                </Button>
-                                            </>
-                                        )}
-                                    </div>
+                    <div className="bg-card rounded-xl border shadow-sm overflow-hidden min-h-[400px]">
+                        <div className="overflow-x-auto">
+                            <div className="min-w-[900px]">
+                                <div className="grid grid-cols-12 gap-4 border-b bg-muted/40 px-6 py-4 text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                                    <div className="col-span-6 md:col-span-6 pl-2">Video</div>
+                                    <div className="col-span-4 md:col-span-4">Pacchetto</div>
+                                    <div className="col-span-2 md:col-span-2 text-right pr-4">Azioni</div>
                                 </div>
-                            ))}
+
+                                {loadingVideos ? (
+                                    <div className="p-20 flex flex-col items-center justify-center text-muted-foreground gap-3">
+                                        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                                        <span className="text-sm font-medium">Caricamento libreria...</span>
+                                    </div>
+                                ) : videos.length === 0 ? (
+                                    <div className="p-20 text-center text-muted-foreground flex flex-col items-center gap-3">
+                                        <div className="h-12 w-12 rounded-full bg-muted flex items-center justify-center">
+                                            <Video className="h-6 w-6 opacity-50" />
+                                        </div>
+                                        <p>Nessun video trovato in questo pacchetto.</p>
+                                    </div>
+                                ) : (
+                                    <div className="divide-y divide-border/50">
+                                        {videos.map(video => (
+                                            <div key={video.id} className="grid grid-cols-12 gap-4 px-6 py-4 items-center hover:bg-muted/30 transition-colors group">
+
+                                                {/* Title Column */}
+                                                <div className="col-span-6 md:col-span-6 flex items-center gap-4 pl-2">
+                                                    <div className="h-10 w-10 rounded-lg bg-zinc-100 flex items-center justify-center shrink-0 border border-zinc-200 shadow-sm">
+                                                        <PlayCircle className="h-5 w-5 text-zinc-400 group-hover:text-primary transition-colors" />
+                                                    </div>
+
+                                                    {editingVideo === video.id ? (
+                                                        <input
+                                                            value={editForm.title}
+                                                            onChange={(e) => setEditForm({ ...editForm, title: e.target.value })}
+                                                            className="flex h-9 w-full min-w-0 rounded-md border border-input bg-background/50 px-3 text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring shadow-sm"
+                                                            autoFocus
+                                                        />
+                                                    ) : (
+                                                        <div className="flex flex-col min-w-0">
+                                                            <span className="font-medium text-sm text-foreground/90 break-words" title={video.title}>
+                                                                {video.title}
+                                                            </span>
+                                                        </div>
+                                                    )}
+                                                </div>
+
+                                                {/* Package Column */}
+                                                <div className="col-span-4 md:col-span-4 flex items-center">
+                                                    {editingVideo === video.id ? (
+                                                        <select
+                                                            value={editForm.packageId}
+                                                            onChange={(e) => setEditForm({ ...editForm, packageId: e.target.value })}
+                                                            className="flex h-9 w-full rounded-md border border-input bg-background/50 px-2 text-sm focus-visible:outline-none focus:ring-1 focus:ring-ring shadow-sm"
+                                                        >
+                                                            {packages.map(p => (
+                                                                <option key={p.id} value={p.id}>{p.name}</option>
+                                                            ))}
+                                                        </select>
+                                                    ) : (
+                                                        <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-blue-50 text-blue-700 border border-blue-100 break-words whitespace-normal text-center leading-tight">
+                                                            {video.packages?.name || 'Nessun Pacchetto'}
+                                                        </span>
+                                                    )}
+                                                </div>
+
+                                                {/* Actions Column */}
+                                                <div className="col-span-2 md:col-span-2 flex items-center justify-end gap-2 pr-2">
+                                                    {editingVideo === video.id ? (
+                                                        <>
+                                                            <Button size="icon" variant="ghost" onClick={cancelEdit} className="h-8 w-8 text-neutral-500 hover:text-neutral-700">
+                                                                <X className="h-4 w-4" />
+                                                            </Button>
+                                                            <Button size="icon" onClick={() => handleUpdate(video.id)} className="h-8 w-8 bg-green-600 hover:bg-green-700 text-white rounded-md shadow-sm">
+                                                                <Save className="h-4 w-4" />
+                                                            </Button>
+                                                        </>
+                                                    ) : (
+                                                        <div className="flex items-center opacity-70 group-hover:opacity-100 transition-opacity">
+                                                            <Button size="icon" variant="ghost" onClick={() => startEdit(video)} className="h-8 w-8 hover:bg-blue-50 hover:text-blue-600 rounded-md">
+                                                                <Edit2 className="h-4 w-4" />
+                                                            </Button>
+                                                            <Button size="icon" variant="ghost" onClick={() => handleDelete(video.id)} className="h-8 w-8 hover:bg-red-50 hover:text-red-600 rounded-md">
+                                                                <Trash2 className="h-4 w-4" />
+                                                            </Button>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
                         </div>
-                    )}
+                    </div>
                 </div>
             </div>
         </div>
