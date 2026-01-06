@@ -334,10 +334,10 @@ export async function getStripeDashboardData() {
     if (!isSuperAdmin) throw new Error('Unauthorized')
 
     try {
-        const [balance, payments, subscriptions] = await Promise.all([
+        const [balance, charges, subscriptions] = await Promise.all([
             stripe.balance.retrieve(),
-            stripe.paymentIntents.list({ limit: 10 }),
-            stripe.subscriptions.list({ limit: 10, expand: ['data.customer'] })
+            stripe.charges.list({ limit: 15, expand: ['data.customer'] }),
+            stripe.subscriptions.list({ limit: 15, status: 'all', expand: ['data.customer'] })
         ])
 
         return {
@@ -346,13 +346,14 @@ export async function getStripeDashboardData() {
                 pending: balance.pending.reduce((acc, b) => acc + b.amount, 0) / 100,
                 currency: balance.available[0]?.currency || 'eur'
             },
-            payments: payments.data.map(p => ({
-                id: p.id,
-                amount: p.amount / 100,
-                currency: p.currency,
-                status: p.status,
-                email: p.receipt_email || (typeof p.customer === 'string' ? p.customer : ''),
-                created: p.created
+            payments: charges.data.map(c => ({
+                id: c.id,
+                amount: c.amount / 100,
+                currency: c.currency,
+                status: c.refunded ? 'refunded' : (c.status === 'succeeded' ? 'succeeded' : c.status),
+                email: c.billing_details?.email || (c.customer && typeof c.customer !== 'string' ? (c.customer as Stripe.Customer).email : ''),
+                created: c.created,
+                refunded: c.refunded
             })),
             subscriptions: subscriptions.data.map(s => ({
                 id: s.id,
@@ -360,7 +361,7 @@ export async function getStripeDashboardData() {
                 amount: s.items.data[0]?.price.unit_amount ? s.items.data[0].price.unit_amount / 100 : 0,
                 interval: s.items.data[0]?.price.recurring?.interval || 'month',
                 email: (s.customer as Stripe.Customer)?.email || '',
-                next_invoice: (s as any).current_period_end
+                next_invoice: (s as any).current_period_end || s.ended_at || s.created
             }))
         }
     } catch (error) {

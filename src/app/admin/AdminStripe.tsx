@@ -164,7 +164,9 @@ export default function AdminStripe() {
                                             </td>
                                             <td className="px-6 py-4 text-right">
                                                 <span className={`px-2 py-0.5 rounded-full text-[10px] uppercase font-bold ${p.status === 'succeeded'
-                                                        ? 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20'
+                                                    ? 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20'
+                                                    : p.status === 'refunded'
+                                                        ? 'bg-rose-500/10 text-rose-500 border border-rose-500/20'
                                                         : 'bg-amber-500/10 text-amber-500 border border-amber-500/20'
                                                     }`}>
                                                     {p.status}
@@ -187,26 +189,42 @@ export default function AdminStripe() {
 
                     <div className="space-y-3">
                         {data.subscriptions.map((s) => (
-                            <div key={s.id} className="p-4 bg-neutral-900 border border-neutral-800 rounded-xl hover:border-neutral-700 transition-all group">
+                            <div key={s.id} className={`p-4 bg-neutral-900 border border-neutral-800 rounded-xl hover:border-neutral-700 transition-all group ${s.status === 'canceled' ? 'opacity-50' : ''}`}>
                                 <div className="flex justify-between items-start mb-3">
                                     <div className="flex items-center gap-2">
-                                        <div className="w-8 h-8 rounded-full bg-emerald-500/10 flex items-center justify-center">
-                                            <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+                                        <div className={`w-8 h-8 rounded-full flex items-center justify-center ${s.status === 'active' ? 'bg-emerald-500/10' : 'bg-neutral-800'
+                                            }`}>
+                                            {s.status === 'active' ? (
+                                                <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+                                            ) : (
+                                                <Clock className="w-4 h-4 text-neutral-500" />
+                                            )}
                                         </div>
                                         <div>
                                             <div className="text-sm font-medium">{s.email}</div>
                                             <div className="text-[10px] text-neutral-500 font-mono">{s.id}</div>
                                         </div>
                                     </div>
-                                    <span className={`px-2 py-0.5 rounded-full text-[10px] uppercase font-bold bg-emerald-500/10 text-emerald-500`}>
+                                    <span className={`px-2 py-0.5 rounded-full text-[10px] uppercase font-bold ${s.status === 'active'
+                                            ? 'bg-emerald-500/10 text-emerald-500'
+                                            : s.status === 'canceled'
+                                                ? 'bg-rose-500/10 text-rose-500'
+                                                : 'bg-neutral-800 text-neutral-400'
+                                        }`}>
                                         {s.status}
                                     </span>
                                 </div>
                                 <div className="flex justify-between items-end border-t border-neutral-800 pt-3">
                                     <div className="space-y-1">
                                         <div className="text-xs text-neutral-500 flex items-center gap-1">
-                                            <Clock className="w-3 h-3" />
-                                            Prossimo rinnovo: {formatDate(s.next_invoice)}
+                                            {s.status === 'canceled' ? (
+                                                <>Terminato / Annullato</>
+                                            ) : (
+                                                <>
+                                                    <Clock className="w-3 h-3" />
+                                                    Rinnovo: {formatDate(s.next_invoice)}
+                                                </>
+                                            )}
                                         </div>
                                         <div className="text-lg font-bold">€ {s.amount.toFixed(2)} <span className="text-[10px] text-neutral-500 font-normal">/ {s.interval === 'month' ? 'mese' : s.interval}</span></div>
                                     </div>
