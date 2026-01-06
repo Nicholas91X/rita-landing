@@ -17,11 +17,6 @@ export default function Nav() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-  // Hide Nav on dashboard and admin
-  if (pathname?.startsWith('/dashboard') || pathname?.startsWith('/admin')) {
-    return null;
-  }
-
   useEffect(() => {
     const supabase = createClient();
     const checkUser = async () => {
@@ -42,6 +37,11 @@ export default function Nav() {
       document.body.style.overflow = 'unset';
     }
   }, [isMobileMenuOpen]);
+
+  // Hide Nav on dashboard and admin - Moved after hooks to fix Rules of Hooks error
+  if (pathname?.startsWith('/dashboard') || pathname?.startsWith('/admin')) {
+    return null;
+  }
 
   const closeMenu = () => setIsMobileMenuOpen(false);
 
