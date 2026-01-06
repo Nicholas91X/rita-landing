@@ -33,12 +33,12 @@ export async function getContentHierarchy() {
 
     if (!user) redirect('/login')
 
-    // 1. Recupera gli ID dei pacchetti acquistati
+    // 1. Recupera gli ID dei pacchetti acquistati (inclusi quelli in prova)
     const { data: subs } = await supabase
         .from('user_subscriptions')
         .select('package_id')
         .eq('user_id', user.id)
-        .eq('status', 'active')
+        .in('status', ['active', 'trialing'])
 
     const purchasedIds = subs?.map(s => s.package_id) || []
 

@@ -7,12 +7,20 @@ import Socials from "@/components/Socials";
 import { createClient } from "@/utils/supabase/client";
 import { useEffect, useState } from "react";
 
+import { usePathname } from "next/navigation";
+
 const CTA_WA =
   "https://wa.me/393472292627?text=Ciao%20Rita%2C%20vorrei%20prenotare%20una%20consulenza%20gratuita";
 
 export default function Nav() {
+  const pathname = usePathname();
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  // Hide Nav on dashboard and admin
+  if (pathname?.startsWith('/dashboard') || pathname?.startsWith('/admin')) {
+    return null;
+  }
 
   useEffect(() => {
     const supabase = createClient();

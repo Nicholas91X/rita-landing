@@ -55,3 +55,39 @@ export async function createCheckoutSession(packageId: string) {
 
     return session.url
 }
+
+export async function createPortalSession() {
+    const supabase = await createClient()
+
+    // 1. Authenticate user
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) {
+        redirect('/login')
+    }
+
+    // 2. We need the Stripe Customer ID. We can get it from user_subscriptions or direct lookup
+    // Since we store subscriptions, let's find the customer_id from any active or past subscription
+    const { data: sub } = await supabase
+        .from('user_subscriptions')
+        .select('stripe_customer_id')
+        .eq('user_id', user.id)
+        .limit(1)
+        .single()
+
+    if (!sub || !sub.stripe_customer_id) {
+        throw new Error('No Stripe customer found for this user. Purchase a package first.')
+    }
+
+    const origin = (await headers()).get('origin') || 'http://localhost:3000'
+
+    const session = await stripe.billingPortal.sessions.create({
+        customer: sub.stripe_customer_id,
+        return_url: `${origin}/dashboard`,
+    })
+
+    if (!session.url) {
+        throw new Error('Failed to create portal session')
+    }
+
+    return session.url
+}
