@@ -1,9 +1,17 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { getStripeDashboardData } from '@/app/actions/admin'
+import { getStripeDashboardData, cancelSubscription } from '@/app/actions/admin'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Loader2, CreditCard, RefreshCcw, ArrowRight, User, Calendar, CheckCircle2, Clock } from 'lucide-react'
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+} from '@/components/ui/dialog'
+import { Loader2, CreditCard, RefreshCcw, ArrowRight, User, Calendar, CheckCircle2, Clock, XCircle, AlertTriangle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { toast } from 'sonner'
 
@@ -34,6 +42,9 @@ type StripeData = {
 export default function AdminStripe() {
     const [data, setData] = useState<StripeData | null>(null)
     const [loading, setLoading] = useState(true)
+    const [subscriptionToCancel, setSubscriptionToCancel] = useState<StripeData['subscriptions'][0] | null>(null)
+    const [isCancelDialogOpen, setIsCancelDialogOpen] = useState(false)
+    const [submitting, setSubmitting] = useState(false)
 
     const loadData = async () => {
         setLoading(true)
@@ -44,6 +55,26 @@ export default function AdminStripe() {
             toast.error('Errore nel caricamento dei dati Stripe')
         } finally {
             setLoading(false)
+        }
+    }
+
+    const handleCancelClick = (sub: StripeData['subscriptions'][0]) => {
+        setSubscriptionToCancel(sub)
+        setIsCancelDialogOpen(true)
+    }
+
+    const confirmCancel = async () => {
+        if (!subscriptionToCancel) return
+        setSubmitting(true)
+        try {
+            await cancelSubscription(subscriptionToCancel.id)
+            toast.success('Abbonamento annullato con successo')
+            setIsCancelDialogOpen(false)
+            loadData()
+        } catch (error) {
+            toast.error('Errore durante l\'annullamento')
+        } finally {
+            setSubmitting(false)
         }
     }
 
@@ -205,14 +236,27 @@ export default function AdminStripe() {
                                             <div className="text-[10px] text-neutral-500 font-mono">{s.id}</div>
                                         </div>
                                     </div>
-                                    <span className={`px-2 py-0.5 rounded-full text-[10px] uppercase font-bold ${s.status === 'active'
+                                    <div className="flex flex-col items-end gap-2">
+                                        <span className={`px-2 py-0.5 rounded-full text-[10px] uppercase font-bold ${s.status === 'active'
                                             ? 'bg-emerald-500/10 text-emerald-500'
                                             : s.status === 'canceled'
                                                 ? 'bg-rose-500/10 text-rose-500'
                                                 : 'bg-neutral-800 text-neutral-400'
-                                        }`}>
-                                        {s.status}
-                                    </span>
+                                            }`}>
+                                            {s.status}
+                                        </span>
+                                        {s.status === 'active' && (
+                                            <Button
+                                                variant="ghost"
+                                                size="sm"
+                                                onClick={() => handleCancelClick(s)}
+                                                className="h-7 px-2 text-[10px] text-rose-500 hover:text-rose-400 hover:bg-rose-500/5"
+                                            >
+                                                <XCircle className="w-3 h-3 mr-1" />
+                                                Annulla
+                                            </Button>
+                                        )}
+                                    </div>
                                 </div>
                                 <div className="flex justify-between items-end border-t border-neutral-800 pt-3">
                                     <div className="space-y-1">
@@ -234,6 +278,49 @@ export default function AdminStripe() {
                     </div>
                 </div>
             </div>
+
+            {/* MODAL CONFERMA CANCELLAZIONE */}
+            <Dialog open={isCancelDialogOpen} onOpenChange={setIsCancelDialogOpen}>
+                <DialogContent className="max-w-md border-neutral-800 bg-neutral-900 text-white">
+                    <DialogHeader>
+                        <div className="flex items-center gap-3 mb-2">
+                            <div className="p-2 bg-rose-500/10 rounded-lg">
+                                <AlertTriangle className="w-5 h-5 text-rose-500" />
+                            </div>
+                            <DialogTitle className="text-xl">Conferma Annullamento</DialogTitle>
+                        </div>
+                        <DialogDescription className="text-neutral-400 pt-2">
+                            Stai per annullare l'abbonamento attivo per l'utente:
+                            <div className="mt-3 p-3 bg-neutral-800/50 rounded-lg border border-neutral-800 text-neutral-200 font-medium font-mono text-xs">
+                                {subscriptionToCancel?.email}
+                            </div>
+                            <p className="mt-4 text-xs leading-relaxed">
+                                Questa azione è immediata su Stripe. L'utente perderà l'accesso ai contenuti riservati al termine del periodo corrente o immediatamente a seconda della configurazione.
+                            </p>
+                        </DialogDescription>
+                    </DialogHeader>
+                    <DialogFooter className="mt-6 gap-3 sm:gap-0">
+                        <Button
+                            variant="outline"
+                            onClick={() => setIsCancelDialogOpen(false)}
+                            className="border-neutral-700 bg-neutral-900 hover:bg-neutral-800"
+                        >
+                            Indietro
+                        </Button>
+                        <Button
+                            onClick={confirmCancel}
+                            disabled={submitting}
+                            className="bg-rose-500 hover:bg-rose-600 text-white border-none min-w-[160px]"
+                        >
+                            {submitting ? (
+                                <Loader2 className="w-4 h-4 animate-spin" />
+                            ) : (
+                                "Conferma Annullamento"
+                            )}
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         </div>
     )
 }

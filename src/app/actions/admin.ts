@@ -369,3 +369,16 @@ export async function getStripeDashboardData() {
         throw new Error('Failed to fetch Stripe data')
     }
 }
+
+export async function cancelSubscription(subscriptionId: string) {
+    const isSuperAdmin = await isAdmin()
+    if (!isSuperAdmin) throw new Error('Unauthorized')
+
+    try {
+        await stripe.subscriptions.cancel(subscriptionId)
+        return { success: true }
+    } catch (error) {
+        console.error('Stripe Cancellation Error:', error)
+        throw new Error('Impossibile annullare l\'abbonamento')
+    }
+}
