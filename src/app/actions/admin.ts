@@ -328,3 +328,43 @@ export async function getAdminStats() {
         }
     }
 }
+
+export async function getStripeDashboardData() {
+    const isSuperAdmin = await isAdmin()
+    if (!isSuperAdmin) throw new Error('Unauthorized')
+
+    try {
+        const [balance, payments, subscriptions] = await Promise.all([
+            stripe.balance.retrieve(),
+            stripe.paymentIntents.list({ limit: 10 }),
+            stripe.subscriptions.list({ limit: 10, expand: ['data.customer'] })
+        ])
+
+        return {
+            balance: {
+                available: balance.available.reduce((acc, b) => acc + b.amount, 0) / 100,
+                pending: balance.pending.reduce((acc, b) => acc + b.amount, 0) / 100,
+                currency: balance.available[0]?.currency || 'eur'
+            },
+            payments: payments.data.map(p => ({
+                id: p.id,
+                amount: p.amount / 100,
+                currency: p.currency,
+                status: p.status,
+                email: p.receipt_email || (typeof p.customer === 'string' ? p.customer : ''),
+                created: p.created
+            })),
+            subscriptions: subscriptions.data.map(s => ({
+                id: s.id,
+                status: s.status,
+                amount: s.items.data[0]?.price.unit_amount ? s.items.data[0].price.unit_amount / 100 : 0,
+                interval: s.items.data[0]?.price.recurring?.interval || 'month',
+                email: (s.customer as Stripe.Customer)?.email || '',
+                next_invoice: (s as any).current_period_end
+            }))
+        }
+    } catch (error) {
+        console.error('Stripe Error:', error)
+        throw new Error('Failed to fetch Stripe data')
+    }
+}

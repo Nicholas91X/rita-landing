@@ -4,8 +4,9 @@ import { useState, useEffect, useCallback } from 'react'
 import { createBunnyVideo, saveVideoToDb, getAdminVideos, deleteVideo, updateVideo } from '@/app/actions/admin'
 import AdminStats from './AdminStats'
 import AdminPackages from './AdminPackages'
+import AdminStripe from './AdminStripe'
 import { Button } from '@/components/ui/button'
-import { Loader2, UploadCloud, CheckCircle, AlertCircle, Trash2, Edit2, Save, X, PlayCircle, Video, Package as PackageIcon } from 'lucide-react'
+import { Loader2, UploadCloud, CheckCircle, AlertCircle, Trash2, Edit2, Save, X, PlayCircle, Video, Package as PackageIcon, CreditCard } from 'lucide-react'
 
 type Package = {
     id: string
@@ -36,7 +37,7 @@ type AdminStatsData = {
 };
 
 export default function AdminDashboardClient({ packages, libraryId, stats }: { packages: Package[], libraryId?: string, stats?: AdminStatsData }) {
-    const [activeTab, setActiveTab] = useState<'content' | 'packages'>('content')
+    const [activeTab, setActiveTab] = useState<'content' | 'packages' | 'payments'>('content')
 
     // Video State
     const [title, setTitle] = useState('')
@@ -148,11 +149,23 @@ export default function AdminDashboardClient({ packages, libraryId, stats }: { p
                     <PackageIcon className="w-4 h-4 mr-2" />
                     Pacchetti
                 </button>
+                <button
+                    onClick={() => setActiveTab('payments')}
+                    className={`flex items-center px-4 py-2 rounded-lg text-sm font-medium transition-all ${activeTab === 'payments' ? 'bg-white text-black shadow-sm border' : 'text-muted-foreground hover:text-foreground hover:bg-white/50'
+                        }`}
+                >
+                    <CreditCard className="w-4 h-4 mr-2" />
+                    Transazioni
+                </button>
             </div>
 
             {activeTab === 'packages' ? (
                 <div className="animate-in slide-in-from-bottom-4 duration-500">
                     <AdminPackages />
+                </div>
+            ) : activeTab === 'payments' ? (
+                <div className="animate-in slide-in-from-bottom-4 duration-500">
+                    <AdminStripe />
                 </div>
             ) : (
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start animate-in slide-in-from-bottom-4 duration-500">
