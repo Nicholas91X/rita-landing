@@ -2,6 +2,11 @@
 
 import { createClient } from '@/utils/supabase/server'
 import { redirect } from 'next/navigation'
+import Stripe from 'stripe'
+
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', {
+    apiVersion: '2025-12-15.clover',
+})
 
 export async function getUserSubscriptionInfo() {
     const supabase = await createClient()
@@ -15,6 +20,8 @@ export async function getUserSubscriptionInfo() {
             id, 
             status, 
             current_period_end,
+            stripe_customer_id,
+            stripe_subscription_id,
             packages ( 
                 name, 
                 description,
@@ -28,13 +35,32 @@ export async function getUserSubscriptionInfo() {
         return []
     }
 
-    // Map the data to match what the UI expects
-    return subs.map(sub => ({
-        ...sub,
-        next_invoice: sub.current_period_end,
-        amount: Number((sub.packages as any)?.price || 0),
-        interval: 'mese' // Default interval
+    // Map and fetch receipts from Stripe
+    const subsWithDetailedInfo = await Promise.all(subs.map(async (sub) => {
+        let receipt_url = null
+        if (sub.stripe_subscription_id) {
+            try {
+                const invoices = await stripe.invoices.list({
+                    subscription: sub.stripe_subscription_id,
+                    limit: 1,
+                })
+                const lastInvoice = invoices.data[0] as any
+                receipt_url = lastInvoice?.receipt_url || lastInvoice?.hosted_invoice_url
+            } catch (err) {
+                console.error('Error fetching invoice for sub:', sub.id, err)
+            }
+        }
+
+        return {
+            ...sub,
+            next_invoice: sub.current_period_end,
+            amount: Number((sub.packages as any)?.price || 0),
+            interval: 'mese',
+            receipt_url
+        }
     }))
+
+    return subsWithDetailedInfo
 }
 
 export async function getUserProfile() {

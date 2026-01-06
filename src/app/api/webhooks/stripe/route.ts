@@ -44,6 +44,7 @@ export async function POST(req: Request) {
                     user_id: userId,
                     package_id: packageId,
                     status: 'active',
+                    stripe_customer_id: session.customer as string,
                     stripe_subscription_id: session.subscription as string,
                     current_period_end: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
                 }, {

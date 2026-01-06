@@ -2,29 +2,38 @@
 
 import { useState, useEffect } from 'react'
 import { getUserSubscriptionInfo } from '@/app/actions/user'
-import { createPortalSession } from '@/app/actions/stripe'
+import { createPortalSession, cancelSubscription, requestRefund } from '@/app/actions/stripe'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Loader2, CreditCard, ExternalLink, Calendar, CheckCircle2, Clock } from 'lucide-react'
+import { Loader2, CreditCard, ExternalLink, Calendar, CheckCircle2, Clock, Receipt, RefreshCcw, XCircle, AlertCircle } from 'lucide-react'
 import { toast } from 'sonner'
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { Textarea } from '@/components/ui/textarea'
 
 export default function BillingSection() {
     const [subscriptions, setSubscriptions] = useState<any[]>([])
     const [loading, setLoading] = useState(true)
     const [portalLoading, setPortalLoading] = useState(false)
+    const [actionLoading, setActionLoading] = useState<string | null>(null)
+
+    // Refund Modal State
+    const [refundDialog, setRefundDialog] = useState<{ open: boolean, subId: string | null }>({ open: false, subId: null })
+    const [refundReason, setRefundReason] = useState('')
+    const [isSubmittingRefund, setIsSubmittingRefund] = useState(false)
+
+    const fetchSubs = async () => {
+        try {
+            const data = await getUserSubscriptionInfo()
+            setSubscriptions(data)
+        } catch (error) {
+            console.error('Failed to fetch subscriptions', error)
+            toast.error('Errore nel caricamento dei dati di fatturazione')
+        } finally {
+            setLoading(false)
+        }
+    }
 
     useEffect(() => {
-        const fetchSubs = async () => {
-            try {
-                const data = await getUserSubscriptionInfo()
-                setSubscriptions(data)
-            } catch (error) {
-                console.error('Failed to fetch subscriptions', error)
-                toast.error('Errore nel caricamento dei dati di fatturazione')
-            } finally {
-                setLoading(false)
-            }
-        }
         fetchSubs()
     }, [])
 
@@ -37,6 +46,35 @@ export default function BillingSection() {
             toast.error(error.message || 'Errore durante l\'apertura del portale')
         } finally {
             setPortalLoading(false)
+        }
+    }
+
+    const handleCancel = async (subId: string) => {
+        if (!confirm('Sei sicuro di voler annullare il rinnovo di questo abbonamento?')) return
+        try {
+            setActionLoading(subId)
+            await cancelSubscription(subId)
+            toast.success('Rinnovo annullato con successo')
+            fetchSubs()
+        } catch (error: any) {
+            toast.error(error.message || 'Errore durante l\'annullamento')
+        } finally {
+            setActionLoading(null)
+        }
+    }
+
+    const handleRefundSubmit = async () => {
+        if (!refundReason.trim()) return toast.error('Specifica una motivazione')
+        try {
+            setIsSubmittingRefund(true)
+            await requestRefund(refundDialog.subId!, refundReason)
+            toast.success('Richiesta di rimborso inviata correttamente')
+            setRefundDialog({ open: false, subId: null })
+            setRefundReason('')
+        } catch (error: any) {
+            toast.error(error.message || 'Errore durante la richiesta')
+        } finally {
+            setIsSubmittingRefund(false)
         }
     }
 
@@ -108,10 +146,46 @@ export default function BillingSection() {
                                 </div>
                             </div>
                         </CardContent>
-                        <CardFooter className="pt-2 pb-6 px-6">
-                            <div className="w-full flex items-center gap-2 text-[10px] text-neutral-400">
-                                <CheckCircle2 className="w-3 h-3 text-emerald-500" />
-                                Fatturato tramite Stripe
+                        <CardFooter className="pt-2 pb-6 px-6 flex flex-col gap-3">
+                            {sub.receipt_url && (
+                                <Button
+                                    variant="link"
+                                    className="p-0 h-auto text-[10px] text-brand hover:text-brand/80 flex items-center gap-1.5 self-start"
+                                    onClick={() => window.open(sub.receipt_url, '_blank')}
+                                >
+                                    <Receipt className="w-3 h-3" />
+                                    Visualizza ultima ricevuta
+                                </Button>
+                            )}
+
+                            <div className="flex items-center gap-2 w-full mt-2">
+                                {sub.status === 'active' && (
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        className="flex-1 h-8 text-[10px] border-white/10 hover:bg-white/5 text-white gap-2 font-bold"
+                                        onClick={() => handleCancel(sub.id)}
+                                        disabled={actionLoading === sub.id}
+                                    >
+                                        {actionLoading === sub.id ? <Loader2 className="w-3 h-3 animate-spin" /> : <XCircle className="w-3.5 h-3.5" />}
+                                        Annulla
+                                    </Button>
+                                )}
+
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    className="flex-1 h-8 text-[10px] border-brand/20 hover:bg-brand/5 text-brand gap-2 font-bold"
+                                    onClick={() => setRefundDialog({ open: true, subId: sub.id })}
+                                >
+                                    <RefreshCcw className="w-3.5 h-3.5" />
+                                    Rimborso
+                                </Button>
+                            </div>
+
+                            <div className="w-full flex items-center gap-2 text-[8px] text-neutral-500 mt-2 uppercase tracking-widest font-bold">
+                                <CheckCircle2 className="w-2.5 h-2.5 text-emerald-500/50" />
+                                Transazione sicura Stripe
                             </div>
                         </CardFooter>
                     </Card>
@@ -129,13 +203,65 @@ export default function BillingSection() {
                     <Clock className="w-6 h-6 text-brand" />
                 </div>
                 <div>
-                    <h4 className="font-bold text-white">Hai domande sui rimborsi?</h4>
+                    <h4 className="font-bold text-white">Politica sui Rimborsi</h4>
                     <p className="text-sm text-neutral-400 mt-1 leading-relaxed">
-                        I rimborsi possono essere gestiti contattando direttamente il nostro supporto.
-                        Ricorda che puoi annullare il rinnovo in qualsiasi momento dal portale Stripe cliccando su "Gestisci su Stripe".
+                        Le richieste di rimborso vengono elaborate manualmente entro 48 ore lavorative.
+                        Assicurati di inserire una motivazione valida per facilitare l'operazione.
+                        Ricorda che puoi annullare il rinnovo in qualsiasi momento cliccando su "Annulla" o tramite il portale Stripe.
                     </p>
                 </div>
             </div>
+
+            {/* Refund Modal */}
+            <Dialog open={refundDialog.open} onOpenChange={(open) => !open && setRefundDialog({ open: false, subId: null })}>
+                <DialogContent className="bg-neutral-950 border-white/10 text-white max-w-md rounded-3xl">
+                    <DialogHeader>
+                        <DialogTitle className="text-2xl font-black italic uppercase tracking-tighter flex items-center gap-3">
+                            <RefreshCcw className="w-6 h-6 text-brand" />
+                            Richiedi Rimborso
+                        </DialogTitle>
+                        <DialogDescription className="text-neutral-400">
+                            Spiegaci il motivo della tua richiesta di rimborso. Verrai ricontattato via email.
+                        </DialogDescription>
+                    </DialogHeader>
+
+                    <div className="py-4 space-y-4">
+                        <div className="space-y-2">
+                            <label className="text-[10px] uppercase font-bold text-neutral-500 tracking-widest ml-1">Motivazione</label>
+                            <Textarea
+                                placeholder="Esempio: Errore nell'acquisto, duplicato, etc..."
+                                className="min-h-[120px] bg-white/5 border-white/10 rounded-2xl focus:ring-brand focus:border-brand"
+                                value={refundReason}
+                                onChange={(e) => setRefundReason(e.target.value)}
+                            />
+                        </div>
+
+                        <div className="flex items-start gap-3 p-3 bg-blue-500/5 border border-blue-500/10 rounded-2xl">
+                            <AlertCircle className="w-4 h-4 text-blue-500 shrink-0 mt-0.5" />
+                            <p className="text-[10px] text-blue-500/80 leading-relaxed font-medium">
+                                Una volta inviata, la richiesta verrà esaminata dallo staff. Non è necessario inviare più richieste.
+                            </p>
+                        </div>
+                    </div>
+
+                    <DialogFooter className="gap-2 sm:gap-0">
+                        <Button
+                            variant="ghost"
+                            onClick={() => setRefundDialog({ open: false, subId: null })}
+                            className="rounded-xl"
+                        >
+                            Annulla
+                        </Button>
+                        <Button
+                            onClick={handleRefundSubmit}
+                            disabled={isSubmittingRefund || !refundReason.trim()}
+                            className="bg-brand hover:bg-brand/90 text-white font-bold rounded-xl px-8"
+                        >
+                            {isSubmittingRefund ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Invia Richiesta'}
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         </div>
     )
 }

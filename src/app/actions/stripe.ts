@@ -71,8 +71,9 @@ export async function createPortalSession() {
         .from('user_subscriptions')
         .select('stripe_customer_id')
         .eq('user_id', user.id)
+        .filter('stripe_customer_id', 'not.is', null)
         .limit(1)
-        .single()
+        .maybeSingle()
 
     if (!sub || !sub.stripe_customer_id) {
         throw new Error('No Stripe customer found for this user. Purchase a package first.')
@@ -90,4 +91,50 @@ export async function createPortalSession() {
     }
 
     return session.url
+}
+export async function requestRefund(subscriptionId: string, reason: string) {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) throw new Error('Unauthorized')
+
+    const { error } = await supabase
+        .from('refund_requests')
+        .insert({
+            user_id: user.id,
+            subscription_id: subscriptionId,
+            reason,
+            status: 'pending'
+        })
+
+    if (error) throw new Error('Errore durante la richiesta di rimborso')
+
+    return { success: true }
+}
+
+export async function cancelSubscription(subscriptionId: string) {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) throw new Error('Unauthorized')
+
+    // 1. Get subscription info
+    const { data: sub, error: subError } = await supabase
+        .from('user_subscriptions')
+        .select('stripe_subscription_id')
+        .eq('id', subscriptionId)
+        .single()
+
+    if (subError || !sub?.stripe_subscription_id) throw new Error('Abbonamento non trovato')
+
+    // 2. Cancel in Stripe (cancel at end of period)
+    await stripe.subscriptions.update(sub.stripe_subscription_id, {
+        cancel_at_period_end: true
+    })
+
+    // 3. Update status in DB
+    await supabase
+        .from('user_subscriptions')
+        .update({ status: 'canceled' })
+        .eq('id', subscriptionId)
+
+    return { success: true }
 }
