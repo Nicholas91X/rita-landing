@@ -78,3 +78,100 @@ export async function saveVideoToDb(videoData: { title: string, bunnyId: string,
     if (error) throw new Error(error.message)
     return { success: true }
 }
+
+export async function getAdminVideos(packageId?: string) {
+    const isSuperAdmin = await isAdmin()
+    if (!isSuperAdmin) throw new Error('Unauthorized')
+
+    const supabase = await createClient()
+
+    let query = supabase
+        .from('videos')
+        .select(`
+            id, 
+            title, 
+            bunny_video_id, 
+            package_id,
+            packages (
+                name
+            )
+        `)
+
+        //.order('created_at', { ascending: false }) // 'created_at' might be missing, omitting order for now
+        .limit(50) // Limit to 50 for performance safety
+
+    if (packageId) {
+        query = query.eq('package_id', packageId)
+    }
+
+    const { data: videos, error } = await query
+
+    if (error) throw new Error(error.message)
+    return videos
+}
+
+export async function deleteVideo(videoId: string) {
+    const isSuperAdmin = await isAdmin()
+    if (!isSuperAdmin) throw new Error('Unauthorized')
+
+    const supabase = await createClient()
+
+    // 1. Get Bunny ID
+    const { data: video } = await supabase
+        .from('videos')
+        .select('bunny_video_id')
+        .eq('id', videoId)
+        .single()
+
+    if (video?.bunny_video_id) {
+        // 2. Delete from Bunny
+        const libraryId = process.env.BUNNY_LIBRARY_ID?.trim()
+        const apiKey = process.env.BUNNY_LIBRARY_API_KEY?.trim() // Use correct key
+
+        if (libraryId && apiKey) {
+            try {
+                await fetch(`https://video.bunnycdn.com/library/${libraryId}/videos/${video.bunny_video_id}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'AccessKey': apiKey,
+                        'Accept': 'application/json',
+                    },
+                })
+            } catch (err) {
+                console.error('Failed to delete from Bunny:', err)
+                // Continue to delete from DB even if Bunny fails, to avoid orphan state in our DB
+            }
+        }
+    }
+
+    // 3. Delete from DB
+    const { error } = await supabase
+        .from('videos')
+        .delete()
+        .eq('id', videoId)
+
+    if (error) throw new Error(error.message)
+    return { success: true }
+}
+
+export async function updateVideo(videoId: string, data: { title: string, packageId: string }) {
+    const isSuperAdmin = await isAdmin()
+    if (!isSuperAdmin) throw new Error('Unauthorized')
+
+    const supabase = await createClient()
+
+    const { error } = await supabase
+        .from('videos')
+        .update({
+            title: data.title,
+            package_id: data.packageId
+        })
+        .eq('id', videoId)
+
+    if (error) throw new Error(error.message)
+
+    // Optional: Update Bunny Title? 
+    // We skip it for now to keep it fast, as our DB is the source of truth for the UI.
+
+    return { success: true }
+}
