@@ -16,14 +16,39 @@ export async function getAdminPackages() {
     const supabase = await createClient()
     const { data: packages, error } = await supabase
         .from('packages')
-        .select('*')
+        .select(`
+            *,
+            courses (
+                name
+            )
+        `)
         .order('name')
 
     if (error) throw new Error(error.message)
     return packages
 }
 
-export async function createPackage(data: { name: string, description: string, price: number }) {
+export async function getAdminCourses() {
+    const isSuperAdmin = await isAdmin()
+    if (!isSuperAdmin) throw new Error('Unauthorized')
+
+    const supabase = await createClient()
+    const { data: courses, error } = await supabase
+        .from('courses')
+        .select(`
+            id,
+            name,
+            levels (
+                name
+            )
+        `)
+        .order('name')
+
+    if (error) throw new Error(error.message)
+    return courses
+}
+
+export async function createPackage(data: { name: string, description: string, price: number, course_id: string }) {
     const isSuperAdmin = await isAdmin()
     if (!isSuperAdmin) throw new Error('Unauthorized')
 
@@ -51,6 +76,7 @@ export async function createPackage(data: { name: string, description: string, p
             name: data.name,
             description: data.description,
             price: data.price,
+            course_id: data.course_id,
             stripe_product_id: product.id,
             stripe_price_id: price.id
         })
@@ -59,7 +85,7 @@ export async function createPackage(data: { name: string, description: string, p
     return { success: true }
 }
 
-export async function updatePackage(id: string, data: { name: string, description: string, price: number }) {
+export async function updatePackage(id: string, data: { name: string, description: string, price: number, course_id: string }) {
     const isSuperAdmin = await isAdmin()
     if (!isSuperAdmin) throw new Error('Unauthorized')
 
@@ -110,6 +136,7 @@ export async function updatePackage(id: string, data: { name: string, descriptio
             name: data.name,
             description: data.description,
             price: data.price,
+            course_id: data.course_id,
             stripe_price_id: newStripePriceId
         })
         .eq('id', id)

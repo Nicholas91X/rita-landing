@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { createPackage, updatePackage, getAdminPackages } from '@/app/actions/admin'
+import { createPackage, updatePackage, getAdminPackages, getAdminCourses } from '@/app/actions/admin'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
@@ -24,19 +24,37 @@ type Package = {
     price: number
     stripe_product_id: string | null
     stripe_price_id: string | null
+    course_id: string | null
+    courses?: { name: string }
+}
+
+type Course = {
+    id: string
+    name: string
+    levels: { name: string }[] | { name: string } | null
 }
 
 export default function AdminPackages() {
     const [packages, setPackages] = useState<Package[]>([])
+    const [courses, setCourses] = useState<Course[]>([])
     const [loading, setLoading] = useState(true)
     const [isDialogOpen, setIsDialogOpen] = useState(false)
     const [editingPackage, setEditingPackage] = useState<Package | null>(null)
-    const [formData, setFormData] = useState({ name: '', description: '', price: 0 })
+    const [formData, setFormData] = useState({ name: '', description: '', price: 0, course_id: '' })
     const [submitting, setSubmitting] = useState(false)
 
     useEffect(() => {
-        loadPackages()
+        Promise.all([loadPackages(), loadCourses()])
     }, [])
+
+    async function loadCourses() {
+        try {
+            const data = await getAdminCourses()
+            setCourses(data as Course[])
+        } catch {
+            toast.error('Errore nel caricamento dei corsi')
+        }
+    }
 
     async function loadPackages() {
         try {
@@ -55,11 +73,12 @@ export default function AdminPackages() {
             setFormData({
                 name: pkg.name,
                 description: pkg.description || '',
-                price: pkg.price
+                price: pkg.price,
+                course_id: pkg.course_id || ''
             })
         } else {
             setEditingPackage(null)
-            setFormData({ name: '', description: '', price: 0 })
+            setFormData({ name: '', description: '', price: 0, course_id: '' })
         }
         setIsDialogOpen(true)
     }
@@ -108,7 +127,10 @@ export default function AdminPackages() {
                             <PackageIcon className="h-4 w-4 text-emerald-500" />
                         </CardHeader>
                         <CardContent>
-                            <div className="text-2xl font-bold mb-2">{pkg.name}</div>
+                            <div className="text-2xl font-bold mb-1">{pkg.name}</div>
+                            <div className="text-xs font-black text-brand uppercase tracking-widest mb-3">
+                                {pkg.courses?.name || 'Nessun Corso'}
+                            </div>
                             <p className="text-xs text-neutral-500 mb-4 h-10 overflow-hidden line-clamp-2">
                                 {pkg.description}
                             </p>
@@ -150,15 +172,20 @@ export default function AdminPackages() {
                             />
                         </div>
                         <div className="space-y-2">
-                            <label className="text-sm font-medium">Prezzo (€)</label>
-                            <Input
-                                type="number"
-                                step="0.01"
-                                value={formData.price}
-                                onChange={(e) => setFormData({ ...formData, price: parseFloat(e.target.value) })}
-                                className="bg-neutral-800 border-neutral-700"
+                            <label className="text-sm font-medium text-neutral-300">Corso Associato</label>
+                            <select
+                                value={formData.course_id}
+                                onChange={(e) => setFormData({ ...formData, course_id: e.target.value })}
+                                className="w-full bg-neutral-800 border-neutral-700 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 outline-none appearance-none"
                                 required
-                            />
+                            >
+                                <option value="" disabled>Seleziona un corso...</option>
+                                {courses.map(course => (
+                                    <option key={course.id} value={course.id}>
+                                        {course.name} ({Array.isArray(course.levels) ? course.levels[0]?.name : course.levels?.name || 'Senza Livello'})
+                                    </option>
+                                ))}
+                            </select>
                         </div>
                         <DialogFooter>
                             <Button type="button" variant="ghost" onClick={() => setIsDialogOpen(false)}>Annulla</Button>
