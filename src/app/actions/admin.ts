@@ -353,7 +353,12 @@ export async function getStripeDashboardData() {
                 status: c.refunded ? 'refunded' : (c.status === 'succeeded' ? 'succeeded' : c.status),
                 email: c.billing_details?.email || (c.customer && typeof c.customer !== 'string' ? (c.customer as Stripe.Customer).email : ''),
                 created: c.created,
-                refunded: c.refunded
+                refunded: c.refunded,
+                receipt_url: c.receipt_url,
+                card: c.payment_method_details?.card ? {
+                    brand: c.payment_method_details.card.brand,
+                    last4: c.payment_method_details.card.last4
+                } : null
             })),
             subscriptions: subscriptions.data.map(s => ({
                 id: s.id,

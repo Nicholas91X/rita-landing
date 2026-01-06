@@ -11,8 +11,9 @@ import {
     DialogHeader,
     DialogTitle,
 } from '@/components/ui/dialog'
-import { Loader2, CreditCard, RefreshCcw, ArrowRight, User, Calendar, CheckCircle2, Clock, XCircle, AlertTriangle, RotateCcw } from 'lucide-react'
+import { Loader2, CreditCard, RefreshCcw, ArrowRight, User, Calendar, CheckCircle2, Clock, XCircle, AlertTriangle, RotateCcw, Search, ExternalLink } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 import { toast } from 'sonner'
 
 type StripeData = {
@@ -28,6 +29,11 @@ type StripeData = {
         status: string
         email: string
         created: number
+        receipt_url: string | null
+        card: {
+            brand: string
+            last4: string
+        } | null
     }>
     subscriptions: Array<{
         id: string
@@ -42,6 +48,7 @@ type StripeData = {
 export default function AdminStripe() {
     const [data, setData] = useState<StripeData | null>(null)
     const [loading, setLoading] = useState(true)
+    const [searchTerm, setSearchTerm] = useState('')
     const [subscriptionToCancel, setSubscriptionToCancel] = useState<StripeData['subscriptions'][0] | null>(null)
     const [paymentToRefund, setPaymentToRefund] = useState<StripeData['payments'][0] | null>(null)
     const [isCancelDialogOpen, setIsCancelDialogOpen] = useState(false)
@@ -123,16 +130,37 @@ export default function AdminStripe() {
         })
     }
 
+    const filteredPayments = data.payments.filter(p =>
+        p.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        p.id.toLowerCase().includes(searchTerm.toLowerCase())
+    )
+
+    const filteredSubscriptions = data.subscriptions.filter(s =>
+        s.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        s.id.toLowerCase().includes(searchTerm.toLowerCase())
+    )
+
     return (
         <div className="space-y-8 animate-in fade-in duration-500">
-            <div className="flex justify-between items-center">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                 <h2 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-neutral-400">
                     Pannello Stripe
                 </h2>
-                <Button variant="outline" size="sm" onClick={loadData} className="border-neutral-700 bg-neutral-900">
-                    <RefreshCcw className="w-4 h-4 mr-2" />
-                    Aggiorna
-                </Button>
+                <div className="flex items-center gap-3 w-full sm:w-auto">
+                    <div className="relative w-full sm:w-64">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-500" />
+                        <Input
+                            placeholder="Cerca per email..."
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            className="pl-9 bg-neutral-900 border-neutral-800 focus:ring-emerald-500/20"
+                        />
+                    </div>
+                    <Button variant="outline" size="sm" onClick={loadData} className="border-neutral-700 bg-neutral-900 h-10">
+                        <RefreshCcw className="w-4 h-4 mr-2" />
+                        Aggiorna
+                    </Button>
+                </div>
             </div>
 
             {/* BALANCE OVERVIEW */}
@@ -201,19 +229,39 @@ export default function AdminStripe() {
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-neutral-800">
-                                    {data.payments.map((p) => (
+                                    {filteredPayments.map((p) => (
                                         <tr key={p.id} className="hover:bg-neutral-800/30 transition-colors">
                                             <td className="px-6 py-4 whitespace-nowrap text-neutral-400 font-mono text-[10px]">
                                                 {formatDate(p.created)}
                                             </td>
                                             <td className="px-6 py-4">
-                                                <div className="flex items-center gap-2">
-                                                    <User className="w-3 h-3 text-neutral-500" />
-                                                    <span className="truncate max-w-[150px]">{p.email || 'N/A'}</span>
+                                                <div className="flex flex-col gap-0.5">
+                                                    <div className="flex items-center gap-2">
+                                                        <User className="w-3 h-3 text-neutral-500" />
+                                                        <span className="truncate max-w-[150px] text-sm">{p.email || 'N/A'}</span>
+                                                    </div>
+                                                    {p.card && (
+                                                        <div className="flex items-center gap-1.5 text-[10px] text-neutral-500 pl-5 uppercase">
+                                                            <span>{p.card.brand}</span>
+                                                            <span>•••• {p.card.last4}</span>
+                                                        </div>
+                                                    )}
                                                 </div>
                                             </td>
-                                            <td className="px-6 py-4 font-semibold text-neutral-100">
-                                                € {p.amount.toFixed(2)}
+                                            <td className="px-6 py-4">
+                                                <div className="font-semibold text-neutral-100">
+                                                    € {p.amount.toFixed(2)}
+                                                </div>
+                                                {p.receipt_url && (
+                                                    <a
+                                                        href={p.receipt_url}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        className="text-[10px] text-emerald-500 hover:text-emerald-400 flex items-center gap-1 mt-0.5 transition-colors"
+                                                    >
+                                                        Ricevuta <ExternalLink className="w-2.5 h-2.5" />
+                                                    </a>
+                                                )}
                                             </td>
                                             <td className="px-6 py-4 text-right">
                                                 <div className="flex items-center justify-end gap-3">
@@ -240,6 +288,13 @@ export default function AdminStripe() {
                                             </td>
                                         </tr>
                                     ))}
+                                    {filteredPayments.length === 0 && (
+                                        <tr>
+                                            <td colSpan={4} className="px-6 py-12 text-center text-neutral-500">
+                                                Nessuna transazione trovata
+                                            </td>
+                                        </tr>
+                                    )}
                                 </tbody>
                             </table>
                         </div>
@@ -254,7 +309,7 @@ export default function AdminStripe() {
                     </div>
 
                     <div className="space-y-3">
-                        {data.subscriptions.map((s) => (
+                        {filteredSubscriptions.map((s) => (
                             <div key={s.id} className={`p-4 bg-neutral-900 border border-neutral-800 rounded-xl hover:border-neutral-700 transition-all group ${s.status === 'canceled' ? 'opacity-50' : ''}`}>
                                 <div className="flex justify-between items-start mb-3">
                                     <div className="flex items-center gap-2">
@@ -310,6 +365,11 @@ export default function AdminStripe() {
                                 </div>
                             </div>
                         ))}
+                        {filteredSubscriptions.length === 0 && (
+                            <div className="p-8 text-center text-neutral-500 bg-neutral-900 border border-neutral-800 rounded-xl">
+                                Nessun abbonamento trovato
+                            </div>
+                        )}
                     </div>
                 </div>
             </div>
