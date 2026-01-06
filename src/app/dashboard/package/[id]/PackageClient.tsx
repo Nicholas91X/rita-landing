@@ -1,0 +1,74 @@
+'use client'
+
+import { useState } from 'react'
+import Link from 'next/link'
+import { ChevronLeft, PlayCircle } from 'lucide-react'
+import VideoPlayer from '@/components/video/VideoPlayer'
+import Section from '@/components/Section'
+
+type Video = {
+    id: string
+    title: string
+    bunny_video_id: string
+}
+
+type Package = {
+    name: string
+    description: string
+}
+
+export default function PackageClient({ pkg, videos }: { pkg: Package, videos: Video[] }) {
+    // Default to the first video
+    const [activeVideo, setActiveVideo] = useState<Video>(videos[0])
+
+    return (
+        <main className="min-h-screen bg-background pb-20">
+            <Section className="py-8">
+                <Link href="/dashboard" className="flex items-center text-sm text-muted-foreground hover:text-[var(--brand)] transition-colors mb-6">
+                    <ChevronLeft className="h-4 w-4 mr-1" />
+                    Torna alla Dashboard
+                </Link>
+
+                <h1 className="h2 text-[var(--foreground)] mb-2">{pkg.name}</h1>
+                <p className="text-[var(--muted-foreground)] mb-8">{pkg.description}</p>
+
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
+                    {/* Player Area */}
+                    <div className="lg:col-span-2">
+                        {/* Key changes to force re-render if needed, but usually props update is enough */}
+                        <VideoPlayer videoId={activeVideo.id} />
+
+                        <div className="mt-6">
+                            <h2 className="text-xl font-bold mb-2">{activeVideo.title}</h2>
+                        </div>
+                    </div>
+
+                    {/* Playlist Area */}
+                    <div className="space-y-4">
+                        <h3 className="font-semibold uppercase text-xs tracking-widest text-muted-foreground px-2">
+                            Lezioni nel pacchetto
+                        </h3>
+                        <div className="flex flex-col gap-2">
+                            {videos.map((v) => {
+                                const isActive = v.id === activeVideo.id
+                                return (
+                                    <div
+                                        key={v.id}
+                                        onClick={() => setActiveVideo(v)}
+                                        className={`p-4 rounded-xl border transition-all cursor-pointer group flex items-center justify-between ${isActive
+                                                ? 'border-[var(--brand)] bg-[var(--brand-muted)] text-[var(--brand)]'
+                                                : 'border-[var(--border)] hover:bg-[var(--panel)]'
+                                            }`}
+                                    >
+                                        <p className="text-sm font-medium">{v.title}</p>
+                                        {isActive && <PlayCircle className="h-4 w-4" />}
+                                    </div>
+                                )
+                            })}
+                        </div>
+                    </div>
+                </div>
+            </Section>
+        </main>
+    )
+}
