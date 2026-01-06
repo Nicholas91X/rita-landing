@@ -78,7 +78,7 @@ export default function DashboardSidebar({ activeTab, setActiveTab }: DashboardS
                         onClick={() => setActiveTab(item.id)}
                         className={cn(
                             "flex flex-col items-center gap-1.5 transition-all duration-300 relative px-4 py-2 rounded-2xl",
-                            activeTab === item.id ? "text-[#001F3D] bg-white scale-110 -translate-y-3 shadow-[0_10px_25px_rgba(0,0,0,0.2)]" : "text-white/70"
+                            activeTab === item.id ? "text-[#001F3D] bg-white scale-105 -translate-y-1.5 shadow-[0_10px_25px_rgba(0,0,0,0.1)]" : "text-white/70"
                         )}
                     >
                         <item.icon className={cn(
