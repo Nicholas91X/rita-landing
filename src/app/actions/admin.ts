@@ -382,3 +382,18 @@ export async function cancelSubscription(subscriptionId: string) {
         throw new Error('Impossibile annullare l\'abbonamento')
     }
 }
+
+export async function refundPayment(chargeId: string) {
+    const isSuperAdmin = await isAdmin()
+    if (!isSuperAdmin) throw new Error('Unauthorized')
+
+    try {
+        await stripe.refunds.create({
+            charge: chargeId,
+        })
+        return { success: true }
+    } catch (error) {
+        console.error('Stripe Refund Error:', error)
+        throw new Error('Errore durante l\'esecuzione del rimborso')
+    }
+}

@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { getStripeDashboardData, cancelSubscription } from '@/app/actions/admin'
+import { getStripeDashboardData, cancelSubscription, refundPayment } from '@/app/actions/admin'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import {
     Dialog,
@@ -11,7 +11,7 @@ import {
     DialogHeader,
     DialogTitle,
 } from '@/components/ui/dialog'
-import { Loader2, CreditCard, RefreshCcw, ArrowRight, User, Calendar, CheckCircle2, Clock, XCircle, AlertTriangle } from 'lucide-react'
+import { Loader2, CreditCard, RefreshCcw, ArrowRight, User, Calendar, CheckCircle2, Clock, XCircle, AlertTriangle, RotateCcw } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { toast } from 'sonner'
 
@@ -43,7 +43,9 @@ export default function AdminStripe() {
     const [data, setData] = useState<StripeData | null>(null)
     const [loading, setLoading] = useState(true)
     const [subscriptionToCancel, setSubscriptionToCancel] = useState<StripeData['subscriptions'][0] | null>(null)
+    const [paymentToRefund, setPaymentToRefund] = useState<StripeData['payments'][0] | null>(null)
     const [isCancelDialogOpen, setIsCancelDialogOpen] = useState(false)
+    const [isRefundDialogOpen, setIsRefundDialogOpen] = useState(false)
     const [submitting, setSubmitting] = useState(false)
 
     const loadData = async () => {
@@ -73,6 +75,26 @@ export default function AdminStripe() {
             loadData()
         } catch (error) {
             toast.error('Errore durante l\'annullamento')
+        } finally {
+            setSubmitting(false)
+        }
+    }
+
+    const handleRefundClick = (payment: StripeData['payments'][0]) => {
+        setPaymentToRefund(payment)
+        setIsRefundDialogOpen(true)
+    }
+
+    const confirmRefund = async () => {
+        if (!paymentToRefund) return
+        setSubmitting(true)
+        try {
+            await refundPayment(paymentToRefund.id)
+            toast.success('Rimborso effettuato con successo')
+            setIsRefundDialogOpen(false)
+            loadData()
+        } catch (error) {
+            toast.error('Errore durante il rimborso')
         } finally {
             setSubmitting(false)
         }
@@ -175,7 +197,7 @@ export default function AdminStripe() {
                                         <th className="px-6 py-3 font-medium">Data</th>
                                         <th className="px-6 py-3 font-medium">Cliente</th>
                                         <th className="px-6 py-3 font-medium">Importo</th>
-                                        <th className="px-6 py-3 font-medium text-right">Stato</th>
+                                        <th className="px-6 py-3 font-medium text-right">Azioni / Stato</th>
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-neutral-800">
@@ -194,14 +216,27 @@ export default function AdminStripe() {
                                                 € {p.amount.toFixed(2)}
                                             </td>
                                             <td className="px-6 py-4 text-right">
-                                                <span className={`px-2 py-0.5 rounded-full text-[10px] uppercase font-bold ${p.status === 'succeeded'
-                                                    ? 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20'
-                                                    : p.status === 'refunded'
-                                                        ? 'bg-rose-500/10 text-rose-500 border border-rose-500/20'
-                                                        : 'bg-amber-500/10 text-amber-500 border border-amber-500/20'
-                                                    }`}>
-                                                    {p.status}
-                                                </span>
+                                                <div className="flex items-center justify-end gap-3">
+                                                    {p.status === 'succeeded' && (
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="sm"
+                                                            onClick={() => handleRefundClick(p)}
+                                                            className="h-7 px-2 text-[10px] text-amber-500 hover:text-amber-400 hover:bg-amber-500/5"
+                                                        >
+                                                            <RotateCcw className="w-3 h-3 mr-1" />
+                                                            Rimborso
+                                                        </Button>
+                                                    )}
+                                                    <span className={`px-2 py-0.5 rounded-full text-[10px] uppercase font-bold ${p.status === 'succeeded'
+                                                        ? 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20'
+                                                        : p.status === 'refunded'
+                                                            ? 'bg-rose-500/10 text-rose-500 border border-rose-500/20'
+                                                            : 'bg-amber-500/10 text-amber-500 border border-amber-500/20'
+                                                        }`}>
+                                                        {p.status}
+                                                    </span>
+                                                </div>
                                             </td>
                                         </tr>
                                     ))}
@@ -316,6 +351,56 @@ export default function AdminStripe() {
                                 <Loader2 className="w-4 h-4 animate-spin" />
                             ) : (
                                 "Conferma Annullamento"
+                            )}
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+
+            {/* MODAL CONFERMA RIMBORSO */}
+            <Dialog open={isRefundDialogOpen} onOpenChange={setIsRefundDialogOpen}>
+                <DialogContent className="max-w-md border-neutral-800 bg-neutral-900 text-white">
+                    <DialogHeader>
+                        <div className="flex items-center gap-3 mb-2">
+                            <div className="p-2 bg-amber-500/10 rounded-lg">
+                                <RotateCcw className="w-5 h-5 text-amber-500" />
+                            </div>
+                            <DialogTitle className="text-xl">Conferma Rimborso</DialogTitle>
+                        </div>
+                        <DialogDescription className="text-neutral-400 pt-2">
+                            Stai per emettere un rimborso completo per la transazione di:
+                            <div className="mt-3 space-y-2">
+                                <div className="p-3 bg-neutral-800/50 rounded-lg border border-neutral-800 flex justify-between items-center">
+                                    <span className="text-neutral-400 text-xs">Cliente:</span>
+                                    <span className="text-neutral-100 font-medium">{paymentToRefund?.email}</span>
+                                </div>
+                                <div className="p-3 bg-neutral-800/50 rounded-lg border border-neutral-800 flex justify-between items-center">
+                                    <span className="text-neutral-400 text-xs">Importo:</span>
+                                    <span className="text-amber-500 font-bold text-lg">€ {paymentToRefund?.amount.toFixed(2)}</span>
+                                </div>
+                            </div>
+                            <p className="mt-4 text-xs leading-relaxed">
+                                Il rimborso verrà elaborato immediatamente da Stripe. I fondi torneranno sul metodo di pagamento originale del cliente solitamente entro 5-10 giorni lavorativi.
+                            </p>
+                        </DialogDescription>
+                    </DialogHeader>
+                    <DialogFooter className="mt-6 gap-3 sm:gap-0">
+                        <Button
+                            variant="outline"
+                            onClick={() => setIsRefundDialogOpen(false)}
+                            className="border-neutral-700 bg-neutral-900 hover:bg-neutral-800"
+                        >
+                            Indietro
+                        </Button>
+                        <Button
+                            onClick={confirmRefund}
+                            disabled={submitting}
+                            className="bg-amber-600 hover:bg-amber-700 text-white border-none min-w-[160px]"
+                        >
+                            {submitting ? (
+                                <Loader2 className="w-4 h-4 animate-spin" />
+                            ) : (
+                                "Conferma Rimborso"
                             )}
                         </Button>
                     </DialogFooter>
