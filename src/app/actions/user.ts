@@ -12,18 +12,29 @@ export async function getUserSubscriptionInfo() {
     const { data: subs, error } = await supabase
         .from('user_subscriptions')
         .select(`
-            id, status, next_invoice, amount, interval,
-            packages ( name, description )
+            id, 
+            status, 
+            current_period_end,
+            packages ( 
+                name, 
+                description,
+                price
+            )
         `)
         .eq('user_id', user.id)
-        .order('created_at', { ascending: false })
 
     if (error) {
         console.error('Error fetching user subscriptions:', error)
         return []
     }
 
-    return subs
+    // Map the data to match what the UI expects
+    return subs.map(sub => ({
+        ...sub,
+        next_invoice: sub.current_period_end,
+        amount: Number((sub.packages as any)?.price || 0),
+        interval: 'mese' // Default interval
+    }))
 }
 
 export async function getUserProfile() {
