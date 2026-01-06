@@ -55,6 +55,11 @@ export default function AdminStripe() {
     const [isRefundDialogOpen, setIsRefundDialogOpen] = useState(false)
     const [submitting, setSubmitting] = useState(false)
 
+    // Pagination State
+    const ITEMS_PER_PAGE = 8
+    const [paymentPage, setPaymentPage] = useState(1)
+    const [subscriptionPage, setSubscriptionPage] = useState(1)
+
     const loadData = async () => {
         setLoading(true)
         try {
@@ -111,6 +116,12 @@ export default function AdminStripe() {
         loadData()
     }, [])
 
+    // Reset page on search
+    useEffect(() => {
+        setPaymentPage(1)
+        setSubscriptionPage(1)
+    }, [searchTerm])
+
     if (loading) {
         return (
             <div className="flex flex-col items-center justify-center p-20 space-y-4">
@@ -131,19 +142,72 @@ export default function AdminStripe() {
     }
 
     const filteredPayments = data.payments.filter(p =>
-        p.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        p.id.toLowerCase().includes(searchTerm.toLowerCase())
+        (p.email || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (p.id || '').toLowerCase().includes(searchTerm.toLowerCase())
     )
 
     const filteredSubscriptions = data.subscriptions.filter(s =>
-        s.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        s.id.toLowerCase().includes(searchTerm.toLowerCase())
+        (s.email || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (s.id || '').toLowerCase().includes(searchTerm.toLowerCase())
     )
+
+    // Pagination Logic
+    const totalPaymentPages = Math.ceil(filteredPayments.length / ITEMS_PER_PAGE)
+    const paginatedPayments = filteredPayments.slice(
+        (paymentPage - 1) * ITEMS_PER_PAGE,
+        paymentPage * ITEMS_PER_PAGE
+    )
+
+    const totalSubscriptionPages = Math.ceil(filteredSubscriptions.length / ITEMS_PER_PAGE)
+    const paginatedSubscriptions = filteredSubscriptions.slice(
+        (subscriptionPage - 1) * ITEMS_PER_PAGE,
+        subscriptionPage * ITEMS_PER_PAGE
+    )
+
+    const Pagination = ({ current, total, onPageChange }: { current: number, total: number, onPageChange: (p: number) => void }) => {
+        if (total <= 1) return null;
+
+        return (
+            <div className="flex items-center justify-center gap-1 mt-4">
+                <Button
+                    variant="ghost"
+                    size="sm"
+                    disabled={current === 1}
+                    onClick={() => onPageChange(current - 1)}
+                    className="h-8 w-8 p-0 text-neutral-400 hover:text-white"
+                >
+                    <ArrowRight className="w-4 h-4 rotate-180" />
+                </Button>
+
+                {Array.from({ length: total }, (_, i) => i + 1).map(p => (
+                    <Button
+                        key={p}
+                        variant={current === p ? "secondary" : "ghost"}
+                        size="sm"
+                        onClick={() => onPageChange(p)}
+                        className={`h-8 w-8 p-0 text-xs ${current === p ? 'bg-white text-black font-bold' : 'text-neutral-400'}`}
+                    >
+                        {p}
+                    </Button>
+                ))}
+
+                <Button
+                    variant="ghost"
+                    size="sm"
+                    disabled={current === total}
+                    onClick={() => onPageChange(current + 1)}
+                    className="h-8 w-8 p-0 text-neutral-400 hover:text-white"
+                >
+                    <ArrowRight className="w-4 h-4" />
+                </Button>
+            </div>
+        )
+    }
 
     return (
         <div className="space-y-8 animate-in fade-in duration-500">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                <h2 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-neutral-400">
+                <h2 className="text-2xl font-bold text-white">
                     Pannello Stripe
                 </h2>
                 <div className="flex items-center gap-3 w-full sm:w-auto">
@@ -156,7 +220,7 @@ export default function AdminStripe() {
                             className="pl-9 bg-neutral-900 border-neutral-800 focus:ring-emerald-500/20"
                         />
                     </div>
-                    <Button variant="outline" size="sm" onClick={loadData} className="border-neutral-700 bg-neutral-900 h-10">
+                    <Button variant="outline" size="sm" onClick={loadData} className="border-neutral-700 bg-neutral-900 h-10 text-white hover:bg-neutral-800">
                         <RefreshCcw className="w-4 h-4 mr-2" />
                         Aggiorna
                     </Button>
@@ -164,7 +228,7 @@ export default function AdminStripe() {
             </div>
 
             {/* BALANCE OVERVIEW */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <Card className="bg-neutral-900 border-neutral-800">
                     <CardHeader className="pb-2">
                         <CardTitle className="text-xs font-medium text-neutral-400 uppercase tracking-wider">
@@ -192,44 +256,33 @@ export default function AdminStripe() {
                         <p className="text-xs text-neutral-500 mt-1">Transazioni in elaborazione</p>
                     </CardContent>
                 </Card>
-
-                <Card className="bg-neutral-900 border-neutral-800 md:col-span-2 lg:col-span-1 border-dashed opacity-70">
-                    <CardContent className="pt-6">
-                        <div className="flex items-center gap-3">
-                            <div className="p-2 bg-neutral-800 rounded-lg">
-                                <CreditCard className="w-5 h-5" />
-                            </div>
-                            <div>
-                                <div className="text-sm font-medium">Stripe Dashboard</div>
-                                <p className="text-xs text-neutral-500">Gestisci rimborsi e dispute</p>
-                            </div>
-                            <ArrowRight className="w-4 h-4 ml-auto text-neutral-500" />
-                        </div>
-                    </CardContent>
-                </Card>
             </div>
 
             <div className="grid grid-cols-1 xl:grid-cols-12 gap-8">
                 {/* RECENT PAYMENTS */}
                 <div className="xl:col-span-7 space-y-4">
-                    <div className="flex items-center gap-2">
-                        <CreditCard className="w-5 h-5 text-emerald-500" />
-                        <h3 className="text-lg font-semibold">Transazioni Recenti</h3>
+                    <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                            <CreditCard className="w-5 h-5 text-emerald-500" />
+                            <h3 className="text-lg font-semibold">Transazioni</h3>
+                        </div>
+                        <span className="text-[10px] text-neutral-500 uppercase tracking-widest">
+                            Pagina {paymentPage} di {totalPaymentPages || 1}
+                        </span>
                     </div>
 
-                    <div className="bg-neutral-900 border border-neutral-800 rounded-xl overflow-hidden">
+                    <div className="bg-neutral-900 border border-neutral-800 rounded-xl overflow-hidden shadow-sm">
                         <div className="overflow-x-auto">
                             <table className="w-full text-sm text-left">
                                 <thead className="bg-neutral-800/50 text-neutral-400 text-xs uppercase tracking-wider">
                                     <tr>
                                         <th className="px-6 py-3 font-medium">Data</th>
                                         <th className="px-6 py-3 font-medium">Cliente</th>
-                                        <th className="px-6 py-3 font-medium">Importo</th>
                                         <th className="px-6 py-3 font-medium text-right">Azioni / Stato</th>
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-neutral-800">
-                                    {filteredPayments.map((p) => (
+                                    {paginatedPayments.map((p) => (
                                         <tr key={p.id} className="hover:bg-neutral-800/30 transition-colors">
                                             <td className="px-6 py-4 whitespace-nowrap text-neutral-400 font-mono text-[10px]">
                                                 {formatDate(p.created)}
@@ -238,44 +291,27 @@ export default function AdminStripe() {
                                                 <div className="flex flex-col gap-0.5">
                                                     <div className="flex items-center gap-2">
                                                         <User className="w-3 h-3 text-neutral-500" />
-                                                        <span className="truncate max-w-[150px] text-sm">{p.email || 'N/A'}</span>
+                                                        <span className="truncate max-w-[150px] text-sm font-medium">{p.email || 'N/A'}</span>
                                                     </div>
-                                                    {p.card && (
-                                                        <div className="flex items-center gap-1.5 text-[10px] text-neutral-500 pl-5 uppercase">
-                                                            <span>{p.card.brand}</span>
-                                                            <span>•••• {p.card.last4}</span>
+                                                    <div className="flex items-center gap-2">
+                                                        <div className="font-semibold text-neutral-100">
+                                                            € {p.amount.toFixed(2)}
                                                         </div>
-                                                    )}
+                                                        {p.receipt_url && (
+                                                            <a
+                                                                href={p.receipt_url}
+                                                                target="_blank"
+                                                                rel="noopener noreferrer"
+                                                                className="text-[10px] text-emerald-500 hover:underline flex items-center gap-1"
+                                                            >
+                                                                Ricevuta <ExternalLink className="w-2.5 h-2.5" />
+                                                            </a>
+                                                        )}
+                                                    </div>
                                                 </div>
-                                            </td>
-                                            <td className="px-6 py-4">
-                                                <div className="font-semibold text-neutral-100">
-                                                    € {p.amount.toFixed(2)}
-                                                </div>
-                                                {p.receipt_url && (
-                                                    <a
-                                                        href={p.receipt_url}
-                                                        target="_blank"
-                                                        rel="noopener noreferrer"
-                                                        className="text-[10px] text-emerald-500 hover:text-emerald-400 flex items-center gap-1 mt-0.5 transition-colors"
-                                                    >
-                                                        Ricevuta <ExternalLink className="w-2.5 h-2.5" />
-                                                    </a>
-                                                )}
                                             </td>
                                             <td className="px-6 py-4 text-right">
-                                                <div className="flex items-center justify-end gap-3">
-                                                    {p.status === 'succeeded' && (
-                                                        <Button
-                                                            variant="ghost"
-                                                            size="sm"
-                                                            onClick={() => handleRefundClick(p)}
-                                                            className="h-7 px-2 text-[10px] text-amber-500 hover:text-amber-400 hover:bg-amber-500/5"
-                                                        >
-                                                            <RotateCcw className="w-3 h-3 mr-1" />
-                                                            Rimborso
-                                                        </Button>
-                                                    )}
+                                                <div className="flex flex-col items-end gap-2">
                                                     <span className={`px-2 py-0.5 rounded-full text-[10px] uppercase font-bold ${p.status === 'succeeded'
                                                         ? 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20'
                                                         : p.status === 'refunded'
@@ -284,13 +320,24 @@ export default function AdminStripe() {
                                                         }`}>
                                                         {p.status}
                                                     </span>
+                                                    {p.status === 'succeeded' && (
+                                                        <Button
+                                                            variant="link"
+                                                            size="sm"
+                                                            onClick={() => handleRefundClick(p)}
+                                                            className="h-auto p-0 text-[10px] text-neutral-500 hover:text-amber-500"
+                                                        >
+                                                            <RotateCcw className="w-2.5 h-2.5 mr-1" />
+                                                            Rimborsa
+                                                        </Button>
+                                                    )}
                                                 </div>
                                             </td>
                                         </tr>
                                     ))}
                                     {filteredPayments.length === 0 && (
                                         <tr>
-                                            <td colSpan={4} className="px-6 py-12 text-center text-neutral-500">
+                                            <td colSpan={3} className="px-6 py-12 text-center text-neutral-500">
                                                 Nessuna transazione trovata
                                             </td>
                                         </tr>
@@ -299,31 +346,41 @@ export default function AdminStripe() {
                             </table>
                         </div>
                     </div>
+                    <Pagination
+                        current={paymentPage}
+                        total={totalPaymentPages}
+                        onPageChange={setPaymentPage}
+                    />
                 </div>
 
                 {/* ACTIVE SUBSCRIPTIONS */}
                 <div className="xl:col-span-5 space-y-4">
-                    <div className="flex items-center gap-2">
-                        <Calendar className="w-5 h-5 text-emerald-500" />
-                        <h3 className="text-lg font-semibold">Abbonamenti</h3>
+                    <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                            <Calendar className="w-5 h-5 text-emerald-500" />
+                            <h3 className="text-lg font-semibold">Abbonamenti</h3>
+                        </div>
+                        <span className="text-[10px] text-neutral-500 uppercase tracking-widest">
+                            Pagina {subscriptionPage} di {totalSubscriptionPages || 1}
+                        </span>
                     </div>
 
                     <div className="space-y-3">
-                        {filteredSubscriptions.map((s) => (
+                        {paginatedSubscriptions.map((s) => (
                             <div key={s.id} className={`p-4 bg-neutral-900 border border-neutral-800 rounded-xl hover:border-neutral-700 transition-all group ${s.status === 'canceled' ? 'opacity-50' : ''}`}>
                                 <div className="flex justify-between items-start mb-3">
-                                    <div className="flex items-center gap-2">
-                                        <div className={`w-8 h-8 rounded-full flex items-center justify-center ${s.status === 'active' ? 'bg-emerald-500/10' : 'bg-neutral-800'
+                                    <div className="flex items-center gap-3">
+                                        <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${s.status === 'active' ? 'bg-emerald-500/10 text-emerald-500' : 'bg-neutral-800 text-neutral-500'
                                             }`}>
                                             {s.status === 'active' ? (
-                                                <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+                                                <CheckCircle2 className="w-5 h-5" />
                                             ) : (
-                                                <Clock className="w-4 h-4 text-neutral-500" />
+                                                <Clock className="w-5 h-5" />
                                             )}
                                         </div>
                                         <div>
-                                            <div className="text-sm font-medium">{s.email}</div>
-                                            <div className="text-[10px] text-neutral-500 font-mono">{s.id}</div>
+                                            <div className="text-sm font-semibold truncate max-w-[180px]">{s.email}</div>
+                                            <div className="text-[10px] text-neutral-500 font-mono tracking-tighter uppercase">{s.id}</div>
                                         </div>
                                     </div>
                                     <div className="flex flex-col items-end gap-2">
@@ -340,27 +397,22 @@ export default function AdminStripe() {
                                                 variant="ghost"
                                                 size="sm"
                                                 onClick={() => handleCancelClick(s)}
-                                                className="h-7 px-2 text-[10px] text-rose-500 hover:text-rose-400 hover:bg-rose-500/5"
+                                                className="h-7 px-2 text-[10px] text-rose-500 hover:text-white hover:bg-rose-600 transition-all"
                                             >
-                                                <XCircle className="w-3 h-3 mr-1" />
                                                 Annulla
                                             </Button>
                                         )}
                                     </div>
                                 </div>
-                                <div className="flex justify-between items-end border-t border-neutral-800 pt-3">
-                                    <div className="space-y-1">
-                                        <div className="text-xs text-neutral-500 flex items-center gap-1">
-                                            {s.status === 'canceled' ? (
-                                                <>Terminato / Annullato</>
-                                            ) : (
-                                                <>
-                                                    <Clock className="w-3 h-3" />
-                                                    Rinnovo: {formatDate(s.next_invoice)}
-                                                </>
-                                            )}
+                                <div className="flex justify-between items-end pt-3 border-t border-white/5">
+                                    <div className="space-y-0.5">
+                                        <div className="text-[10px] text-neutral-500 uppercase tracking-tighter">
+                                            {s.status === 'canceled' ? 'Terminato' : `Rinnovo: ${formatDate(s.next_invoice)}`}
                                         </div>
-                                        <div className="text-lg font-bold">€ {s.amount.toFixed(2)} <span className="text-[10px] text-neutral-500 font-normal">/ {s.interval === 'month' ? 'mese' : s.interval}</span></div>
+                                        <div className="text-xl font-black text-white">
+                                            € {s.amount.toFixed(2)}
+                                            <span className="text-xs text-neutral-500 font-medium ml-1">/ {s.interval === 'month' ? 'mese' : s.interval}</span>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -371,6 +423,12 @@ export default function AdminStripe() {
                             </div>
                         )}
                     </div>
+
+                    <Pagination
+                        current={subscriptionPage}
+                        total={totalSubscriptionPages}
+                        onPageChange={setSubscriptionPage}
+                    />
                 </div>
             </div>
 

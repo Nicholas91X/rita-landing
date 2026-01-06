@@ -7,6 +7,12 @@ import AdminPackages from './AdminPackages'
 import AdminStripe from './AdminStripe'
 import { Button } from '@/components/ui/button'
 import { Loader2, UploadCloud, CheckCircle, AlertCircle, Trash2, Edit2, Save, X, PlayCircle, Video, Package as PackageIcon, CreditCard } from 'lucide-react'
+import {
+    Accordion,
+    AccordionContent,
+    AccordionItem,
+    AccordionTrigger,
+} from "@/components/ui/accordion"
 
 type Package = {
     id: string
@@ -125,38 +131,63 @@ export default function AdminDashboardClient({ packages, libraryId, stats }: { p
     return (
         <div className="space-y-8 animate-in fade-in duration-500">
             {stats && (
-                <div className="mb-12">
-                    <h2 className="text-lg font-semibold text-muted-foreground mb-4 tracking-tight">Panoramica Attività</h2>
-                    <AdminStats stats={stats} />
-                </div>
+                <Accordion type="multiple" defaultValue={["overview"]} className="mb-0">
+                    <AccordionItem value="overview" className="border-none">
+                        <AccordionTrigger className="hover:no-underline py-0 mb-4 focus-visible:ring-0">
+                            <h2 className="text-lg font-semibold text-muted-foreground tracking-tight">Panoramica Attività</h2>
+                        </AccordionTrigger>
+                        <AccordionContent className="pb-8">
+                            <AdminStats stats={stats} />
+                        </AccordionContent>
+                    </AccordionItem>
+                </Accordion>
             )}
 
-            {/* TAB NAVIGATION */}
-            <div className="flex space-x-1 bg-muted/50 p-1 rounded-xl border w-fit">
-                <button
-                    onClick={() => setActiveTab('content')}
-                    className={`flex items-center px-4 py-2 rounded-lg text-sm font-medium transition-all ${activeTab === 'content' ? 'bg-white text-black shadow-sm border' : 'text-muted-foreground hover:text-foreground hover:bg-white/50'
-                        }`}
-                >
-                    <Video className="w-4 h-4 mr-2" />
-                    Contenuti
-                </button>
-                <button
-                    onClick={() => setActiveTab('packages')}
-                    className={`flex items-center px-4 py-2 rounded-lg text-sm font-medium transition-all ${activeTab === 'packages' ? 'bg-white text-black shadow-sm border' : 'text-muted-foreground hover:text-foreground hover:bg-white/50'
-                        }`}
-                >
-                    <PackageIcon className="w-4 h-4 mr-2" />
-                    Pacchetti
-                </button>
-                <button
-                    onClick={() => setActiveTab('payments')}
-                    className={`flex items-center px-4 py-2 rounded-lg text-sm font-medium transition-all ${activeTab === 'payments' ? 'bg-white text-black shadow-sm border' : 'text-muted-foreground hover:text-foreground hover:bg-white/50'
-                        }`}
-                >
-                    <CreditCard className="w-4 h-4 mr-2" />
-                    Transazioni
-                </button>
+            {/* TAB NAVIGATION - Premium Restructured Design */}
+            <div className="flex justify-center mb-10">
+                <div className="flex flex-wrap justify-center p-1.5 bg-neutral-900/50 backdrop-blur-xl border border-white/10 rounded-3xl shadow-2xl relative overflow-hidden gap-1 hover:border-white/20 transition-colors">
+                    <button
+                        onClick={() => setActiveTab('content')}
+                        className={`relative z-10 flex items-center px-6 py-2.5 rounded-xl text-sm font-semibold transition-all duration-300 ${activeTab === 'content'
+                            ? 'text-black'
+                            : 'text-neutral-400 hover:text-white'
+                            }`}
+                    >
+                        {activeTab === 'content' && (
+                            <div className="absolute inset-0 bg-white rounded-xl shadow-[0_0_20px_rgba(255,255,255,0.3)] z-[-1] animate-in fade-in zoom-in-95 duration-300" />
+                        )}
+                        <Video className={`w-4 h-4 mr-2.5 transition-transform duration-300 ${activeTab === 'content' ? 'scale-110' : ''}`} />
+                        Contenuti
+                    </button>
+
+                    <button
+                        onClick={() => setActiveTab('packages')}
+                        className={`relative z-10 flex items-center px-6 py-2.5 rounded-xl text-sm font-semibold transition-all duration-300 ${activeTab === 'packages'
+                            ? 'text-black'
+                            : 'text-neutral-400 hover:text-white'
+                            }`}
+                    >
+                        {activeTab === 'packages' && (
+                            <div className="absolute inset-0 bg-white rounded-xl shadow-[0_0_20px_rgba(255,255,255,0.3)] z-[-1] animate-in fade-in zoom-in-95 duration-300" />
+                        )}
+                        <PackageIcon className={`w-4 h-4 mr-2.5 transition-transform duration-300 ${activeTab === 'packages' ? 'scale-110' : ''}`} />
+                        Pacchetti
+                    </button>
+
+                    <button
+                        onClick={() => setActiveTab('payments')}
+                        className={`relative z-10 flex items-center px-6 py-2.5 rounded-xl text-sm font-semibold transition-all duration-300 ${activeTab === 'payments'
+                            ? 'text-black'
+                            : 'text-neutral-400 hover:text-white'
+                            }`}
+                    >
+                        {activeTab === 'payments' && (
+                            <div className="absolute inset-0 bg-white rounded-xl shadow-[0_0_20px_rgba(255,255,255,0.3)] z-[-1] animate-in fade-in zoom-in-95 duration-300" />
+                        )}
+                        <CreditCard className={`w-4 h-4 mr-2.5 transition-transform duration-300 ${activeTab === 'payments' ? 'scale-110' : ''}`} />
+                        Transazioni
+                    </button>
+                </div>
             </div>
 
             {activeTab === 'packages' ? (

@@ -89,7 +89,7 @@ export default function AdminPackages() {
     return (
         <div className="space-y-6">
             <div className="flex justify-between items-center">
-                <h2 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-neutral-400">
+                <h2 className="text-2xl font-bold text-white">
                     Gestione Pacchetti
                 </h2>
                 <Button onClick={() => handleOpenDialog()} className="bg-white text-black hover:bg-neutral-200">
