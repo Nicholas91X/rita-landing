@@ -1,7 +1,8 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { createBunnyVideo, saveVideoToDb, getAdminVideos, deleteVideo, updateVideo } from '@/app/actions/admin' // Added actions
+import { createBunnyVideo, saveVideoToDb, getAdminVideos, deleteVideo, updateVideo } from '@/app/actions/admin'
+import AdminStats from './AdminStats' // Import Stats
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Loader2, UploadCloud, CheckCircle, AlertCircle, Trash2, Edit2, Save, X, PlayCircle } from 'lucide-react'
@@ -21,7 +22,21 @@ type Video = {
     }
 }
 
-export default function AdminDashboardClient({ packages, libraryId }: { packages: Package[], libraryId?: string }) {
+// Stats Type (matching AdminStats)
+type AdminStatsData = {
+    supabase: {
+        totalUsers: number;
+        activeSubscriptions: number;
+        totalOneTimePurchases: number;
+    };
+    bunny: {
+        totalVideos: number;
+        totalViews: number;
+        bandwidthUsed: number;
+    };
+};
+
+export default function AdminDashboardClient({ packages, libraryId, stats }: { packages: Package[], libraryId?: string, stats?: AdminStatsData }) {
     // Upload State
     const [title, setTitle] = useState('')
     const [selectedPackage, setSelectedPackage] = useState('')
@@ -141,6 +156,9 @@ export default function AdminDashboardClient({ packages, libraryId }: { packages
 
     return (
         <div className="space-y-12">
+            {/* --- STATS SECTION --- */}
+            {stats && <AdminStats stats={stats} />}
+
             {/* --- UPLOAD SECTION --- */}
             <Card className="max-w-xl mx-auto mt-8 relative overflow-hidden">
                 {status === 'creating' || status === 'uploading' || status === 'saving' ? (

@@ -1,4 +1,4 @@
-import { getAdminPackages } from '@/app/actions/admin'
+import { getAdminPackages, getAdminStats } from '@/app/actions/admin' // Added getAdminStats
 import { isAdmin } from '@/utils/supabase/admin'
 import { redirect } from 'next/navigation'
 import AdminDashboardClient from './DashboardClient'
@@ -12,6 +12,7 @@ export default async function AdminPage() {
     }
 
     const packages = await getAdminPackages()
+    const stats = await getAdminStats() // Fetch stats
     const libraryId = process.env.BUNNY_LIBRARY_ID
 
     return (
@@ -25,7 +26,7 @@ export default async function AdminPage() {
 
             <Section>
                 <div className="grid grid-cols-1 gap-8">
-                    <AdminDashboardClient packages={packages} libraryId={libraryId} />
+                    <AdminDashboardClient packages={packages} libraryId={libraryId} stats={stats} />
                 </div>
             </Section>
         </main>

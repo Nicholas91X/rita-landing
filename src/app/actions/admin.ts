@@ -175,3 +175,85 @@ export async function updateVideo(videoId: string, data: { title: string, packag
 
     return { success: true }
 }
+
+export async function getAdminStats() {
+    const isSuperAdmin = await isAdmin()
+    if (!isSuperAdmin) throw new Error('Unauthorized')
+
+    const supabase = await createClient()
+
+    // Supabase Stats
+    const { count: totalUsers } = await supabase
+        .from('profiles')
+        .select('*', { count: 'exact', head: true })
+
+    const { count: activeSubscriptions } = await supabase
+        .from('user_subscriptions')
+        .select('*', { count: 'exact', head: true })
+        .eq('status', 'active')
+
+    const { count: totalOneTimePurchases } = await supabase
+        .from('one_time_purchases')
+        .select('*', { count: 'exact', head: true })
+
+    // Bunny Stats
+    let totalVideos = 0
+    let totalViews = 0
+    let bandwidthUsed = 0
+
+    const libraryId = process.env.BUNNY_LIBRARY_ID?.trim()
+    const apiKey = process.env.BUNNY_LIBRARY_API_KEY?.trim()
+
+    if (libraryId && apiKey) {
+        try {
+            // 1. Total Videos (Count)
+            const videoRes = await fetch(`https://video.bunnycdn.com/library/${libraryId}/videos?itemsPerPage=1`, {
+                headers: { 'AccessKey': apiKey }
+            })
+            if (videoRes.ok) {
+                const videoData = await videoRes.json()
+                totalVideos = videoData.totalItems || 0
+            }
+
+            // 2. Views/Traffic (Last 30 days default or similar)
+            // Note: The statistics endpoint often returns a list or a summary.
+            // Based on my test, it returns keys like 'totalWatchTime', 'views', 'bandwidthUsed' in the response root or data.
+            // Let's assume standard stats summary if valid. To get accurate summary, we usually just fetch current usage.
+            // However, the /statistics endpoint requires a date range. Let's default to "All Time" or "Last 30 Days" if we want recent.
+            // Let's go with a broad range for "Total Stats" or just this month.
+            // Let's try 30 days for now to be safe.
+            const dateTo = new Date().toISOString().split('T')[0]
+            const dateFrom = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
+
+            const statsRes = await fetch(`https://video.bunnycdn.com/library/${libraryId}/statistics?dateFrom=${dateFrom}&dateTo=${dateTo}`, {
+                headers: { 'AccessKey': apiKey }
+            })
+
+            if (statsRes.ok) {
+                const statsData = await statsRes.json()
+                // statsData might be an object with keys or an array of daily stats.
+                // The log showed "totalWatchTime": ... so it looks like an aggregate at root or in keys.
+                // Let's safely sum if it's an array or take values if it's an object.
+                // Checking common bunny response: it usually has 'viewsChart' etc.
+                // If it's a summary object:
+                totalViews = statsData.views || 0
+                bandwidthUsed = statsData.bandwidthUsed || 0 // in bytes usually
+            }
+        } catch (e) {
+            console.error('Failed to fetch Bunny stats:', e)
+        }
+    }
+
+    return {
+        supabase: {
+            totalUsers: totalUsers || 0,
+            activeSubscriptions: activeSubscriptions || 0,
+            totalOneTimePurchases: totalOneTimePurchases || 0
+        },
+        bunny: {
+            totalVideos,
+            totalViews, // Last 30 days
+            bandwidthUsed // Last 30 days
+        }
+    }
+}
