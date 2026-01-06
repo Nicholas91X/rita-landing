@@ -2,6 +2,12 @@
 
 import { createClient } from '@/utils/supabase/server'
 import { isAdmin } from '@/utils/supabase/admin'
+import Stripe from 'stripe'
+
+// Initialize Stripe
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+    apiVersion: '2024-12-18.acacia' as unknown as Stripe.LatestApiVersion,
+})
 
 export async function getAdminPackages() {
     const isSuperAdmin = await isAdmin()
@@ -10,11 +16,106 @@ export async function getAdminPackages() {
     const supabase = await createClient()
     const { data: packages, error } = await supabase
         .from('packages')
-        .select('id, name')
+        .select('*')
         .order('name')
 
     if (error) throw new Error(error.message)
     return packages
+}
+
+export async function createPackage(data: { name: string, description: string, price: number }) {
+    const isSuperAdmin = await isAdmin()
+    if (!isSuperAdmin) throw new Error('Unauthorized')
+
+    // 1. Create Product in Stripe
+    const product = await stripe.products.create({
+        name: data.name,
+        description: data.description,
+    })
+
+    // 2. Create Price in Stripe
+    const price = await stripe.prices.create({
+        product: product.id,
+        unit_amount: Math.round(data.price * 100), // Convert to cents
+        currency: 'eur',
+        recurring: {
+            interval: 'month',
+        },
+    })
+
+    // 3. Save to DB
+    const supabase = await createClient()
+    const { error } = await supabase
+        .from('packages')
+        .insert({
+            name: data.name,
+            description: data.description,
+            price: data.price,
+            stripe_product_id: product.id,
+            stripe_price_id: price.id
+        })
+
+    if (error) throw new Error(error.message)
+    return { success: true }
+}
+
+export async function updatePackage(id: string, data: { name: string, description: string, price: number }) {
+    const isSuperAdmin = await isAdmin()
+    if (!isSuperAdmin) throw new Error('Unauthorized')
+
+    const supabase = await createClient()
+
+    // Get current package to check if price changed
+    const { data: currentPkg } = await supabase
+        .from('packages')
+        .select('stripe_product_id, price, stripe_price_id')
+        .eq('id', id)
+        .single()
+
+    if (!currentPkg) throw new Error('Package not found')
+
+    let newStripePriceId = currentPkg.stripe_price_id
+
+    // 1. Update Stripe Product (Name/Description)
+    if (currentPkg.stripe_product_id) {
+        await stripe.products.update(currentPkg.stripe_product_id, {
+            name: data.name,
+            description: data.description
+        })
+    }
+
+    // 2. Handle Price Change
+    if (data.price !== currentPkg.price && currentPkg.stripe_product_id) {
+        // Create NEW Price
+        const price = await stripe.prices.create({
+            product: currentPkg.stripe_product_id,
+            unit_amount: Math.round(data.price * 100),
+            currency: 'eur',
+            recurring: {
+                interval: 'month',
+            },
+        })
+        newStripePriceId = price.id
+
+        // Update Product Default Price
+        await stripe.products.update(currentPkg.stripe_product_id, {
+            default_price: price.id
+        })
+    }
+
+    // 3. Update DB
+    const { error } = await supabase
+        .from('packages')
+        .update({
+            name: data.name,
+            description: data.description,
+            price: data.price,
+            stripe_price_id: newStripePriceId
+        })
+        .eq('id', id)
+
+    if (error) throw new Error(error.message)
+    return { success: true }
 }
 
 export async function createBunnyVideo(title: string) {
@@ -39,10 +140,6 @@ export async function createBunnyVideo(title: string) {
     })
 
     if (!response.ok) {
-        const error = await response.text()
-        console.error('Bunny API Error:', error)
-        console.error('Used Library ID:', libraryId)
-        console.error('Used API Key (last 4):', apiKey.slice(-4))
         throw new Error(`Failed to create video in Bunny: ${response.statusText}`)
     }
 
@@ -55,7 +152,6 @@ export async function saveVideoToDb(videoData: { title: string, bunnyId: string,
 
     const supabase = await createClient()
 
-    // Get max order index to append
     const { data: maxOrder } = await supabase
         .from('videos')
         .select('order_index')
@@ -96,9 +192,7 @@ export async function getAdminVideos(packageId?: string) {
                 name
             )
         `)
-
-        //.order('created_at', { ascending: false }) // 'created_at' might be missing, omitting order for now
-        .limit(50) // Limit to 50 for performance safety
+        .limit(100)
 
     if (packageId) {
         query = query.eq('package_id', packageId)
@@ -116,7 +210,6 @@ export async function deleteVideo(videoId: string) {
 
     const supabase = await createClient()
 
-    // 1. Get Bunny ID
     const { data: video } = await supabase
         .from('videos')
         .select('bunny_video_id')
@@ -124,9 +217,8 @@ export async function deleteVideo(videoId: string) {
         .single()
 
     if (video?.bunny_video_id) {
-        // 2. Delete from Bunny
         const libraryId = process.env.BUNNY_LIBRARY_ID?.trim()
-        const apiKey = process.env.BUNNY_LIBRARY_API_KEY?.trim() // Use correct key
+        const apiKey = process.env.BUNNY_LIBRARY_API_KEY?.trim()
 
         if (libraryId && apiKey) {
             try {
@@ -139,12 +231,10 @@ export async function deleteVideo(videoId: string) {
                 })
             } catch (err) {
                 console.error('Failed to delete from Bunny:', err)
-                // Continue to delete from DB even if Bunny fails, to avoid orphan state in our DB
             }
         }
     }
 
-    // 3. Delete from DB
     const { error } = await supabase
         .from('videos')
         .delete()
@@ -169,10 +259,6 @@ export async function updateVideo(videoId: string, data: { title: string, packag
         .eq('id', videoId)
 
     if (error) throw new Error(error.message)
-
-    // Optional: Update Bunny Title? 
-    // We skip it for now to keep it fast, as our DB is the source of truth for the UI.
-
     return { success: true }
 }
 
@@ -182,7 +268,6 @@ export async function getAdminStats() {
 
     const supabase = await createClient()
 
-    // Supabase Stats
     const { count: totalUsers } = await supabase
         .from('profiles')
         .select('*', { count: 'exact', head: true })
@@ -196,7 +281,6 @@ export async function getAdminStats() {
         .from('one_time_purchases')
         .select('*', { count: 'exact', head: true })
 
-    // Bunny Stats
     let totalVideos = 0
     let totalViews = 0
     let bandwidthUsed = 0
@@ -206,7 +290,6 @@ export async function getAdminStats() {
 
     if (libraryId && apiKey) {
         try {
-            // 1. Total Videos (Count)
             const videoRes = await fetch(`https://video.bunnycdn.com/library/${libraryId}/videos?itemsPerPage=1`, {
                 headers: { 'AccessKey': apiKey }
             })
@@ -215,13 +298,6 @@ export async function getAdminStats() {
                 totalVideos = videoData.totalItems || 0
             }
 
-            // 2. Views/Traffic (Last 30 days default or similar)
-            // Note: The statistics endpoint often returns a list or a summary.
-            // Based on my test, it returns keys like 'totalWatchTime', 'views', 'bandwidthUsed' in the response root or data.
-            // Let's assume standard stats summary if valid. To get accurate summary, we usually just fetch current usage.
-            // However, the /statistics endpoint requires a date range. Let's default to "All Time" or "Last 30 Days" if we want recent.
-            // Let's go with a broad range for "Total Stats" or just this month.
-            // Let's try 30 days for now to be safe.
             const dateTo = new Date().toISOString().split('T')[0]
             const dateFrom = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
 
@@ -231,13 +307,8 @@ export async function getAdminStats() {
 
             if (statsRes.ok) {
                 const statsData = await statsRes.json()
-                // statsData might be an object with keys or an array of daily stats.
-                // The log showed "totalWatchTime": ... so it looks like an aggregate at root or in keys.
-                // Let's safely sum if it's an array or take values if it's an object.
-                // Checking common bunny response: it usually has 'viewsChart' etc.
-                // If it's a summary object:
                 totalViews = statsData.views || 0
-                bandwidthUsed = statsData.bandwidthUsed || 0 // in bytes usually
+                bandwidthUsed = statsData.bandwidthUsed || 0
             }
         } catch (e) {
             console.error('Failed to fetch Bunny stats:', e)
@@ -252,8 +323,8 @@ export async function getAdminStats() {
         },
         bunny: {
             totalVideos,
-            totalViews, // Last 30 days
-            bandwidthUsed // Last 30 days
+            totalViews,
+            bandwidthUsed
         }
     }
 }
