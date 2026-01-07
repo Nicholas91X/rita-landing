@@ -43,7 +43,9 @@ export default function RootLayout({
         {children}
         <Footer />
         <SeoJsonLd />
+        <Toaster richColors position="top-center" />
       </body>
     </html>
   );
 }
+import { Toaster } from "sonner";

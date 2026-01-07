@@ -271,3 +271,32 @@ export async function updateProfile(formData: FormData) {
 
     return { success: true }
 }
+
+export async function updateEmail(email: string) {
+    const supabase = await createClient()
+
+    const { error } = await supabase.auth.updateUser(
+        { email },
+        { emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/auth/callback` }
+    )
+
+    if (error) {
+        console.error('Error updating email:', error)
+        throw new Error(error.message)
+    }
+
+    return { success: true }
+}
+
+export async function updatePassword(password: string) {
+    const supabase = await createClient()
+
+    const { error } = await supabase.auth.updateUser({ password })
+
+    if (error) {
+        console.error('Error updating password:', error)
+        throw new Error(error.message)
+    }
+
+    return { success: true }
+}

@@ -1,22 +1,34 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { getUserProfile, updateProfile } from '@/app/actions/user'
+import { getUserProfile, updateProfile, updateEmail, updatePassword } from '@/app/actions/user'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { User, Mail, Shield, LogOut, Loader2, Camera } from 'lucide-react'
+import { Input } from '@/components/ui/input'
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
+import { User, Mail, Shield, LogOut, Loader2, Camera, KeyRound } from 'lucide-react'
 import { createClient } from '@/utils/supabase/client'
 import { useRouter } from 'next/navigation'
+import { toast } from 'sonner'
 
 export default function ProfileSection({ onProfileUpdate }: { onProfileUpdate?: () => void }) {
     const [userData, setUserData] = useState<any>(null)
     const [loading, setLoading] = useState(true)
     const [isEditing, setIsEditing] = useState(false)
     const [saving, setSaving] = useState(false)
+
+    // Dialog states
+    const [isEmailDialogOpen, setIsEmailDialogOpen] = useState(false)
+    const [isPasswordDialogOpen, setIsPasswordDialogOpen] = useState(false)
+
+    // Form states
     const [formData, setFormData] = useState({
         fullName: '',
         avatar: null as File | null
     })
+    const [emailForm, setEmailForm] = useState({ email: '' })
+    const [passwordForm, setPasswordForm] = useState({ password: '', confirmPassword: '' })
+
     const router = useRouter()
     const supabase = createClient()
 
@@ -64,9 +76,47 @@ export default function ProfileSection({ onProfileUpdate }: { onProfileUpdate?: 
             if (onProfileUpdate) onProfileUpdate()
             setIsEditing(false)
             setFormData(prev => ({ ...prev, avatar: null })) // Clear file input
+            toast.success('Profilo aggiornato con successo')
         } catch (error) {
             console.error('Failed to update profile', error)
-            alert('Errore durante il salvataggio del profilo')
+            toast.error('Errore durante il salvataggio del profilo')
+        } finally {
+            setSaving(false)
+        }
+    }
+
+    const handleUpdateEmail = async () => {
+        if (!emailForm.email) return
+        setSaving(true)
+        try {
+            await updateEmail(emailForm.email)
+            toast.success('Email aggiornata! Controlla la tua casella di posta per confermare.')
+            setIsEmailDialogOpen(false)
+            setEmailForm({ email: '' })
+        } catch (error: any) {
+            toast.error(error.message || 'Errore durante l\'aggiornamento dell\'email')
+        } finally {
+            setSaving(false)
+        }
+    }
+
+    const handleUpdatePassword = async () => {
+        if (passwordForm.password !== passwordForm.confirmPassword) {
+            toast.error('Le password non coincidono')
+            return
+        }
+        if (passwordForm.password.length < 6) {
+            toast.error('La password deve essere di almeno 6 caratteri')
+            return
+        }
+        setSaving(true)
+        try {
+            await updatePassword(passwordForm.password)
+            toast.success('Password aggiornata con successo')
+            setIsPasswordDialogOpen(false)
+            setPasswordForm({ password: '', confirmPassword: '' })
+        } catch (error: any) {
+            toast.error(error.message || 'Errore durante l\'aggiornamento della password')
         } finally {
             setSaving(false)
         }
@@ -176,7 +226,38 @@ export default function ProfileSection({ onProfileUpdate }: { onProfileUpdate?: 
                                 </div>
                                 <div className="flex-1">
                                     <label className="text-[10px] text-neutral-500 uppercase font-bold tracking-widest block mb-1">Email Registrazione</label>
-                                    <p className="text-white font-medium">{userData?.user?.email}</p>
+                                    <div className="flex flex-col gap-2">
+                                        <p className="text-white font-medium">{userData?.user?.email}</p>
+                                        <Dialog open={isEmailDialogOpen} onOpenChange={setIsEmailDialogOpen}>
+                                            <DialogTrigger asChild>
+                                                <Button variant="outline" size="sm" className="w-fit text-xs h-8 border-white/10 hover:bg-white/5 hover:text-white">
+                                                    Modifica Email
+                                                </Button>
+                                            </DialogTrigger>
+                                            <DialogContent className="bg-neutral-900 border-neutral-800">
+                                                <DialogHeader>
+                                                    <DialogTitle className="text-white">Modifica Email</DialogTitle>
+                                                    <DialogDescription>
+                                                        Inserisci il nuovo indirizzo email. Riceverai una conferma al nuovo indirizzo.
+                                                    </DialogDescription>
+                                                </DialogHeader>
+                                                <div className="py-4">
+                                                    <Input
+                                                        placeholder="Nuova Email"
+                                                        value={emailForm.email}
+                                                        onChange={(e) => setEmailForm({ email: e.target.value })}
+                                                        className="bg-neutral-800 border-neutral-700 text-white"
+                                                    />
+                                                </div>
+                                                <DialogFooter>
+                                                    <Button variant="ghost" onClick={() => setIsEmailDialogOpen(false)} className="text-white">Annulla</Button>
+                                                    <Button onClick={handleUpdateEmail} disabled={saving} className="bg-[var(--brand)] text-white hover:bg-[var(--brand)]/90">
+                                                        {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Aggiorna Email'}
+                                                    </Button>
+                                                </DialogFooter>
+                                            </DialogContent>
+                                        </Dialog>
+                                    </div>
                                 </div>
                             </div>
 
@@ -197,18 +278,61 @@ export default function ProfileSection({ onProfileUpdate }: { onProfileUpdate?: 
                                     <Shield className="w-5 h-5 text-[var(--brand)]" />
                                 </div>
                                 <div className="flex-1">
-                                    <label className="text-[10px] text-neutral-500 uppercase font-bold tracking-widest block mb-1">ID Utente</label>
-                                    <p className="text-neutral-500 font-mono text-xs">{userData?.user?.id}</p>
+                                    <label className="text-[10px] text-neutral-500 uppercase font-bold tracking-widest block mb-1">Sicurezza</label>
+                                    <div className="flex items-center justify-between">
+                                        <p className="text-white font-medium">Password</p>
+                                        <Dialog open={isPasswordDialogOpen} onOpenChange={setIsPasswordDialogOpen}>
+                                            <DialogTrigger asChild>
+                                                <Button variant="ghost" size="sm" className="text-brand hover:text-brand/80 h-auto p-0 font-bold text-xs">Cambia Password</Button>
+                                            </DialogTrigger>
+                                            <DialogContent className="bg-neutral-900 border-neutral-800">
+                                                <DialogHeader>
+                                                    <DialogTitle className="text-white">Cambia Password</DialogTitle>
+                                                    <DialogDescription>
+                                                        Inserisci la nuova password per il tuo account.
+                                                    </DialogDescription>
+                                                </DialogHeader>
+                                                <div className="py-4 space-y-4">
+                                                    <Input
+                                                        type="password"
+                                                        placeholder="Nuova Password (min. 6 caratteri)"
+                                                        value={passwordForm.password}
+                                                        onChange={(e) => setPasswordForm(prev => ({ ...prev, password: e.target.value }))}
+                                                        className="bg-neutral-800 border-neutral-700 text-white"
+                                                    />
+                                                    <Input
+                                                        type="password"
+                                                        placeholder="Conferma Nuova Password"
+                                                        value={passwordForm.confirmPassword}
+                                                        onChange={(e) => setPasswordForm(prev => ({ ...prev, confirmPassword: e.target.value }))}
+                                                        className="bg-neutral-800 border-neutral-700 text-white"
+                                                    />
+                                                </div>
+                                                <DialogFooter>
+                                                    <Button variant="ghost" onClick={() => setIsPasswordDialogOpen(false)} className="text-white">Annulla</Button>
+                                                    <Button onClick={handleUpdatePassword} disabled={saving} className="bg-[var(--brand)] text-white hover:bg-[var(--brand)]/90">
+                                                        {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Aggiorna Password'}
+                                                    </Button>
+                                                </DialogFooter>
+                                            </DialogContent>
+                                        </Dialog>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="p-6 border border-[var(--brand)]/20 bg-[var(--brand)]/5 rounded-[24px] mt-4">
+                                <div className="flex items-start gap-3">
+                                    <KeyRound className="w-5 h-5 text-[var(--brand)] mt-0.5" />
+                                    <div>
+                                        <h4 className="text-white font-bold text-sm">Sicurezza Account</h4>
+                                        <p className="text-white/60 text-xs mt-1 leading-relaxed">
+                                            Ti consigliamo di utilizzare una password sicura e unica. Se cambi l'email, dovrai verificarla nuovamente per accedere.
+                                        </p>
+                                    </div>
                                 </div>
                             </div>
                         </CardContent>
                     </Card>
-
-                    <div className="p-6 border border-amber-500/20 bg-amber-500/5 rounded-[24px]">
-                        <p className="text-amber-500/80 text-xs italic">
-                            Le impostazioni di sicurezza (password e 2FA) possono essere gestite tramite il link di reset inviato alla tua email in fase di registrazione.
-                        </p>
-                    </div>
                 </div>
             </div>
         </div>
