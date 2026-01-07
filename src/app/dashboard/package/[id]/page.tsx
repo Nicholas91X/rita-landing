@@ -29,7 +29,7 @@ export default async function PackagePage(props: { params: Promise<{ id: string 
     // 4. Recupera info Pacchetto e Video
     const { data: pkg } = await supabase
         .from('packages')
-        .select('name, description')
+        .select('id, name, description')
         .eq('id', packageId)
         .single()
 
