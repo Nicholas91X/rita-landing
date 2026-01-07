@@ -20,6 +20,7 @@ export async function getUserSubscriptionInfo() {
             id, 
             status, 
             current_period_end,
+            created_at,
             stripe_customer_id,
             stripe_subscription_id,
             packages ( 

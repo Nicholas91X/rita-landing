@@ -114,9 +114,20 @@ export async function requestRefund(subscriptionId: string, reason: string) {
 
     const { data: subData } = await supabase
         .from('user_subscriptions')
-        .select('packages(name)')
+        .select('created_at, packages(name)')
         .eq('id', subscriptionId)
         .single()
+
+    if (!subData) throw new Error('Abbonamento non trovato')
+
+    // 4 days limit logic (4 * 24 * 60 * 60 * 1000 = 345600000 ms)
+    const createdAt = new Date(subData.created_at).getTime()
+    const now = new Date().getTime()
+    const diffDays = (now - createdAt) / (1000 * 60 * 60 * 24)
+
+    if (diffDays > 4) {
+        throw new Error('Non è possibile richiedere un rimborso dopo 4 giorni dalla sottoscrizione.')
+    }
 
     const { error } = await supabase
         .from('refund_requests')

@@ -180,168 +180,179 @@ export default function BillingSection() {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {filteredSubscriptions.length > 0 ? filteredSubscriptions.map((sub: any) => (
-                    <Card key={sub.id} className="bg-white/5 backdrop-blur-md border-white/5 shadow-2xl overflow-hidden group">
-                        <div className={sub.status === 'active' ? 'h-1.5 w-full bg-emerald-500' : 'h-1.5 w-full bg-neutral-700'} />
-                        <CardHeader className="pb-4">
-                            <div className="flex justify-between items-start">
-                                <CardTitle className="text-xl font-bold text-white line-clamp-1">{sub.packages?.name}</CardTitle>
-                                {sub.status === 'active' ? (
-                                    <span className="px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-500 text-[10px] font-bold border border-emerald-500/20 uppercase">Attivo</span>
-                                ) : sub.status === 'trialing' ? (
-                                    <span className="px-2 py-0.5 rounded-full bg-blue-500/10 text-blue-500 text-[10px] font-bold border border-blue-500/20 uppercase">In Prova</span>
-                                ) : sub.status === 'refunded' ? (
-                                    <span className="px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-500 text-[10px] font-bold border border-amber-500/20 uppercase">Rimborsato</span>
-                                ) : (
-                                    <span className="px-2 py-0.5 rounded-full bg-neutral-500/10 text-neutral-500 text-[10px] font-bold border border-neutral-500/20 uppercase">{sub.status}</span>
-                                )}
-                            </div>
-                            <CardDescription className="text-neutral-400 text-xs mt-1 italic">
-                                {sub.packages?.description || 'Nessuna descrizione disponibile'}
-                            </CardDescription>
-                        </CardHeader>
-                        <CardContent className="space-y-4">
-                            <div className="flex items-center gap-3 text-sm text-neutral-300">
-                                <div className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center">
-                                    <CreditCard className="w-4 h-4 text-brand" />
-                                </div>
-                                <div className="flex flex-col">
-                                    <span className="text-[10px] text-neutral-500 uppercase font-bold tracking-wider">Costo</span>
-                                    <span className="font-mono">€ {sub.amount.toFixed(2)} / {sub.interval === 'month' ? 'mese' : sub.interval}</span>
-                                </div>
-                            </div>
-                            <div className="flex items-center gap-3 text-sm text-neutral-300">
-                                <div className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center">
-                                    <Calendar className="w-4 h-4 text-brand" />
-                                </div>
-                                <div className="flex flex-col">
-                                    <span className="text-[10px] text-neutral-500 uppercase font-bold tracking-wider">
-                                        {sub.status === 'active' ? 'Prossimo Rinnovo' : 'Usufruibile fino a'}
-                                    </span>
-                                    <span className="font-mono">{new Date(sub.next_invoice).toLocaleDateString('it-IT')}</span>
-                                </div>
-                            </div>
+                {filteredSubscriptions.length > 0 ? filteredSubscriptions.map((sub: any) => {
+                    const createdAt = new Date(sub.created_at).getTime();
+                    const now = new Date().getTime();
+                    const diffDays = (now - createdAt) / (1000 * 60 * 60 * 24);
+                    const isRefundAllowed = diffDays <= 4;
 
-                            {sub.status === 'refunded' && sub.refund_requests?.[0]?.processed_at && (
+                    return (
+                        <Card key={sub.id} className="bg-white/5 backdrop-blur-md border-white/5 shadow-2xl overflow-hidden group">
+                            <div className={sub.status === 'active' ? 'h-1.5 w-full bg-emerald-500' : 'h-1.5 w-full bg-neutral-700'} />
+                            <CardHeader className="pb-4">
+                                <div className="flex justify-between items-start">
+                                    <CardTitle className="text-xl font-bold text-white line-clamp-1">{sub.packages?.name}</CardTitle>
+                                    {sub.status === 'active' ? (
+                                        <span className="px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-500 text-[10px] font-bold border border-emerald-500/20 uppercase">Attivo</span>
+                                    ) : sub.status === 'trialing' ? (
+                                        <span className="px-2 py-0.5 rounded-full bg-blue-500/10 text-blue-500 text-[10px] font-bold border border-blue-500/20 uppercase">In Prova</span>
+                                    ) : sub.status === 'refunded' ? (
+                                        <span className="px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-500 text-[10px] font-bold border border-amber-500/20 uppercase">Rimborsato</span>
+                                    ) : (
+                                        <span className="px-2 py-0.5 rounded-full bg-neutral-500/10 text-neutral-500 text-[10px] font-bold border border-neutral-500/20 uppercase">{sub.status}</span>
+                                    )}
+                                </div>
+                                <CardDescription className="text-neutral-400 text-xs mt-1 italic">
+                                    {sub.packages?.description || 'Nessuna descrizione disponibile'}
+                                </CardDescription>
+                            </CardHeader>
+                            <CardContent className="space-y-4">
                                 <div className="flex items-center gap-3 text-sm text-neutral-300">
-                                    <div className="w-8 h-8 rounded-full bg-amber-500/10 flex items-center justify-center">
-                                        <RefreshCcw className="w-4 h-4 text-amber-500" />
+                                    <div className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center">
+                                        <CreditCard className="w-4 h-4 text-brand" />
                                     </div>
                                     <div className="flex flex-col">
-                                        <span className="text-[10px] text-neutral-500 uppercase font-bold tracking-wider">Data Rimborso</span>
-                                        <span className="font-mono">{new Date(sub.refund_requests[0].processed_at).toLocaleDateString('it-IT')}</span>
+                                        <span className="text-[10px] text-neutral-500 uppercase font-bold tracking-wider">Costo</span>
+                                        <span className="font-mono">€ {sub.amount.toFixed(2)} / {sub.interval === 'month' ? 'mese' : sub.interval}</span>
                                     </div>
                                 </div>
-                            )}
-
-                            {/* Documentation Section */}
-                            {sub.documents && sub.documents.length > 0 && (
-                                <div className="pt-4 mt-2 border-t border-white/5 space-y-3">
-                                    <div className="flex items-center gap-2 mb-2">
-                                        <Receipt className="w-3.5 h-3.5 text-brand" />
-                                        <span className="text-[10px] uppercase font-black tracking-widest text-white">Documentazione</span>
+                                <div className="flex items-center gap-3 text-sm text-neutral-300">
+                                    <div className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center">
+                                        <Calendar className="w-4 h-4 text-brand" />
                                     </div>
-                                    <div className="space-y-2 max-h-[160px] overflow-y-auto pr-2 custom-scrollbar">
-                                        {sub.documents.map((doc: any) => (
-                                            <div key={doc.id} className="flex items-center justify-between p-2 rounded-xl bg-white/5 border border-white/5 hover:bg-white/10 transition-colors group/doc">
-                                                <div className="flex items-center gap-2 min-w-0">
-                                                    {doc.type === 'invoice' ? (
-                                                        <FileText className="w-3.5 h-3.5 text-emerald-500" />
-                                                    ) : (
-                                                        <RefreshCcw className="w-3.5 h-3.5 text-amber-500" />
-                                                    )}
-                                                    <div className="flex flex-col min-w-0">
-                                                        <span className="text-[9px] font-bold text-white truncate">
-                                                            {doc.type === 'invoice' ? 'Fattura' : 'Nota di Credito'} {doc.number}
-                                                        </span>
-                                                        <span className="text-[8px] text-neutral-500">
-                                                            {new Date(doc.date * 1000).toLocaleDateString('it-IT')} • €{doc.amount.toFixed(2)}
-                                                        </span>
-                                                    </div>
-                                                </div>
-                                                <Button
-                                                    variant="ghost"
-                                                    size="icon"
-                                                    className="w-7 h-7 rounded-lg hover:bg-white/10"
-                                                    onClick={() => window.open(doc.url, '_blank')}
-                                                >
-                                                    <ExternalLink className="w-3.5 h-3.5 text-neutral-400 group-hover/doc:text-white" />
-                                                </Button>
-                                            </div>
-                                        ))}
+                                    <div className="flex flex-col">
+                                        <span className="text-[10px] text-neutral-500 uppercase font-bold tracking-wider">
+                                            {sub.status === 'active' ? 'Prossimo Rinnovo' : 'Usufruibile fino a'}
+                                        </span>
+                                        <span className="font-mono">{new Date(sub.next_invoice).toLocaleDateString('it-IT')}</span>
                                     </div>
                                 </div>
-                            )}
-                        </CardContent>
-                        <CardFooter className="pt-2 pb-6 px-6 flex flex-col gap-3">
-                            <div className="hidden">
-                                {sub.receipt_url && (
-                                    <Button
-                                        variant="link"
-                                        className="p-0 h-auto text-[10px] text-brand hover:text-brand/80 flex items-center gap-1.5 self-start"
-                                        onClick={() => window.open(sub.receipt_url, '_blank')}
-                                    >
-                                        <Receipt className="w-3 h-3" />
-                                        Visualizza ultima ricevuta
-                                    </Button>
-                                )}
-                            </div>
 
-                            <div className="flex items-center gap-2 w-full mt-2">
-                                {sub.status === 'active' && (
-                                    <Button
-                                        variant="outline"
-                                        size="sm"
-                                        className="flex-1 h-8 text-[10px] border-white/10 hover:bg-white/5 text-white gap-2 font-bold"
-                                        onClick={() => setCancelDialog({ open: true, subId: sub.id })}
-                                        disabled={actionLoading === sub.id}
-                                    >
-                                        {actionLoading === sub.id ? <Loader2 className="w-3 h-3 animate-spin" /> : <XCircle className="w-3.5 h-3.5" />}
-                                        Annulla
-                                    </Button>
-                                )}
-
-                                {sub.refund_requests && sub.refund_requests.length > 0 ? (
-                                    <div className="flex-1 flex flex-col gap-1">
-                                        <div className={cn(
-                                            "h-8 flex items-center justify-center gap-2 px-3 rounded-md border text-[9px] font-black uppercase tracking-tighter",
-                                            sub.refund_requests[0].status === 'pending' ? "border-amber-500/20 bg-amber-500/5 text-amber-500" :
-                                                sub.refund_requests[0].status === 'approved' ? "border-emerald-500/20 bg-emerald-500/5 text-emerald-500" :
-                                                    "border-red-500/20 bg-red-500/5 text-red-500"
-                                        )}>
-                                            {sub.refund_requests[0].status === 'pending' ? <Clock className="w-3 h-3" /> :
-                                                sub.refund_requests[0].status === 'approved' ? <CheckCircle2 className="w-3 h-3" /> :
-                                                    <XCircle className="w-3 h-3" />}
-                                            {sub.refund_requests[0].status === 'pending' ? 'In attesa rimborso' :
-                                                sub.refund_requests[0].status === 'approved' ? 'Rimborso approvato' :
-                                                    'Rimborso rifiutato'}
+                                {sub.status === 'refunded' && sub.refund_requests?.[0]?.processed_at && (
+                                    <div className="flex items-center gap-3 text-sm text-neutral-300">
+                                        <div className="w-8 h-8 rounded-full bg-amber-500/10 flex items-center justify-center">
+                                            <RefreshCcw className="w-4 h-4 text-amber-500" />
                                         </div>
-                                        {sub.refund_requests[0].processed_at && (
-                                            <span className="text-[8px] text-neutral-500 uppercase font-bold text-center">
-                                                Elaborata il {new Date(sub.refund_requests[0].processed_at).toLocaleDateString('it-IT')}
-                                            </span>
-                                        )}
+                                        <div className="flex flex-col">
+                                            <span className="text-[10px] text-neutral-500 uppercase font-bold tracking-wider">Data Rimborso</span>
+                                            <span className="font-mono">{new Date(sub.refund_requests[0].processed_at).toLocaleDateString('it-IT')}</span>
+                                        </div>
                                     </div>
-                                ) : (
-                                    <Button
-                                        variant="outline"
-                                        size="sm"
-                                        className="flex-1 h-8 text-[10px] border-brand/20 hover:bg-brand/5 text-brand gap-2 font-bold"
-                                        onClick={() => setRefundDialog({ open: true, subId: sub.id })}
-                                    >
-                                        <RefreshCcw className="w-3.5 h-3.5" />
-                                        Rimborso
-                                    </Button>
                                 )}
-                            </div>
 
-                            <div className="w-full flex items-center gap-2 text-[8px] text-neutral-500 mt-2 uppercase tracking-widest font-bold">
-                                <CheckCircle2 className="w-2.5 h-2.5 text-emerald-500/50" />
-                                Transazione sicura Stripe
-                            </div>
-                        </CardFooter>
-                    </Card>
-                )) : (
+                                {/* Documentation Section */}
+                                {sub.documents && sub.documents.length > 0 && (
+                                    <div className="pt-4 mt-2 border-t border-white/5 space-y-3">
+                                        <div className="flex items-center gap-2 mb-2">
+                                            <Receipt className="w-3.5 h-3.5 text-brand" />
+                                            <span className="text-[10px] uppercase font-black tracking-widest text-white">Documentazione</span>
+                                        </div>
+                                        <div className="space-y-2 max-h-[160px] overflow-y-auto pr-2 custom-scrollbar">
+                                            {sub.documents.map((doc: any) => (
+                                                <div key={doc.id} className="flex items-center justify-between p-2 rounded-xl bg-white/5 border border-white/5 hover:bg-white/10 transition-colors group/doc">
+                                                    <div className="flex items-center gap-2 min-w-0">
+                                                        {doc.type === 'invoice' ? (
+                                                            <FileText className="w-3.5 h-3.5 text-emerald-500" />
+                                                        ) : (
+                                                            <RefreshCcw className="w-3.5 h-3.5 text-amber-500" />
+                                                        )}
+                                                        <div className="flex flex-col min-w-0">
+                                                            <span className="text-[9px] font-bold text-white truncate">
+                                                                {doc.type === 'invoice' ? 'Fattura' : 'Nota di Credito'} {doc.number}
+                                                            </span>
+                                                            <span className="text-[8px] text-neutral-500">
+                                                                {new Date(doc.date * 1000).toLocaleDateString('it-IT')} • €{doc.amount.toFixed(2)}
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="icon"
+                                                        className="w-7 h-7 rounded-lg hover:bg-white/10"
+                                                        onClick={() => window.open(doc.url, '_blank')}
+                                                    >
+                                                        <ExternalLink className="w-3.5 h-3.5 text-neutral-400 group-hover/doc:text-white" />
+                                                    </Button>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+                            </CardContent>
+                            <CardFooter className="pt-2 pb-6 px-6 flex flex-col gap-3">
+                                <div className="hidden">
+                                    {sub.receipt_url && (
+                                        <Button
+                                            variant="link"
+                                            className="p-0 h-auto text-[10px] text-brand hover:text-brand/80 flex items-center gap-1.5 self-start"
+                                            onClick={() => window.open(sub.receipt_url, '_blank')}
+                                        >
+                                            <Receipt className="w-3 h-3" />
+                                            Visualizza ultima ricevuta
+                                        </Button>
+                                    )}
+                                </div>
+
+                                <div className="flex items-center gap-2 w-full mt-2">
+                                    {sub.status === 'active' && (
+                                        <Button
+                                            variant="outline"
+                                            size="sm"
+                                            className="flex-1 h-8 text-[10px] border-white/10 hover:bg-white/5 text-white gap-2 font-bold"
+                                            onClick={() => setCancelDialog({ open: true, subId: sub.id })}
+                                            disabled={actionLoading === sub.id}
+                                        >
+                                            {actionLoading === sub.id ? <Loader2 className="w-3 h-3 animate-spin" /> : <XCircle className="w-3.5 h-3.5" />}
+                                            Annulla
+                                        </Button>
+                                    )}
+
+                                    {sub.refund_requests && sub.refund_requests.length > 0 ? (
+                                        <div className="flex-1 flex flex-col gap-1">
+                                            <div className={cn(
+                                                "h-8 flex items-center justify-center gap-2 px-3 rounded-md border text-[9px] font-black uppercase tracking-tighter",
+                                                sub.refund_requests[0].status === 'pending' ? "border-amber-500/20 bg-amber-500/5 text-amber-500" :
+                                                    sub.refund_requests[0].status === 'approved' ? "border-emerald-500/20 bg-emerald-500/5 text-emerald-500" :
+                                                        "border-red-500/20 bg-red-500/5 text-red-500"
+                                            )}>
+                                                {sub.refund_requests[0].status === 'pending' ? <Clock className="w-3 h-3" /> :
+                                                    sub.refund_requests[0].status === 'approved' ? <CheckCircle2 className="w-3 h-3" /> :
+                                                        <XCircle className="w-3 h-3" />}
+                                                {sub.refund_requests[0].status === 'pending' ? 'In attesa rimborso' :
+                                                    sub.refund_requests[0].status === 'approved' ? 'Rimborso approvato' :
+                                                        'Rimborso rifiutato'}
+                                            </div>
+                                            {sub.refund_requests[0].processed_at && (
+                                                <span className="text-[8px] text-neutral-500 uppercase font-bold text-center">
+                                                    Elaborata il {new Date(sub.refund_requests[0].processed_at).toLocaleDateString('it-IT')}
+                                                </span>
+                                            )}
+                                        </div>
+                                    ) : (
+                                        <Button
+                                            variant="outline"
+                                            size="sm"
+                                            className={cn(
+                                                "flex-1 h-8 text-[10px] border-brand/20 hover:bg-brand/5 text-brand gap-2 font-bold",
+                                                !isRefundAllowed && "opacity-50 cursor-not-allowed border-neutral-800 text-neutral-500 hover:bg-transparent"
+                                            )}
+                                            onClick={() => isRefundAllowed && setRefundDialog({ open: true, subId: sub.id })}
+                                            title={!isRefundAllowed ? "Rimborso non disponibile dopo 4 giorni" : ""}
+                                        >
+                                            <RefreshCcw className="w-3.5 h-3.5" />
+                                            Rimborso
+                                        </Button>
+                                    )}
+                                </div>
+
+                                <div className="w-full flex items-center gap-2 text-[8px] text-neutral-500 mt-2 uppercase tracking-widest font-bold">
+                                    <CheckCircle2 className="w-2.5 h-2.5 text-emerald-500/50" />
+                                    Transazione sicura Stripe
+                                </div>
+                            </CardFooter>
+                        </Card>
+                    );
+                }) : (
                     <div className="col-span-full py-20 text-center border-2 border-dashed border-white/10 rounded-3xl bg-white/5 backdrop-blur-sm">
                         <CreditCard className="w-16 h-16 text-brand/30 mx-auto mb-6" />
                         <h3 className="text-2xl font-black text-white italic uppercase tracking-tighter mb-2">Ancora nessun abbonamento</h3>
