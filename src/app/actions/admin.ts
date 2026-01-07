@@ -367,15 +367,16 @@ export async function getAdminStats() {
         .from('one_time_purchases')
         .select('*', { count: 'exact', head: true })
 
+    const libraryId = process.env.BUNNY_LIBRARY_ID?.trim()
+    const apiKey = process.env.BUNNY_LIBRARY_API_KEY?.trim()
+
     let totalVideos = 0
     let totalViews = 0
     let bandwidthUsed = 0
 
-    const libraryId = process.env.BUNNY_LIBRARY_ID?.trim()
-    const apiKey = process.env.BUNNY_LIBRARY_API_KEY?.trim()
-
     if (libraryId && apiKey) {
         try {
+            // General Info
             const videoRes = await fetch(`https://video.bunnycdn.com/library/${libraryId}/videos?itemsPerPage=1`, {
                 headers: { 'AccessKey': apiKey }
             })
@@ -384,6 +385,8 @@ export async function getAdminStats() {
                 totalVideos = videoData.totalItems || 0
             }
 
+            // Stats Logic: Bunny stats can be delayed. 
+            // We fetch the last 30 days but prioritize showing that there IS activity.
             const dateTo = new Date().toISOString().split('T')[0]
             const dateFrom = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
 
@@ -393,6 +396,7 @@ export async function getAdminStats() {
 
             if (statsRes.ok) {
                 const statsData = await statsRes.json()
+                // Bunny returns an object with views and bandwidthUsed
                 totalViews = statsData.views || 0
                 bandwidthUsed = statsData.bandwidthUsed || 0
             }

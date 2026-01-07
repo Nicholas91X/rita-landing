@@ -144,62 +144,56 @@ export default function AdminDashboardClient({ packages, libraryId, stats }: { p
                 </Accordion>
             )}
 
-            {/* TAB NAVIGATION - Premium Restructured Design */}
-            <div className="flex justify-center mb-10">
-                <div className="flex flex-wrap justify-center p-1.5 bg-neutral-900/50 backdrop-blur-xl border border-white/10 rounded-3xl shadow-2xl relative overflow-hidden gap-1 hover:border-white/20 transition-colors">
+            {/* TAB NAVIGATION - Premium Restructured Design (2x2 Grid with Cross Separator) */}
+            <div className="flex justify-center mb-10 px-4">
+                <div className="grid grid-cols-2 p-1 bg-neutral-900 border border-white/10 rounded-[2.5rem] shadow-2xl relative overflow-hidden w-full max-w-md">
+                    {/* Horizontal Divider */}
+                    <div className="absolute top-1/2 left-0 w-full h-px bg-white/10 -translate-y-1/2" />
+                    {/* Vertical Divider */}
+                    <div className="absolute top-0 left-1/2 w-px h-full bg-white/10 -translate-x-1/2" />
+
                     <button
                         onClick={() => setActiveTab('content')}
-                        className={`relative z-10 flex items-center px-6 py-2.5 rounded-xl text-sm font-semibold transition-all duration-300 ${activeTab === 'content'
-                            ? 'text-black'
-                            : 'text-neutral-400 hover:text-white'
-                            }`}
+                        className={`relative z-10 flex flex-col items-center justify-center py-8 transition-all duration-300 group ${activeTab === 'content' ? 'text-white' : 'text-neutral-500 hover:text-neutral-300'}`}
                     >
                         {activeTab === 'content' && (
-                            <div className="absolute inset-0 bg-white rounded-xl shadow-[0_0_20px_rgba(255,255,255,0.3)] z-[-1] animate-in fade-in zoom-in-95 duration-300" />
+                            <div className="absolute inset-2 bg-white/10 rounded-3xl z-[-1] animate-in fade-in zoom-in-95 duration-300" />
                         )}
-                        <Video className={`w-4 h-4 mr-2.5 transition-transform duration-300 ${activeTab === 'content' ? 'scale-110' : ''}`} />
-                        Contenuti
+                        <Video className={`w-7 h-7 mb-2 transition-all duration-500 ${activeTab === 'content' ? 'text-white scale-110 shadow-[0_0_15px_rgba(255,255,255,0.3)]' : 'group-hover:scale-110'}`} />
+                        <span className="text-[11px] font-black uppercase tracking-widest">Contenuti</span>
                     </button>
 
                     <button
                         onClick={() => setActiveTab('packages')}
-                        className={`relative z-10 flex items-center px-6 py-2.5 rounded-xl text-sm font-semibold transition-all duration-300 ${activeTab === 'packages'
-                            ? 'text-black'
-                            : 'text-neutral-400 hover:text-white'
-                            }`}
+                        className={`relative z-10 flex flex-col items-center justify-center py-8 transition-all duration-300 group ${activeTab === 'packages' ? 'text-white' : 'text-neutral-500 hover:text-neutral-300'}`}
                     >
                         {activeTab === 'packages' && (
-                            <div className="absolute inset-0 bg-white rounded-xl shadow-[0_0_20px_rgba(255,255,255,0.3)] z-[-1] animate-in fade-in zoom-in-95 duration-300" />
+                            <div className="absolute inset-2 bg-white/10 rounded-3xl z-[-1] animate-in fade-in zoom-in-95 duration-300" />
                         )}
-                        <PackageIcon className={`w-4 h-4 mr-2.5 transition-transform duration-300 ${activeTab === 'packages' ? 'scale-110' : ''}`} />
-                        Pacchetti
+                        <PackageIcon className={`w-7 h-7 mb-2 transition-all duration-500 ${activeTab === 'packages' ? 'text-white scale-110 shadow-[0_0_15px_rgba(255,255,255,0.3)]' : 'group-hover:scale-110'}`} />
+                        <span className="text-[11px] font-black uppercase tracking-widest">Pacchetti</span>
                     </button>
 
                     <button
                         onClick={() => setActiveTab('payments')}
-                        className={`relative z-10 flex items-center px-6 py-2.5 rounded-xl text-sm font-semibold transition-all duration-300 ${activeTab === 'payments'
-                            ? 'text-black'
-                            : 'text-neutral-400 hover:text-white'
-                            }`}
+                        className={`relative z-10 flex flex-col items-center justify-center py-8 transition-all duration-300 group ${activeTab === 'payments' ? 'text-white' : 'text-neutral-500 hover:text-neutral-300'}`}
                     >
                         {activeTab === 'payments' && (
-                            <div className="absolute inset-0 bg-white rounded-xl shadow-[0_0_20px_rgba(255,255,255,0.3)] z-[-1] animate-in fade-in zoom-in-95 duration-300" />
+                            <div className="absolute inset-2 bg-white/10 rounded-3xl z-[-1] animate-in fade-in zoom-in-95 duration-300" />
                         )}
-                        <CreditCard className={`w-4 h-4 mr-2.5 transition-transform duration-300 ${activeTab === 'payments' ? 'scale-110' : ''}`} />
-                        Transazioni
+                        <CreditCard className={`w-7 h-7 mb-2 transition-all duration-500 ${activeTab === 'payments' ? 'text-white scale-110 shadow-[0_0_15px_rgba(255,255,255,0.3)]' : 'group-hover:scale-110'}`} />
+                        <span className="text-[11px] font-black uppercase tracking-widest">Transazioni</span>
                     </button>
+
                     <button
                         onClick={() => setActiveTab('requests')}
-                        className={`relative z-10 flex items-center px-6 py-2.5 rounded-xl text-sm font-semibold transition-all duration-300 ${activeTab === 'requests'
-                            ? 'text-black'
-                            : 'text-neutral-400 hover:text-white'
-                            }`}
+                        className={`relative z-10 flex flex-col items-center justify-center py-8 transition-all duration-300 group ${activeTab === 'requests' ? 'text-white' : 'text-neutral-500 hover:text-neutral-300'}`}
                     >
                         {activeTab === 'requests' && (
-                            <div className="absolute inset-0 bg-white rounded-xl shadow-[0_0_20px_rgba(255,255,255,0.3)] z-[-1] animate-in fade-in zoom-in-95 duration-300" />
+                            <div className="absolute inset-2 bg-white/10 rounded-3xl z-[-1] animate-in fade-in zoom-in-95 duration-300" />
                         )}
-                        <Bell className={`w-4 h-4 mr-2.5 transition-transform duration-300 ${activeTab === 'requests' ? 'scale-110' : ''}`} />
-                        Fatturazione
+                        <Bell className={`w-7 h-7 mb-2 transition-all duration-500 ${activeTab === 'requests' ? 'text-white scale-110 shadow-[0_0_15px_rgba(255,255,255,0.3)]' : 'group-hover:scale-110'}`} />
+                        <span className="text-[11px] font-black uppercase tracking-widest">Fatturazione</span>
                     </button>
                 </div>
             </div>
