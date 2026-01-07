@@ -30,7 +30,8 @@ export async function getUserSubscriptionInfo() {
             refund_requests (
                 status,
                 reason,
-                created_at
+                created_at,
+                processed_at
             )
         `)
         .eq('user_id', user.id)

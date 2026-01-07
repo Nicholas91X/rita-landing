@@ -178,10 +178,24 @@ export default function BillingSection() {
                                     <Calendar className="w-4 h-4 text-brand" />
                                 </div>
                                 <div className="flex flex-col">
-                                    <span className="text-[10px] text-neutral-500 uppercase font-bold tracking-wider">Prossimo Rinnovo</span>
+                                    <span className="text-[10px] text-neutral-500 uppercase font-bold tracking-wider">
+                                        {sub.status === 'active' ? 'Prossimo Rinnovo' : 'Usufruibile fino a'}
+                                    </span>
                                     <span className="font-mono">{new Date(sub.next_invoice).toLocaleDateString('it-IT')}</span>
                                 </div>
                             </div>
+
+                            {sub.status === 'refunded' && sub.refund_requests?.[0]?.processed_at && (
+                                <div className="flex items-center gap-3 text-sm text-neutral-300">
+                                    <div className="w-8 h-8 rounded-full bg-amber-500/10 flex items-center justify-center">
+                                        <RefreshCcw className="w-4 h-4 text-amber-500" />
+                                    </div>
+                                    <div className="flex flex-col">
+                                        <span className="text-[10px] text-neutral-500 uppercase font-bold tracking-wider">Data Rimborso</span>
+                                        <span className="font-mono">{new Date(sub.refund_requests[0].processed_at).toLocaleDateString('it-IT')}</span>
+                                    </div>
+                                </div>
+                            )}
 
                             {/* Documentation Section */}
                             {sub.documents && sub.documents.length > 0 && (
