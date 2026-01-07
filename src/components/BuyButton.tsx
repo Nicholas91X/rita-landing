@@ -13,9 +13,19 @@ interface BuyButtonProps {
     price?: number
     customLabel?: string
     className?: string
+    isTrial?: boolean
+    isDiscounted?: boolean
 }
 
-export default function BuyButton({ packageId, packageName, price, customLabel, className }: BuyButtonProps) {
+export default function BuyButton({
+    packageId,
+    packageName,
+    price,
+    customLabel,
+    className,
+    isTrial,
+    isDiscounted
+}: BuyButtonProps) {
     const [isLoading, setIsLoading] = useState(false)
     const [isModalOpen, setIsModalOpen] = useState(false)
 
@@ -31,14 +41,20 @@ export default function BuyButton({ packageId, packageName, price, customLabel, 
         }
     }
 
-    const defaultLabel = `Sblocca Pacchetto ${price ? `(€${price})` : ''}`
+    const discountedPrice = price ? (price * 0.8).toFixed(2) : null
+
+    const defaultLabel = isTrial
+        ? "Prova 7 Giorni Gratis"
+        : isDiscounted
+            ? `Acquista con Sconto Fedeltà (€${discountedPrice})`
+            : `Sblocca Pacchetto ${price ? `(€${price})` : ''}`
 
     return (
         <>
             <Button
                 onClick={() => setIsModalOpen(true)}
                 disabled={isLoading}
-                className={className || "w-full bg-[var(--foreground)] text-[var(--background)] hover:opacity-90 transition-opacity rounded-full font-semibold"}
+                className={className || "w-full bg-[var(--foreground)] text-[var(--background)] hover:opacity-90 transition-opacity rounded-full font-semibold px-4 py-2 h-auto min-h-[44px] text-sm md:text-base"}
             >
                 {isLoading ? (
                     <>
@@ -57,6 +73,8 @@ export default function BuyButton({ packageId, packageName, price, customLabel, 
                 packageName={packageName || 'Pacchetto'}
                 price={price}
                 isLoading={isLoading}
+                isTrial={isTrial}
+                isDiscounted={isDiscounted}
             />
         </>
     )

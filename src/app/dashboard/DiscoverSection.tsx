@@ -5,7 +5,22 @@ import { Card, CardDescription, CardFooter, CardHeader, CardTitle } from '@/comp
 import BuyButton from '@/components/BuyButton'
 import { Search, Compass } from 'lucide-react'
 
-export default function DiscoverSection({ levels }: { levels: Level[] }) {
+export default function DiscoverSection({
+    levels,
+    userProfile
+}: {
+    levels: Level[],
+    userProfile?: any
+}) {
+    // Eligibility Logic
+    const hasUsedTrial = userProfile?.profile?.has_used_trial || false
+    const activeSubscriptions = userProfile?.activeSubscriptions || []
+    const hasAnyActiveOrTrialing = activeSubscriptions.length > 0
+
+    // Eligibility flags
+    const isTrialEligible = !hasUsedTrial && activeSubscriptions.length === 0
+    const isLoyaltyEligible = hasAnyActiveOrTrialing
+
     // Filter only non-purchased packages
     const discoverLevels = (levels || []).map(level => {
         const coursesWithAvailable = (level.courses || []).map(course => {
@@ -69,6 +84,19 @@ export default function DiscoverSection({ levels }: { levels: Level[] }) {
                                                 )}
                                                 <div className="absolute inset-0 bg-gradient-to-t from-neutral-900/60 to-transparent" />
                                                 <div className="absolute top-0 left-0 w-full h-1.5 bg-[var(--brand)] shadow-[var(--brand)]/30" />
+
+                                                {/* Badge for Trial or Discount */}
+                                                <div className="absolute bottom-4 left-4">
+                                                    {isTrialEligible ? (
+                                                        <div className="bg-emerald-500 text-white text-[10px] font-black uppercase tracking-widest px-3 py-1.5 rounded-full shadow-lg border border-emerald-400/50 animate-pulse">
+                                                            Prova 7 Giorni Gratis
+                                                        </div>
+                                                    ) : isLoyaltyEligible ? (
+                                                        <div className="bg-brand text-white text-[10px] font-black uppercase tracking-widest px-3 py-1.5 rounded-full shadow-lg border border-orange-400/50">
+                                                            Sconto Fedeltà Attivo
+                                                        </div>
+                                                    ) : null}
+                                                </div>
                                             </div>
 
                                             <CardHeader className="pb-4 pt-6 px-8 flex-1">
@@ -80,12 +108,14 @@ export default function DiscoverSection({ levels }: { levels: Level[] }) {
                                                 </CardDescription>
                                             </CardHeader>
 
-                                            <CardFooter className="pt-2 pb-8 px-6">
+                                            <CardFooter className="pt-2 pb-10 px-6">
                                                 <BuyButton
                                                     packageId={pkg.id}
                                                     packageName={pkg.name}
                                                     price={pkg.price}
-                                                    className="w-full h-14 rounded-2xl font-black uppercase tracking-widest transition-all duration-300 shadow-2xl bg-[var(--brand)] hover:bg-white hover:text-[var(--brand)] text-white shadow-[var(--brand)]/30 hover:scale-[1.02] active:scale-[0.98]"
+                                                    isTrial={isTrialEligible}
+                                                    isDiscounted={isLoyaltyEligible}
+                                                    className="w-full bg-[var(--brand)] hover:bg-white hover:text-[var(--brand)] text-white rounded-2xl h-14 font-black uppercase tracking-widest text-[11px] md:text-xs transition-all shadow-2xl shadow-[var(--brand)]/30 hover:scale-[1.02] active:scale-[0.98] px-2 text-center"
                                                 />
                                             </CardFooter>
                                         </Card>

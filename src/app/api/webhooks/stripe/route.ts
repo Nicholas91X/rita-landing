@@ -30,55 +30,67 @@ export async function POST(req: Request) {
         const session = event.data.object as Stripe.Checkout.Session
         const userId = session.metadata?.user_id
         const packageId = session.metadata?.package_id
+        const isTrial = session.metadata?.is_trial === 'true'
+
+        console.log(`Checkout completed: User ${userId}, Package ${packageId}, Trial: ${isTrial}`)
 
         if (userId && packageId) {
-            // Create admin client to bypass RLS
             const supabaseAdmin = createClient(
                 process.env.NEXT_PUBLIC_SUPABASE_URL!,
                 process.env.SUPABASE_SERVICE_ROLE_KEY!
             )
 
-            const { error } = await supabaseAdmin
-                .from('user_subscriptions')
-                .upsert({
-                    user_id: userId,
-                    package_id: packageId,
-                    status: 'active',
-                    stripe_customer_id: session.customer as string,
-                    stripe_subscription_id: session.subscription as string,
-                    current_period_end: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
-                }, {
-                    onConflict: 'user_id, package_id'
-                })
-
-            if (error) {
-                console.error('Supabase error:', error)
-                return new NextResponse('Error updating subscription', { status: 500 })
-            }
-
-            // Sync Stripe Customer ID to profiles (if not already set)
-            // This ensures future checkouts reuse this customer
-            if (session.customer) {
-                const { error: profileError } = await supabaseAdmin
-                    .from('profiles')
-                    .update({ stripe_customer_id: session.customer as string })
-                    .eq('id', userId)
-
-                if (profileError) {
-                    console.error('Failed to sync stripe_customer_id to profile:', profileError)
-                }
-            }
-
-            // Create Admin Notification for Purchase
             try {
-                // Get User Info
+                // Fetch actual subscription to get status and period end
+                let subscriptionStatus = 'active'
+                let periodEnd = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
+
+                if (session.subscription) {
+                    const stripeSub = await stripe.subscriptions.retrieve(session.subscription as string)
+                    subscriptionStatus = stripeSub.status
+                    periodEnd = new Date((stripeSub as any).current_period_end * 1000).toISOString()
+                    console.log(`Syncing subscription ${session.subscription}: Status ${subscriptionStatus}`)
+                }
+
+                const { error: upsertError } = await supabaseAdmin
+                    .from('user_subscriptions')
+                    .upsert({
+                        user_id: userId,
+                        package_id: packageId,
+                        status: subscriptionStatus,
+                        stripe_customer_id: session.customer as string,
+                        stripe_subscription_id: session.subscription as string,
+                        current_period_end: periodEnd,
+                    }, {
+                        onConflict: 'user_id, package_id'
+                    })
+
+                if (upsertError) throw upsertError
+
+                // Mark trial as used if applicable
+                if (isTrial) {
+                    const { error: trialError } = await supabaseAdmin
+                        .from('profiles')
+                        .update({ has_used_trial: true })
+                        .eq('id', userId)
+                    if (trialError) console.error('Error marking trial as used:', trialError)
+                }
+
+                // Sync Stripe Customer ID to profiles
+                if (session.customer) {
+                    await supabaseAdmin
+                        .from('profiles')
+                        .update({ stripe_customer_id: session.customer as string })
+                        .eq('id', userId)
+                }
+
+                // Create Admin Notification
                 const { data: profile } = await supabaseAdmin
                     .from('profiles')
                     .select('full_name, email')
                     .eq('id', userId)
                     .single()
 
-                // Get Package Info
                 const { data: pkg } = await supabaseAdmin
                     .from('packages')
                     .select('name')
@@ -86,21 +98,29 @@ export async function POST(req: Request) {
                     .single()
 
                 await supabaseAdmin.from('admin_notifications').insert({
-                    type: 'package_purchase',
+                    type: isTrial ? 'trial_start' : 'package_purchase',
                     user_id: userId,
                     data: {
                         packageName: pkg?.name || 'Pacchetto',
                         customerName: profile?.full_name || profile?.email || 'Utente',
-                        amount: (session.amount_total || 0) / 100
+                        amount: isTrial ? 0 : (session.amount_total || 0) / 100,
+                        isTrial
                     }
                 })
-            } catch (notifyErr) {
-                console.error('Failed to create admin notification:', notifyErr)
+
+                console.log(`Successfully processed checkout for User ${userId}`)
+
+            } catch (err: any) {
+                console.error('Webhook processing error:', err.message || err)
+                // Returning a non-200 here will make Stripe retry the webhook
+                return new NextResponse(`Internal Error: ${err.message}`, { status: 500 })
             }
         } else {
-            console.warn('Missing metadata in checkout session')
+            console.warn('Skipping webhook: Missing userId or packageId in session metadata')
+            console.log('Session metadata found:', session.metadata)
         }
-    } else if (event.type === 'customer.subscription.updated' || event.type === 'customer.subscription.deleted') {
+    }
+    else if (event.type === 'customer.subscription.updated' || event.type === 'customer.subscription.deleted') {
         const subscription = event.data.object as Stripe.Subscription
 
         const supabaseAdmin = createClient(
@@ -108,15 +128,10 @@ export async function POST(req: Request) {
             process.env.SUPABASE_SERVICE_ROLE_KEY!
         )
 
-        // Map Stripe status to our schema
-        // Stripe: active, past_due, unpaid, canceled, incomplete, incomplete_expired, trialing
-        // DB: active, trialing, past_due, unpaid, canceled, refunded, incomplete
-
         const { error } = await supabaseAdmin
             .from('user_subscriptions')
             .update({
                 status: subscription.status,
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 current_period_end: new Date((subscription as any).current_period_end * 1000).toISOString(),
                 cancel_at_period_end: subscription.cancel_at_period_end
             })
@@ -126,7 +141,6 @@ export async function POST(req: Request) {
             console.error('Error updating subscription status:', error)
             return new NextResponse('Error syncing subscription', { status: 500 })
         }
-        console.log(`Synced subscription ${subscription.id} to status: ${subscription.status}`)
     }
 
     return new NextResponse(null, { status: 200 })

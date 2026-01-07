@@ -18,6 +18,8 @@ interface CheckoutConfirmationModalProps {
     packageName: string
     price?: number
     isLoading?: boolean
+    isTrial?: boolean
+    isDiscounted?: boolean
 }
 
 export function CheckoutConfirmationModal({
@@ -26,8 +28,11 @@ export function CheckoutConfirmationModal({
     onConfirm,
     packageName,
     price,
-    isLoading
+    isLoading,
+    isTrial,
+    isDiscounted
 }: CheckoutConfirmationModalProps) {
+    const discountedPrice = price ? (price * 0.8).toFixed(2) : null
     return (
         <Dialog open={isOpen} onOpenChange={onOpenChange}>
             <DialogContent className="sm:max-w-[450px] bg-neutral-900 border-neutral-800 text-white rounded-[32px] overflow-hidden p-0">
@@ -54,7 +59,17 @@ export function CheckoutConfirmationModal({
                             <div className="space-y-1">
                                 <p className="text-sm font-bold text-white uppercase tracking-wide">Dettagli Pagamento</p>
                                 <p className="text-sm text-neutral-400 leading-relaxed">
-                                    L'acquisto sottoscrive un <span className="text-white font-semibold">abbonamento mensile</span> {price ? `da €${price}` : ''}.
+                                    {isTrial ? (
+                                        <>
+                                            I primi <span className="text-emerald-400 font-bold">7 giorni sono gratis</span>. Successivamente, l'abbonamento rinnoverà {price ? `a €${price}` : ''} al mese.
+                                        </>
+                                    ) : isDiscounted ? (
+                                        <>
+                                            Grazie alla tua fedeltà, pagherai <span className="text-[var(--brand)] font-bold">€{discountedPrice}</span> invece di <span className="line-through">€{price}</span> al mese.
+                                        </>
+                                    ) : (
+                                        <>L'acquisto sottoscrive un <span className="text-white font-semibold">abbonamento mensile</span> {price ? `da €${price}` : ''}.</>
+                                    )}
                                 </p>
                             </div>
                         </div>

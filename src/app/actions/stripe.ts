@@ -18,7 +18,7 @@ export async function createCheckoutSession(packageId: string) {
         redirect('/login')
     }
 
-    // 2. Fetch package info and User's Stripe Customer ID
+    // 2. Fetch package info and User eligibility
     const { data: pkg, error: pkgError } = await supabase
         .from('packages')
         .select('stripe_price_id')
@@ -29,12 +29,27 @@ export async function createCheckoutSession(packageId: string) {
         throw new Error('Package not found or price not configured')
     }
 
-    // Check for existing Stripe Customer ID in profiles
+    // Fetch profile and existing subscriptions for eligibility
     const { data: profile } = await supabase
         .from('profiles')
-        .select('stripe_customer_id')
+        .select('stripe_customer_id, has_used_trial')
         .eq('id', user.id)
         .single()
+
+    const { data: existingSubs } = await supabase
+        .from('user_subscriptions')
+        .select('status')
+        .eq('user_id', user.id)
+
+    // Eligibility Logic
+    const hasActiveOrTrialingSub = existingSubs?.some(sub => sub.status === 'active' || sub.status === 'trialing')
+    const hasUsedTrial = profile?.has_used_trial || existingSubs?.some(sub => sub.status === 'trialing')
+
+    // Trial: Only if never used trial AND has no previous/existing subscriptions at all
+    const isTrialEligible = !hasUsedTrial && (!existingSubs || existingSubs.length === 0)
+
+    // Loyalty: If has at least one active/trialing subscription
+    const isLoyaltyEligible = hasActiveOrTrialingSub
 
     // 3. Create Stripe Checkout Session
     const origin = (await headers()).get('origin') || 'http://localhost:3000'
@@ -50,12 +65,28 @@ export async function createCheckoutSession(packageId: string) {
         metadata: {
             user_id: user.id,
             package_id: packageId,
+            is_trial: isTrialEligible ? 'true' : 'false'
         },
         success_url: `${origin}/dashboard?success=true`,
         cancel_url: `${origin}/dashboard?canceled=true`,
     }
 
-    // Reuse Customer ID if exists, otherwise let Stripe create one (and we catch it in webhook)
+    // Apply Trial
+    if (isTrialEligible) {
+        sessionParams.subscription_data = {
+            trial_period_days: 7
+        }
+    }
+
+    // Apply Loyalty Discount (Coupon ID should be provided by user or created in Stripe)
+    // Placeholder: 'LOYALTY_PROMO' - User needs to create this in Stripe or provide real ID
+    if (isLoyaltyEligible) {
+        sessionParams.discounts = [
+            { coupon: process.env.STRIPE_LOYALTY_COUPON_ID || 'LOYALTY_PROMO' }
+        ]
+    }
+
+    // Reuse Customer ID if exists
     if (profile?.stripe_customer_id) {
         sessionParams.customer = profile.stripe_customer_id
     } else {

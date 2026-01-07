@@ -156,13 +156,20 @@ export async function getUserProfile() {
 
     const { data: profile } = await supabase
         .from('profiles')
-        .select('*')
+        .select('*, has_used_trial')
         .eq('id', user.id)
         .single()
 
+    const { data: activeSubs } = await supabase
+        .from('user_subscriptions')
+        .select('id, status')
+        .eq('user_id', user.id)
+        .in('status', ['active', 'trialing'])
+
     return {
         user,
-        profile
+        profile,
+        activeSubscriptions: activeSubs || []
     }
 }
 export async function signOutUser() {

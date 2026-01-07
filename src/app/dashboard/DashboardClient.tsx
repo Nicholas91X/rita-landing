@@ -44,6 +44,7 @@ export default function DashboardClient({ levels }: { levels: Level[] }) {
             setActiveTab(tab)
         } else if (success === 'true') {
             setActiveTab('library')
+            fetchUserProfile() // Re-fetch to get new subscription/trial state
         } else if (pkgId) {
             setActiveTab('discover')
         }
@@ -69,7 +70,7 @@ export default function DashboardClient({ levels }: { levels: Level[] }) {
                     userName={firstName}
                 />
             case 'discover':
-                return <DiscoverSection levels={levels} />
+                return <DiscoverSection levels={levels} userProfile={userProfile} />
             case 'billing':
                 return <BillingSection />
             case 'profile':
