@@ -18,22 +18,28 @@ export async function createCheckoutSession(packageId: string) {
         redirect('/login')
     }
 
-    // 2. Fetch stripe_price_id from Supabase
-    const { data: pkg, error } = await supabase
+    // 2. Fetch package info and User's Stripe Customer ID
+    const { data: pkg, error: pkgError } = await supabase
         .from('packages')
         .select('stripe_price_id')
         .eq('id', packageId)
         .single()
 
-    if (error || !pkg || !pkg.stripe_price_id) {
+    if (pkgError || !pkg || !pkg.stripe_price_id) {
         throw new Error('Package not found or price not configured')
     }
+
+    // Check for existing Stripe Customer ID in profiles
+    const { data: profile } = await supabase
+        .from('profiles')
+        .select('stripe_customer_id')
+        .eq('id', user.id)
+        .single()
 
     // 3. Create Stripe Checkout Session
     const origin = (await headers()).get('origin') || 'http://localhost:3000'
 
-    const session = await stripe.checkout.sessions.create({
-        customer_email: user.email,
+    const sessionParams: Stripe.Checkout.SessionCreateParams = {
         mode: 'subscription',
         line_items: [
             {
@@ -47,7 +53,16 @@ export async function createCheckoutSession(packageId: string) {
         },
         success_url: `${origin}/dashboard?success=true`,
         cancel_url: `${origin}/dashboard?canceled=true`,
-    })
+    }
+
+    // Reuse Customer ID if exists, otherwise let Stripe create one (and we catch it in webhook)
+    if (profile?.stripe_customer_id) {
+        sessionParams.customer = profile.stripe_customer_id
+    } else {
+        sessionParams.customer_email = user.email
+    }
+
+    const session = await stripe.checkout.sessions.create(sessionParams)
 
     if (!session.url) {
         throw new Error('Failed to create checkout session')

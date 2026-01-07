@@ -55,6 +55,19 @@ export async function POST(req: Request) {
                 console.error('Supabase error:', error)
                 return new NextResponse('Error updating subscription', { status: 500 })
             }
+
+            // Sync Stripe Customer ID to profiles (if not already set)
+            // This ensures future checkouts reuse this customer
+            if (session.customer) {
+                const { error: profileError } = await supabaseAdmin
+                    .from('profiles')
+                    .update({ stripe_customer_id: session.customer as string })
+                    .eq('id', userId)
+
+                if (profileError) {
+                    console.error('Failed to sync stripe_customer_id to profile:', profileError)
+                }
+            }
         } else {
             console.warn('Missing metadata in checkout session')
         }
