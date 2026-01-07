@@ -1,14 +1,20 @@
 import { getContentHierarchy } from '@/app/actions/content'
 import DashboardClient from './DashboardClient'
-import Section from '@/components/Section'
+import { isAdmin } from '@/utils/supabase/admin'
+import { redirect } from 'next/navigation'
 
 export default async function DashboardPage() {
-    // Recupera la gerarchia dei contenuti dal server (Server Action)
+    // 1. Check if user is Super Admin
+    const isSuperAdmin = await isAdmin()
+    if (isSuperAdmin) {
+        redirect('/admin')
+    }
+
+    // 2. Recupera la gerarchia dei contenuti
     const levels = await getContentHierarchy()
 
     return (
         <main className="min-h-screen bg-[var(--secondary)]">
-            {/* Passa i dati al Client Component per gestire i Tab */}
             <DashboardClient levels={levels} />
         </main>
     )
