@@ -50,7 +50,17 @@ export default function DiscoverSection({
         <div className="space-y-16 animate-in fade-in slide-in-from-bottom-4 duration-500">
             <div>
                 <h2 className="text-3xl font-bold text-white tracking-tight">Scopri Nuovi Percorsi</h2>
-                <p className="text-neutral-400 mt-1">Esplora la nostra collezione di allenamenti premium.</p>
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mt-1">
+                    <p className="text-neutral-300">Esplora la nostra collezione di allenamenti premium.</p>
+                    {hasUsedTrial && (
+                        <div className="flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/5 border border-white/10 animate-in fade-in slide-in-from-right-4 duration-1000">
+                            <div className="w-1.5 h-1.5 rounded-full bg-[var(--brand)] animate-pulse" />
+                            <span className="text-[10px] font-black uppercase tracking-widest text-neutral-200">
+                                Periodo di prova già usufruito
+                            </span>
+                        </div>
+                    )}
+                </div>
             </div>
 
             {discoverLevels.map((level) => (
@@ -103,7 +113,7 @@ export default function DiscoverSection({
                                                 <CardTitle className="text-xl font-black text-white line-clamp-2 min-h-[3.5rem] italic uppercase tracking-tighter group-hover:text-[var(--brand)] transition-colors">
                                                     {pkg.name}
                                                 </CardTitle>
-                                                <CardDescription className="text-neutral-400 text-xs mt-2 line-clamp-3 leading-relaxed">
+                                                <CardDescription className="text-neutral-300 text-xs mt-2 line-clamp-3 leading-relaxed">
                                                     {pkg.description}
                                                 </CardDescription>
                                             </CardHeader>
