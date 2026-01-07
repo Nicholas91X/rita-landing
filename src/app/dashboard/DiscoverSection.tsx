@@ -54,18 +54,24 @@ export default function DiscoverSection({ levels }: { levels: Level[] }) {
                                 </h3>
                                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                                     {course.packages.map((pkg) => (
-                                        <Card key={pkg.id} className="bg-white/5 border-white/10 backdrop-blur-md shadow-2xl overflow-hidden group hover:border-brand/50 transition-all duration-300 rounded-[32px]">
-                                            <div className="h-2 w-full bg-brand/50 group-hover:bg-brand transition-all shadow-[0_0_15px_rgba(244,101,48,0.2)] group-hover:shadow-[0_0_25px_rgba(244,101,48,0.4)]" />
-                                            <CardHeader className="pb-4 pt-8 px-8">
-                                                <CardTitle className="text-xl font-black text-white line-clamp-2 min-h-[3.5rem] italic uppercase tracking-tighter group-hover:text-brand transition-colors">
+                                        <Card key={pkg.id} className="bg-white/10 border-white/10 backdrop-blur-md shadow-2xl overflow-hidden group hover:border-[var(--brand)]/40 transition-all duration-300 rounded-[32px] flex flex-col">
+                                            <div className="h-2 w-full bg-[var(--brand)] shadow-[var(--brand)]/30" />
+
+                                            <CardHeader className="pb-4 pt-8 px-8 flex-1">
+                                                <CardTitle className="text-xl font-black text-white line-clamp-2 min-h-[3.5rem] italic uppercase tracking-tighter group-hover:text-[var(--brand)] transition-colors">
                                                     {pkg.name}
                                                 </CardTitle>
-                                                <CardDescription className="text-neutral-400 text-xs mt-1 line-clamp-2">
+                                                <CardDescription className="text-neutral-400 text-xs mt-2 line-clamp-3 leading-relaxed">
                                                     {pkg.description}
                                                 </CardDescription>
                                             </CardHeader>
+
                                             <CardFooter className="pt-2 pb-8 px-6">
-                                                <BuyButton packageId={pkg.id} price={pkg.price} />
+                                                <BuyButton
+                                                    packageId={pkg.id}
+                                                    price={pkg.price}
+                                                    className="w-full h-14 rounded-2xl font-black uppercase tracking-widest transition-all duration-300 shadow-2xl bg-[var(--brand)] hover:bg-white hover:text-[var(--brand)] text-white shadow-[var(--brand)]/30 hover:scale-[1.02] active:scale-[0.98]"
+                                                />
                                             </CardFooter>
                                         </Card>
                                     ))}
