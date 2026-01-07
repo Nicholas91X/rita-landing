@@ -23,6 +23,14 @@ export default function BillingSection() {
     const [cancelDialog, setCancelDialog] = useState<{ open: boolean, subId: string | null }>({ open: false, subId: null })
     const [refundReason, setRefundReason] = useState('')
     const [isSubmittingRefund, setIsSubmittingRefund] = useState(false)
+    const [filter, setFilter] = useState<'all' | 'active' | 'ended'>('all')
+
+    const filteredSubscriptions = subscriptions.filter(sub => {
+        if (filter === 'all') return true;
+        if (filter === 'active') return ['active', 'trialing'].includes(sub.status);
+        if (filter === 'ended') return ['canceled', 'unpaid', 'refunded', 'past_due', 'incomplete_expired'].includes(sub.status);
+        return true;
+    });
 
     const fetchSubs = async () => {
         try {
@@ -142,8 +150,37 @@ export default function BillingSection() {
                 </Button>
             </div>
 
+            {/* Filters */}
+            <div className="flex items-center gap-2 pb-4 border-b border-white/5">
+                <Button
+                    variant={filter === 'all' ? 'secondary' : 'ghost'}
+                    onClick={() => setFilter('all')}
+                    className="h-8 text-xs font-bold rounded-lg"
+                >
+                    Tutti
+                </Button>
+                <Button
+                    variant={filter === 'active' ? 'secondary' : 'ghost'}
+                    onClick={() => setFilter('active')}
+                    className={cn(
+                        "h-8 text-xs font-bold rounded-lg gap-2",
+                        filter === 'active' && "bg-emerald-500/10 text-emerald-500 hover:bg-emerald-500/20"
+                    )}
+                >
+                    <div className="w-2 h-2 rounded-full bg-emerald-500" />
+                    Attivi
+                </Button>
+                <Button
+                    variant={filter === 'ended' ? 'secondary' : 'ghost'}
+                    onClick={() => setFilter('ended')}
+                    className="h-8 text-xs font-bold rounded-lg text-neutral-400"
+                >
+                    Conclusi/Rimborsati
+                </Button>
+            </div>
+
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {subscriptions.length > 0 ? subscriptions.map((sub: any) => (
+                {filteredSubscriptions.length > 0 ? filteredSubscriptions.map((sub: any) => (
                     <Card key={sub.id} className="bg-white/5 backdrop-blur-md border-white/5 shadow-2xl overflow-hidden group">
                         <div className={sub.status === 'active' ? 'h-1.5 w-full bg-emerald-500' : 'h-1.5 w-full bg-neutral-700'} />
                         <CardHeader className="pb-4">
