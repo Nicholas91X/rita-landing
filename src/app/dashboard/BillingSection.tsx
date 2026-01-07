@@ -144,7 +144,7 @@ export default function BillingSection() {
                 >
                     {portalLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : (
                         <span className="flex items-center gap-2">
-                            Gestisci su Stripe <ExternalLink className="w-4 h-4" />
+                            Metodo di Pagamento <ExternalLink className="w-4 h-4" />
                         </span>
                     )}
                 </Button>
