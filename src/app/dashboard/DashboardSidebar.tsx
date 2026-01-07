@@ -25,12 +25,13 @@ const NAV_ITEMS: NavItem[] = [
     { id: 'profile', label: 'Profilo', icon: User },
 ]
 
-interface DashboardSidebarProps {
+export interface DashboardSidebarProps {
     activeTab: TabType
     setActiveTab: (tab: TabType) => void
+    userProfile?: any
 }
 
-export default function DashboardSidebar({ activeTab, setActiveTab }: DashboardSidebarProps) {
+export default function DashboardSidebar({ activeTab, setActiveTab, userProfile }: DashboardSidebarProps) {
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
 
     return (
@@ -125,8 +126,21 @@ export default function DashboardSidebar({ activeTab, setActiveTab }: DashboardS
                 </Link>
                 <div className="flex items-center gap-4">
                     <NotificationBell />
-                    <div className="w-8 h-8 rounded-full bg-white flex items-center justify-center text-[10px] font-black text-[#001F3D] shadow-lg border border-brand/10">
-                        RU
+                    <div className="w-8 h-8 rounded-full bg-white flex items-center justify-center text-[10px] font-black text-[#001F3D] shadow-lg border border-brand/10 overflow-hidden">
+                        {userProfile?.profile?.avatar_url ? (
+                            <img
+                                src={userProfile.profile.avatar_url}
+                                alt="Profile"
+                                className="w-full h-full object-cover"
+                            />
+                        ) : (
+                            <span>
+                                {userProfile?.profile?.full_name
+                                    ? userProfile.profile.full_name.substring(0, 2).toUpperCase()
+                                    : userProfile?.user?.email?.substring(0, 2).toUpperCase() || 'RU'
+                                }
+                            </span>
+                        )}
                     </div>
                 </div>
             </header>

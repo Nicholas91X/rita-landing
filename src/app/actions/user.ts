@@ -196,3 +196,78 @@ export async function markUserNotificationAsRead(id: string) {
 
     return { success: true }
 }
+
+export async function updateProfile(formData: FormData) {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+
+    if (!user) throw new Error('Unauthorized')
+
+    const fullName = formData.get('fullName') as string
+    const avatarFile = formData.get('avatar') as File
+
+    const updates: any = {
+        updated_at: new Date().toISOString(),
+    }
+
+    if (fullName) {
+        updates.full_name = fullName
+    }
+
+    if (avatarFile && avatarFile.size > 0) {
+        // 1. Cleanup old avatar if exists
+        const { data: currentProfile } = await supabase
+            .from('profiles')
+            .select('avatar_url')
+            .eq('id', user.id)
+            .single()
+
+        if (currentProfile?.avatar_url) {
+            try {
+                // Extract filename from URL 
+                // URL format: .../avatars/filename
+                const oldUrl = currentProfile.avatar_url
+                const oldFileName = oldUrl.split('/').pop()
+                if (oldFileName) {
+                    await supabase.storage
+                        .from('avatars')
+                        .remove([oldFileName])
+                }
+            } catch (err) {
+                console.error('Error deleting old avatar:', err)
+                // Continue even if delete fails
+            }
+        }
+
+        const fileExt = avatarFile.name.split('.').pop()
+        const fileName = `${user.id}-${Math.random()}.${fileExt}`
+        const filePath = `${fileName}`
+
+        const { error: uploadError } = await supabase.storage
+            .from('avatars')
+            .upload(filePath, avatarFile)
+
+        if (uploadError) {
+            console.error('Error uploading avatar:', uploadError)
+            throw new Error('Errore durante il caricamento della foto')
+        }
+
+        const { data: { publicUrl } } = supabase.storage
+            .from('avatars')
+            .getPublicUrl(filePath)
+
+        updates.avatar_url = publicUrl
+    }
+
+    const { error } = await supabase
+        .from('profiles')
+        .update(updates)
+        .eq('id', user.id)
+
+    if (error) {
+        console.error('Error updating profile:', error)
+        throw new Error('Errore durante l\'aggiornamento del profilo')
+    }
+
+    return { success: true }
+}
