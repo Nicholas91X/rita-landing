@@ -184,7 +184,7 @@ export default function BillingSection() {
                     const createdAt = new Date(sub.created_at).getTime();
                     const now = new Date().getTime();
                     const diffDays = (now - createdAt) / (1000 * 60 * 60 * 24);
-                    const isRefundAllowed = diffDays <= 4;
+                    const isRefundAllowed = diffDays <= 4 && sub.status !== 'trialing';
 
                     return (
                         <Card key={sub.id} className="bg-white/5 backdrop-blur-md border-white/5 shadow-2xl overflow-hidden group">
@@ -354,7 +354,7 @@ export default function BillingSection() {
                                                 !isRefundAllowed && "opacity-50 cursor-not-allowed border-neutral-800 text-neutral-500 hover:bg-transparent"
                                             )}
                                             onClick={() => isRefundAllowed && setRefundDialog({ open: true, subId: sub.id })}
-                                            title={!isRefundAllowed ? "Rimborso non disponibile dopo 4 giorni" : ""}
+                                            title={sub.status === 'trialing' ? "Rimborso non disponibile per prodotti in prova" : !isRefundAllowed ? "Rimborso non disponibile dopo 4 giorni" : ""}
                                         >
                                             <RefreshCcw className="w-3.5 h-3.5" />
                                             Rimborso
