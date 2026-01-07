@@ -17,12 +17,15 @@ export default function DashboardClient({ levels }: { levels: Level[] }) {
     const [activeTab, setActiveTab] = useState<TabType>('home')
     const searchParams = useSearchParams()
 
-    // Auto-select tab logic from search params (e.g. after purchase)
+    // Auto-select tab logic from search params
     useEffect(() => {
         const pkgId = searchParams.get('packageId')
         const success = searchParams.get('success')
+        const tab = searchParams.get('tab') as TabType
 
-        if (success === 'true') {
+        if (tab && ['home', 'library', 'discover', 'billing', 'profile'].includes(tab)) {
+            setActiveTab(tab)
+        } else if (success === 'true') {
             setActiveTab('library')
         } else if (pkgId) {
             setActiveTab('discover')
