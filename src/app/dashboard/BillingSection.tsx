@@ -311,7 +311,7 @@ export default function BillingSection() {
                                 </div>
 
                                 <div className="flex items-center gap-2 w-full mt-2">
-                                    {sub.status === 'active' && (
+                                    {['active', 'trialing'].includes(sub.status) && (
                                         <Button
                                             variant="outline"
                                             size="sm"
