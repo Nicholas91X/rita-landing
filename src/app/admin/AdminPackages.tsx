@@ -172,6 +172,18 @@ export default function AdminPackages() {
                             />
                         </div>
                         <div className="space-y-2">
+                            <label className="text-sm font-medium">Prezzo (€)</label>
+                            <Input
+                                type="number"
+                                step="0.01"
+                                min="0"
+                                value={formData.price}
+                                onChange={(e) => setFormData({ ...formData, price: parseFloat(e.target.value) || 0 })}
+                                className="bg-neutral-800 border-neutral-700"
+                                required
+                            />
+                        </div>
+                        <div className="space-y-2">
                             <label className="text-sm font-medium text-neutral-300">Corso Associato</label>
                             <select
                                 value={formData.course_id}
