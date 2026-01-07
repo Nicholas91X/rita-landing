@@ -5,8 +5,9 @@ import { createBunnyVideo, saveVideoToDb, getAdminVideos, deleteVideo, updateVid
 import AdminStats from './AdminStats'
 import AdminPackages from './AdminPackages'
 import AdminStripe from './AdminStripe'
+import AdminRequests from './AdminRequests'
 import { Button } from '@/components/ui/button'
-import { Loader2, UploadCloud, CheckCircle, AlertCircle, Trash2, Edit2, Save, X, PlayCircle, Video, Package as PackageIcon, CreditCard } from 'lucide-react'
+import { Loader2, UploadCloud, CheckCircle, AlertCircle, Trash2, Edit2, Save, X, PlayCircle, Video, Package as PackageIcon, CreditCard, Bell } from 'lucide-react'
 import {
     Accordion,
     AccordionContent,
@@ -43,7 +44,7 @@ type AdminStatsData = {
 };
 
 export default function AdminDashboardClient({ packages, libraryId, stats }: { packages: Package[], libraryId?: string, stats?: AdminStatsData }) {
-    const [activeTab, setActiveTab] = useState<'content' | 'packages' | 'payments'>('content')
+    const [activeTab, setActiveTab] = useState<'content' | 'packages' | 'payments' | 'requests'>('content')
 
     // Video State
     const [title, setTitle] = useState('')
@@ -187,6 +188,19 @@ export default function AdminDashboardClient({ packages, libraryId, stats }: { p
                         <CreditCard className={`w-4 h-4 mr-2.5 transition-transform duration-300 ${activeTab === 'payments' ? 'scale-110' : ''}`} />
                         Transazioni
                     </button>
+                    <button
+                        onClick={() => setActiveTab('requests')}
+                        className={`relative z-10 flex items-center px-6 py-2.5 rounded-xl text-sm font-semibold transition-all duration-300 ${activeTab === 'requests'
+                            ? 'text-black'
+                            : 'text-neutral-400 hover:text-white'
+                            }`}
+                    >
+                        {activeTab === 'requests' && (
+                            <div className="absolute inset-0 bg-white rounded-xl shadow-[0_0_20px_rgba(255,255,255,0.3)] z-[-1] animate-in fade-in zoom-in-95 duration-300" />
+                        )}
+                        <Bell className={`w-4 h-4 mr-2.5 transition-transform duration-300 ${activeTab === 'requests' ? 'scale-110' : ''}`} />
+                        Fatturazione
+                    </button>
                 </div>
             </div>
 
@@ -197,6 +211,10 @@ export default function AdminDashboardClient({ packages, libraryId, stats }: { p
             ) : activeTab === 'payments' ? (
                 <div className="animate-in slide-in-from-bottom-4 duration-500">
                     <AdminStripe />
+                </div>
+            ) : activeTab === 'requests' ? (
+                <div className="animate-in slide-in-from-bottom-4 duration-500">
+                    <AdminRequests />
                 </div>
             ) : (
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start animate-in slide-in-from-bottom-4 duration-500">

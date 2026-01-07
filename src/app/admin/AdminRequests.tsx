@@ -1,0 +1,328 @@
+'use client'
+
+import { useState, useEffect } from 'react'
+import { getAdminNotifications, getRefundRequests, handleRefundRequest, markNotificationAsRead } from '@/app/actions/admin'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
+import { Loader2, Bell, RefreshCcw, XCircle, CheckCircle2, User, Clock, AlertTriangle, ChevronLeft, ChevronRight } from 'lucide-react'
+import { toast } from 'sonner'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Badge } from "@/components/ui/badge"
+
+const ITEMS_PER_PAGE = 6
+
+export default function AdminRequests() {
+    const [notifications, setNotifications] = useState<any[]>([])
+    const [refundRequests, setRefundRequests] = useState<any[]>([])
+    const [loading, setLoading] = useState(true)
+    const [actionLoading, setActionLoading] = useState<string | null>(null)
+
+    // Pagination states
+    const [currentPageNotifs, setCurrentPageNotifs] = useState(1)
+    const [currentPageRefunds, setCurrentPageRefunds] = useState(1)
+
+    const loadData = async () => {
+        try {
+            setLoading(true)
+            const [notifs, refunds] = await Promise.all([
+                getAdminNotifications(),
+                getRefundRequests()
+            ])
+            setNotifications(notifs)
+            setRefundRequests(refunds)
+        } catch (error) {
+            console.error('Failed to load admin billing data', error)
+            toast.error('Errore nel caricamento dei dati')
+        } finally {
+            setLoading(false)
+        }
+    }
+
+    useEffect(() => {
+        loadData()
+    }, [])
+
+    const handleAction = async (requestId: string, status: 'approved' | 'rejected') => {
+        try {
+            setActionLoading(requestId)
+            await handleRefundRequest(requestId, status)
+            toast.success(`Richiesta ${status === 'approved' ? 'approvata' : 'rifiutata'}`)
+            loadData()
+        } catch (error: any) {
+            toast.error(error.message || 'Errore durante l\'azione')
+        } finally {
+            setActionLoading(null)
+        }
+    }
+
+    const handleMarkAsRead = async (id: string) => {
+        try {
+            await markNotificationAsRead(id)
+            setNotifications(notifications.map(n => n.id === id ? { ...n, is_read: true } : n))
+        } catch (error) {
+            console.error(error)
+        }
+    }
+
+    if (loading) {
+        return (
+            <div className="flex flex-col items-center justify-center p-20 gap-4 text-neutral-400">
+                <Loader2 className="w-8 h-8 animate-spin text-brand" />
+                <p className="text-sm font-medium animate-pulse">Caricamento richieste e notifiche...</p>
+            </div>
+        )
+    }
+
+    const unreadCount = notifications.filter(n => !n.is_read).length
+
+    // Pagination logic for Notifications
+    const totalPagesNotifs = Math.ceil(notifications.length / ITEMS_PER_PAGE)
+    const paginatedNotifs = notifications.slice(
+        (currentPageNotifs - 1) * ITEMS_PER_PAGE,
+        currentPageNotifs * ITEMS_PER_PAGE
+    )
+
+    // Pagination logic for Refund Requests
+    const totalPagesRefunds = Math.ceil(refundRequests.length / ITEMS_PER_PAGE)
+    const paginatedRefunds = refundRequests.slice(
+        (currentPageRefunds - 1) * ITEMS_PER_PAGE,
+        currentPageRefunds * ITEMS_PER_PAGE
+    )
+
+    return (
+        <div className="bg-black space-y-8 max-w-6xl mx-auto px-4 md:px-8 py-8 md:py-12">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-6 bg-white/5 rounded-[2.5rem] border border-white/10">
+                <div>
+                    <h2 className="text-3xl font-black italic uppercase tracking-tighter text-white">Gestione Fatturazione</h2>
+                    <p className="text-neutral-300 font-medium">Monitora rimborsi e cancellazioni degli utenti</p>
+                </div>
+            </div>
+
+            <Tabs defaultValue="notifications" className="space-y-6">
+                <TabsList className="bg-neutral-900 border border-white/10 p-1 rounded-2xl w-full md:w-auto h-auto grid grid-cols-2 md:inline-flex">
+                    <TabsTrigger value="notifications" className="rounded-xl data-[state=active]:bg-white data-[state=active]:text-black data-[state=inactive]:text-white gap-2 py-2 md:py-1 transition-all">
+                        <Bell className="w-4 h-4" />
+                        Notifiche
+                        {unreadCount > 0 && (
+                            <Badge variant="destructive" className="h-5 px-1.5 min-w-[20px] justify-center text-[10px]">
+                                {unreadCount}
+                            </Badge>
+                        )}
+                    </TabsTrigger>
+                    <TabsTrigger value="refunds" className="rounded-xl data-[state=active]:bg-white data-[state=active]:text-black data-[state=inactive]:text-white gap-2 py-2 md:py-1 transition-all">
+                        <RefreshCcw className="w-4 h-4" />
+                        Richieste Rimborso
+                    </TabsTrigger>
+                </TabsList>
+
+                <TabsContent value="notifications" className="space-y-4">
+                    {paginatedNotifs.length > 0 ? (
+                        <>
+                            <div className="grid gap-4">
+                                {paginatedNotifs.map((n) => (
+                                    <Card key={n.id} className={`bg-black border-white/20 backdrop-blur-sm transition-all hover:bg-neutral-900/40 overflow-hidden ${!n.is_read ? 'border-brand/40 bg-brand/5' : ''}`}>
+                                        <div className="p-4 md:p-6 flex flex-col md:flex-row gap-4 items-start">
+                                            <div className={`p-3 rounded-2xl shrink-0 ${n.type === 'cancellation' ? 'bg-red-500/10' : 'bg-brand/10'}`}>
+                                                {n.type === 'cancellation' ? <XCircle className="w-6 h-6 text-red-500" /> : <RefreshCcw className="w-6 h-6 text-brand" />}
+                                            </div>
+
+                                            <div className="flex-1 min-w-0 space-y-2">
+                                                <div className="flex flex-wrap items-center gap-2">
+                                                    <h3 className="font-black italic uppercase tracking-tight text-white text-base md:text-lg">
+                                                        {n.type === 'cancellation' ? 'Abbonamento Annullato' : 'Nuova Richiesta Rimborso'}
+                                                    </h3>
+                                                    {!n.is_read && <Badge className="bg-brand text-white text-[9px] uppercase font-bold px-2 h-4 border-none shadow-lg shadow-brand/20">Nuova</Badge>}
+                                                </div>
+
+                                                <div className="flex flex-col gap-1">
+                                                    <p className="text-sm text-neutral-200 font-medium break-words">
+                                                        Utente: <span className="text-white font-bold">{n.profiles?.full_name || 'Utente sconosciuto'}</span>
+                                                    </p>
+                                                    <p className="text-xs text-neutral-300 italic break-all">
+                                                        {n.profiles?.email}
+                                                    </p>
+                                                </div>
+
+                                                <div className="bg-white/5 rounded-xl p-3 border border-white/10 mt-2">
+                                                    <p className="text-sm text-white leading-relaxed font-medium">
+                                                        {n.type === 'cancellation'
+                                                            ? `Pacchetto: "${n.data?.packageName || 'N/A'}"`
+                                                            : `Pacchetto: "${n.data?.packageName || 'N/A'}". Motivazione: "${n.data?.reason || 'Nessuna motivazione fornita'}"`
+                                                        }
+                                                    </p>
+                                                </div>
+                                            </div>
+
+                                            <div className="w-full md:w-auto md:text-right flex flex-row md:flex-col justify-between md:justify-start items-center md:items-end gap-2 shrink-0 pt-2 md:pt-0 border-t md:border-t-0 border-white/5">
+                                                <div className="text-[10px] text-neutral-300 flex items-center gap-1.5 uppercase font-black tracking-widest whitespace-nowrap">
+                                                    <Clock className="w-3 h-3 text-brand" />
+                                                    {new Date(n.created_at).toLocaleString('it-IT', { day: '2-digit', month: '2-digit', year: '2-digit', hour: '2-digit', minute: '2-digit' })}
+                                                </div>
+                                                {!n.is_read && (
+                                                    <Button
+                                                        variant="outline"
+                                                        size="sm"
+                                                        className="text-[10px] text-white border-white/20 hover:bg-brand hover:text-white hover:border-brand transition-all uppercase font-black tracking-wider px-3 h-7 rounded-lg"
+                                                        onClick={() => handleMarkAsRead(n.id)}
+                                                    >
+                                                        Segna come letta
+                                                    </Button>
+                                                )}
+                                            </div>
+                                        </div>
+                                    </Card>
+                                ))}
+                            </div>
+
+                            {/* Pagination Controls for Notifications */}
+                            {totalPagesNotifs > 1 && (
+                                <div className="flex items-center justify-center gap-2 pt-4">
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        className="bg-neutral-900 border-white/10 text-white hover:bg-white hover:text-black transition-all rounded-xl w-10 h-10 p-0"
+                                        disabled={currentPageNotifs === 1}
+                                        onClick={() => setCurrentPageNotifs(prev => prev - 1)}
+                                    >
+                                        <ChevronLeft className="w-5 h-5" />
+                                    </Button>
+                                    <span className="text-sm font-black italic uppercase text-white px-4 bg-neutral-900 h-10 flex items-center rounded-xl border border-white/10">
+                                        Pagina {currentPageNotifs} di {totalPagesNotifs}
+                                    </span>
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        className="bg-neutral-900 border-white/10 text-white hover:bg-white hover:text-black transition-all rounded-xl w-10 h-10 p-0"
+                                        disabled={currentPageNotifs === totalPagesNotifs}
+                                        onClick={() => setCurrentPageNotifs(prev => prev + 1)}
+                                    >
+                                        <ChevronRight className="w-5 h-5" />
+                                    </Button>
+                                </div>
+                            )}
+                        </>
+                    ) : (
+                        <div className="text-center py-20 border-2 border-dashed border-white/10 rounded-[2.5rem] bg-black">
+                            <Bell className="w-12 h-12 text-neutral-800 mx-auto mb-4 hover:text-brand transition-colors" />
+                            <p className="text-neutral-600 font-black uppercase italic tracking-tighter text-xl">Nessuna notifica di sistema</p>
+                        </div>
+                    )}
+                </TabsContent>
+
+                <TabsContent value="refunds" className="space-y-4">
+                    {paginatedRefunds.length > 0 ? (
+                        <>
+                            <div className="grid gap-6 lg:grid-cols-2">
+                                {paginatedRefunds.map((req) => (
+                                    <Card key={req.id} className="bg-black border-white/20 rounded-[2.5rem] overflow-hidden flex flex-col hover:border-white/40 transition-all duration-500 group">
+                                        <CardHeader className="bg-white/5 p-6 flex flex-row items-center justify-between border-b border-white/10 group-hover:bg-white/[0.08] transition-colors">
+                                            <div className="flex items-center gap-3">
+                                                <div className="p-2.5 bg-white/10 rounded-xl">
+                                                    <User className="w-5 h-5 text-white" />
+                                                </div>
+                                                <div className="min-w-0">
+                                                    <CardTitle className="text-sm font-black uppercase italic tracking-tight text-white truncate max-w-[150px] md:max-w-none">
+                                                        {req.profiles?.full_name}
+                                                    </CardTitle>
+                                                    <CardDescription className="text-[10px] text-neutral-300 font-medium truncate max-w-[150px] md:max-w-none">
+                                                        {req.profiles?.email}
+                                                    </CardDescription>
+                                                </div>
+                                            </div>
+                                            <Badge className={`uppercase text-[9px] font-black tracking-widest px-2.5 py-1 rounded-lg border-none ${req.status === 'pending' ? 'bg-amber-500 text-white shadow-lg shadow-amber-500/20' :
+                                                req.status === 'approved' ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/20' :
+                                                    'bg-red-500 text-white shadow-lg shadow-red-500/20'
+                                                }`}>
+                                                {req.status === 'pending' ? 'In Attesa' : req.status === 'approved' ? 'Approvata' : 'Rifiutata'}
+                                            </Badge>
+                                        </CardHeader>
+                                        <CardContent className="p-6 space-y-5 flex-1">
+                                            <div className="space-y-2">
+                                                <label className="text-[10px] uppercase font-black text-white tracking-[0.2em] flex items-center gap-1.5 opacity-90">
+                                                    <AlertTriangle className="w-3 h-3" />
+                                                    Motivazione
+                                                </label>
+                                                <div className="bg-white/5 rounded-2xl p-4 border border-white/10 italic relative">
+                                                    <span className="absolute -top-2 left-4 text-3xl text-white/40 font-serif overflow-hidden">"</span>
+                                                    <p className="text-sm text-white leading-relaxed pl-2 font-medium">
+                                                        {req.reason}
+                                                    </p>
+                                                </div>
+                                            </div>
+
+                                            <div className="pt-4 border-t border-white/10 grid grid-cols-2 gap-4">
+                                                <div className="space-y-1">
+                                                    <label className="text-[9px] uppercase font-black text-neutral-400 tracking-widest block">Pacchetto</label>
+                                                    <p className="text-xs text-white font-black italic uppercase tracking-tight truncate">
+                                                        {req.user_subscriptions?.packages?.name || 'N/A'}
+                                                    </p>
+                                                </div>
+                                                <div className="space-y-1">
+                                                    <label className="text-[9px] uppercase font-black text-neutral-400 tracking-widest block">Data Richiesta</label>
+                                                    <p className="text-xs text-white font-black italic uppercase tracking-tight">
+                                                        {new Date(req.created_at).toLocaleDateString('it-IT')}
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        </CardContent>
+                                        {req.status === 'pending' && (
+                                            <CardFooter className="p-6 pt-0 flex gap-3">
+                                                <Button
+                                                    className="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white font-black uppercase italic tracking-tighter rounded-2xl h-11 transition-all shadow-lg hover:shadow-emerald-600/20"
+                                                    onClick={() => handleAction(req.id, 'approved')}
+                                                    disabled={!!actionLoading}
+                                                >
+                                                    {actionLoading === req.id ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Approva'}
+                                                </Button>
+                                                <Button
+                                                    variant="outline"
+                                                    className="flex-1 border-white/20 hover:border-red-500 hover:bg-red-500 text-white font-black uppercase italic tracking-tighter rounded-2xl h-11 transition-all"
+                                                    onClick={() => handleAction(req.id, 'rejected')}
+                                                    disabled={!!actionLoading}
+                                                >
+                                                    Rifiuta
+                                                </Button>
+                                            </CardFooter>
+                                        )}
+                                    </Card>
+                                ))}
+                            </div>
+
+                            {/* Pagination Controls for Refund Requests */}
+                            {totalPagesRefunds > 1 && (
+                                <div className="flex items-center justify-center gap-2 pt-8">
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        className="bg-neutral-900 border-white/10 text-white hover:bg-white hover:text-black transition-all rounded-xl w-10 h-10 p-0"
+                                        disabled={currentPageRefunds === 1}
+                                        onClick={() => setCurrentPageRefunds(prev => prev - 1)}
+                                    >
+                                        <ChevronLeft className="w-5 h-5" />
+                                    </Button>
+                                    <span className="text-sm font-black italic uppercase text-white px-4 bg-neutral-900 h-10 flex items-center rounded-xl border border-white/10">
+                                        Pagina {currentPageRefunds} di {totalPagesRefunds}
+                                    </span>
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        className="bg-neutral-900 border-white/10 text-white hover:bg-white hover:text-black transition-all rounded-xl w-10 h-10 p-0"
+                                        disabled={currentPageRefunds === totalPagesRefunds}
+                                        onClick={() => setCurrentPageRefunds(prev => prev + 1)}
+                                    >
+                                        <ChevronRight className="w-5 h-5" />
+                                    </Button>
+                                </div>
+                            )}
+                        </>
+                    ) : (
+                        <div className="text-center py-20 border-2 border-dashed border-white/10 rounded-[2.5rem] bg-black">
+                            <RefreshCcw className="w-12 h-12 text-neutral-800 mx-auto mb-4 hover:text-brand transition-colors" />
+                            <p className="text-neutral-600 font-black uppercase italic tracking-tighter text-xl">Nessuna richiesta di rimborso pendente</p>
+                        </div>
+                    )}
+                </TabsContent>
+            </Tabs>
+        </div>
+    )
+}

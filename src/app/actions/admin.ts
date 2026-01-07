@@ -429,3 +429,78 @@ export async function refundPayment(chargeId: string) {
         throw new Error('Errore durante l\'esecuzione del rimborso')
     }
 }
+
+export async function getAdminNotifications() {
+    const isSuperAdmin = await isAdmin()
+    if (!isSuperAdmin) throw new Error('Unauthorized')
+
+    const supabase = await createClient()
+    const { data: notifications, error } = await supabase
+        .from('admin_notifications')
+        .select(`
+            *,
+            profiles ( full_name, email )
+        `)
+        .order('created_at', { ascending: false })
+
+    if (error) {
+        console.error('Error fetching admin notifications:', error)
+        return []
+    }
+
+    return notifications
+}
+
+export async function markNotificationAsRead(id: string) {
+    const isSuperAdmin = await isAdmin()
+    if (!isSuperAdmin) throw new Error('Unauthorized')
+
+    const supabase = await createClient()
+    const { error } = await supabase
+        .from('admin_notifications')
+        .update({ is_read: true })
+        .eq('id', id)
+
+    if (error) console.error('Error marking notification as read:', error)
+}
+
+export async function getRefundRequests() {
+    const isSuperAdmin = await isAdmin()
+    if (!isSuperAdmin) throw new Error('Unauthorized')
+
+    const supabase = await createClient()
+    const { data: requests, error } = await supabase
+        .from('refund_requests')
+        .select(`
+            *,
+            profiles ( full_name, email ),
+            user_subscriptions (
+                package_id,
+                packages ( name )
+            )
+        `)
+        .order('created_at', { ascending: false })
+
+    if (error) {
+        console.error('Error fetching refund requests:', error)
+        return []
+    }
+
+    return requests
+}
+
+export async function handleRefundRequest(requestId: string, status: 'approved' | 'rejected') {
+    const isSuperAdmin = await isAdmin()
+    if (!isSuperAdmin) throw new Error('Unauthorized')
+
+    const supabase = await createClient()
+
+    const { error } = await supabase
+        .from('refund_requests')
+        .update({ status })
+        .eq('id', requestId)
+
+    if (error) throw new Error('Errore durante l\'aggiornamento della richiesta')
+
+    return { success: true }
+}

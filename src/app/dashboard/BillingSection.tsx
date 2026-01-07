@@ -16,8 +16,9 @@ export default function BillingSection() {
     const [portalLoading, setPortalLoading] = useState(false)
     const [actionLoading, setActionLoading] = useState<string | null>(null)
 
-    // Refund Modal State
+    // Modals State
     const [refundDialog, setRefundDialog] = useState<{ open: boolean, subId: string | null }>({ open: false, subId: null })
+    const [cancelDialog, setCancelDialog] = useState<{ open: boolean, subId: string | null }>({ open: false, subId: null })
     const [refundReason, setRefundReason] = useState('')
     const [isSubmittingRefund, setIsSubmittingRefund] = useState(false)
 
@@ -49,12 +50,13 @@ export default function BillingSection() {
         }
     }
 
-    const handleCancel = async (subId: string) => {
-        if (!confirm('Sei sicuro di voler annullare il rinnovo di questo abbonamento?')) return
+    const handleCancelConfirm = async () => {
+        if (!cancelDialog.subId) return
         try {
-            setActionLoading(subId)
-            await cancelSubscription(subId)
+            setActionLoading(cancelDialog.subId)
+            await cancelSubscription(cancelDialog.subId)
             toast.success('Rinnovo annullato con successo')
+            setCancelDialog({ open: false, subId: null })
             fetchSubs()
         } catch (error: any) {
             toast.error(error.message || 'Errore durante l\'annullamento')
@@ -164,7 +166,7 @@ export default function BillingSection() {
                                         variant="outline"
                                         size="sm"
                                         className="flex-1 h-8 text-[10px] border-white/10 hover:bg-white/5 text-white gap-2 font-bold"
-                                        onClick={() => handleCancel(sub.id)}
+                                        onClick={() => setCancelDialog({ open: true, subId: sub.id })}
                                         disabled={actionLoading === sub.id}
                                     >
                                         {actionLoading === sub.id ? <Loader2 className="w-3 h-3 animate-spin" /> : <XCircle className="w-3.5 h-3.5" />}
@@ -260,6 +262,43 @@ export default function BillingSection() {
                             {isSubmittingRefund ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Invia Richiesta'}
                         </Button>
                     </DialogFooter>
+                </DialogContent>
+            </Dialog>
+
+            {/* Cancellation Confirmation Modal */}
+            <Dialog open={cancelDialog.open} onOpenChange={(open) => !open && setCancelDialog({ open: false, subId: null })}>
+                <DialogContent className="bg-neutral-950 border-white/10 text-white max-w-sm rounded-[2.5rem] p-8">
+                    <div className="flex flex-col items-center text-center space-y-6">
+                        <div className="w-20 h-20 rounded-full bg-red-500/10 flex items-center justify-center">
+                            <XCircle className="w-10 h-10 text-red-500" />
+                        </div>
+
+                        <div className="space-y-2">
+                            <DialogTitle className="text-2xl font-black italic uppercase tracking-tighter">
+                                Conferma Annullamento
+                            </DialogTitle>
+                            <DialogDescription className="text-neutral-400 text-sm">
+                                Sei sicuro di voler annullare il rinnovo automatico? Manterrai l'accesso fino alla scadenza del periodo attuale.
+                            </DialogDescription>
+                        </div>
+
+                        <div className="flex flex-col w-full gap-3 pt-4">
+                            <Button
+                                onClick={handleCancelConfirm}
+                                disabled={actionLoading === cancelDialog.subId}
+                                className="w-full bg-red-500 hover:bg-red-600 text-white font-bold h-12 rounded-2xl"
+                            >
+                                {actionLoading === cancelDialog.subId ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Sì, Annulla Rinnovo'}
+                            </Button>
+                            <Button
+                                variant="ghost"
+                                onClick={() => setCancelDialog({ open: false, subId: null })}
+                                className="w-full text-neutral-400 hover:text-white h-12 rounded-2xl"
+                            >
+                                No, Mantieni Attivo
+                            </Button>
+                        </div>
+                    </div>
                 </DialogContent>
             </Dialog>
         </div>

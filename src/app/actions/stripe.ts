@@ -97,6 +97,12 @@ export async function requestRefund(subscriptionId: string, reason: string) {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) throw new Error('Unauthorized')
 
+    const { data: subData } = await supabase
+        .from('user_subscriptions')
+        .select('packages(name)')
+        .eq('id', subscriptionId)
+        .single()
+
     const { error } = await supabase
         .from('refund_requests')
         .insert({
@@ -107,6 +113,17 @@ export async function requestRefund(subscriptionId: string, reason: string) {
         })
 
     if (error) throw new Error('Errore durante la richiesta di rimborso')
+
+    // Create Admin Notification
+    await supabase.from('admin_notifications').insert({
+        type: 'refund_request',
+        user_id: user.id,
+        data: {
+            packageName: (subData?.packages as any)?.name || 'Pacchetto',
+            reason: reason,
+            subscriptionId: subscriptionId
+        }
+    })
 
     return { success: true }
 }
@@ -119,22 +136,42 @@ export async function cancelSubscription(subscriptionId: string) {
     // 1. Get subscription info
     const { data: sub, error: subError } = await supabase
         .from('user_subscriptions')
-        .select('stripe_subscription_id')
+        .select('stripe_subscription_id, packages(name)')
         .eq('id', subscriptionId)
         .single()
 
-    if (subError || !sub?.stripe_subscription_id) throw new Error('Abbonamento non trovato')
+    if (subError || !sub) throw new Error('Abbonamento non trovato')
 
-    // 2. Cancel in Stripe (cancel at end of period)
-    await stripe.subscriptions.update(sub.stripe_subscription_id, {
-        cancel_at_period_end: true
-    })
+    // 2. Cancel in Stripe (only if ID exists)
+    if (sub.stripe_subscription_id) {
+        try {
+            await stripe.subscriptions.update(sub.stripe_subscription_id, {
+                cancel_at_period_end: true
+            })
+        } catch (err) {
+            console.error('Stripe error during cancellation:', err)
+            // Continue to update DB anyway to keep things in sync if possible, 
+            // or throw if you want to be strict. Let's throw for Stripe errors.
+            throw new Error('Errore durante la comunicazione con Stripe')
+        }
+    }
 
     // 3. Update status in DB
     await supabase
         .from('user_subscriptions')
         .update({ status: 'canceled' })
         .eq('id', subscriptionId)
+
+    // 4. Create Admin Notification
+    await supabase.from('admin_notifications').insert({
+        type: 'cancellation',
+        user_id: user.id,
+        data: {
+            packageName: (sub.packages as any)?.name || 'Pacchetto',
+            subscriptionId: subscriptionId,
+            wasHeadless: !sub.stripe_subscription_id
+        }
+    })
 
     return { success: true }
 }
