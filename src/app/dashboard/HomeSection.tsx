@@ -55,19 +55,37 @@ export default function HomeSection({ levels, onShowLibrary }: { levels: Level[]
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {levels.slice(0, 2).map((level) => (
-                    <div key={level.id} className="p-6 bg-white/5 border border-white/5 rounded-2xl hover:bg-white/10 transition-colors cursor-pointer group" onClick={onShowLibrary}>
-                        <div className="flex justify-between items-center">
-                            <div>
-                                <h5 className="text-white font-bold">{level.name}</h5>
-                                <p className="text-neutral-500 text-xs mt-1 uppercase tracking-widest font-bold">{level.courses.length} Corsi disponibili</p>
-                            </div>
-                            <div className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center group-hover:bg-brand/20 transition-colors">
-                                <ArrowRight className="w-5 h-5 text-neutral-500 group-hover:text-brand" />
+                {levels.map((level) => {
+                    const purchasedCount = level.courses.reduce((acc, course) => {
+                        return acc + course.packages.filter(p => p.isPurchased).length
+                    }, 0)
+
+                    // Only show levels that have purchased content or if we want to show all but with 0 count? 
+                    // The user said "shows 0 available" which implies they saw the 0. 
+                    // But usually for "Recent" we want to filter empty ones? 
+                    // Let's assume we show levels that exist, but with correct count. 
+                    // BUT, if levels.slice(0, 2) was hiding others, we should probably map all relevant ones.
+                    // Let's filter levels to only those with content for a cleaner "Home" experience?
+                    // User complained "Intermedio 0" while having 3 courses total. If they have 1 in Intermedio, it should show 1.
+
+                    if (purchasedCount === 0) return null
+
+                    return (
+                        <div key={level.id} className="p-6 bg-white/5 border border-white/5 rounded-2xl hover:bg-white/10 transition-colors cursor-pointer group" onClick={onShowLibrary}>
+                            <div className="flex justify-between items-center">
+                                <div>
+                                    <h5 className="text-white font-bold">{level.name}</h5>
+                                    <p className="text-neutral-500 text-xs mt-1 uppercase tracking-widest font-bold">
+                                        {purchasedCount} {purchasedCount === 1 ? 'Corso disponibile' : 'Corsi disponibili'}
+                                    </p>
+                                </div>
+                                <div className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center group-hover:bg-[var(--brand)]/20 transition-colors">
+                                    <ArrowRight className="w-5 h-5 text-neutral-500 group-hover:text-[var(--brand)]" />
+                                </div>
                             </div>
                         </div>
-                    </div>
-                ))}
+                    )
+                })}
             </div>
         </div>
     )
