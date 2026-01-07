@@ -165,8 +165,8 @@ export default function AdminRequests() {
                                     <Card key={n.id} className={`bg-black border-white/20 backdrop-blur-sm transition-all hover:bg-neutral-900/40 overflow-hidden ${!n.is_read ? 'border-brand/40 bg-brand/5' : ''}`}>
                                         <div className="p-4 md:p-6 flex flex-col md:flex-row gap-4 items-start">
                                             <div className={`p-3 rounded-2xl shrink-0 ${n.type === 'cancellation' ? 'bg-red-500/10' :
-                                                    n.type === 'package_purchase' ? 'bg-emerald-500/10' :
-                                                        'bg-brand/10'
+                                                n.type === 'package_purchase' ? 'bg-emerald-500/10' :
+                                                    'bg-brand/10'
                                                 }`}>
                                                 {n.type === 'cancellation' ? (
                                                     <XCircle className="w-6 h-6 text-red-500" />
@@ -235,19 +235,19 @@ export default function AdminRequests() {
                                     <Button
                                         variant="outline"
                                         size="sm"
-                                        className="bg-neutral-900 border-white/10 text-white hover:bg-white hover:text-black transition-all rounded-xl w-10 h-10 p-0"
+                                        className="bg-neutral-800 border-white/30 text-white hover:bg-white hover:text-black transition-all rounded-xl w-10 h-10 p-0 shadow-lg"
                                         disabled={currentPageNotifs === 1}
                                         onClick={() => setCurrentPageNotifs(prev => prev - 1)}
                                     >
                                         <ChevronLeft className="w-5 h-5" />
                                     </Button>
-                                    <span className="text-sm font-black italic uppercase text-white px-4 bg-neutral-900 h-10 flex items-center rounded-xl border border-white/10">
-                                        Pagina {currentPageNotifs} di {totalPagesNotifs}
+                                    <span className="text-[10px] font-black italic uppercase text-white px-5 bg-neutral-800 h-10 flex items-center rounded-xl border border-white/30 shadow-lg tracking-widest">
+                                        Pagina {currentPageNotifs} / {totalPagesNotifs}
                                     </span>
                                     <Button
                                         variant="outline"
                                         size="sm"
-                                        className="bg-neutral-900 border-white/10 text-white hover:bg-white hover:text-black transition-all rounded-xl w-10 h-10 p-0"
+                                        className="bg-neutral-800 border-white/30 text-white hover:bg-white hover:text-black transition-all rounded-xl w-10 h-10 p-0 shadow-lg"
                                         disabled={currentPageNotifs === totalPagesNotifs}
                                         onClick={() => setCurrentPageNotifs(prev => prev + 1)}
                                     >
@@ -357,19 +357,19 @@ export default function AdminRequests() {
                                     <Button
                                         variant="outline"
                                         size="sm"
-                                        className="bg-neutral-900 border-white/10 text-white hover:bg-white hover:text-black transition-all rounded-xl w-10 h-10 p-0"
+                                        className="bg-neutral-800 border-white/30 text-white hover:bg-white hover:text-black transition-all rounded-xl w-10 h-10 p-0 shadow-lg"
                                         disabled={currentPageRefunds === 1}
                                         onClick={() => setCurrentPageRefunds(prev => prev - 1)}
                                     >
                                         <ChevronLeft className="w-5 h-5" />
                                     </Button>
-                                    <span className="text-sm font-black italic uppercase text-white px-4 bg-neutral-900 h-10 flex items-center rounded-xl border border-white/10">
-                                        Pagina {currentPageRefunds} di {totalPagesRefunds}
+                                    <span className="text-[10px] font-black italic uppercase text-white px-5 bg-neutral-800 h-10 flex items-center rounded-xl border border-white/30 shadow-lg tracking-widest">
+                                        Pagina {currentPageRefunds} / {totalPagesRefunds}
                                     </span>
                                     <Button
                                         variant="outline"
                                         size="sm"
-                                        className="bg-neutral-900 border-white/10 text-white hover:bg-white hover:text-black transition-all rounded-xl w-10 h-10 p-0"
+                                        className="bg-neutral-800 border-white/30 text-white hover:bg-white hover:text-black transition-all rounded-xl w-10 h-10 p-0 shadow-lg"
                                         disabled={currentPageRefunds === totalPagesRefunds}
                                         onClick={() => setCurrentPageRefunds(prev => prev + 1)}
                                     >

@@ -168,35 +168,39 @@ export default function AdminStripe() {
         if (total <= 1) return null;
 
         return (
-            <div className="flex items-center justify-center gap-1 mt-4">
+            <div className="flex items-center justify-center gap-2 mt-8">
                 <Button
-                    variant="ghost"
+                    variant="outline"
                     size="sm"
                     disabled={current === 1}
                     onClick={() => onPageChange(current - 1)}
-                    className="h-8 w-8 p-0 text-neutral-400 hover:text-white"
+                    className="h-9 w-9 p-0 bg-neutral-800 border-white/20 text-white hover:bg-white hover:text-black disabled:opacity-20 transition-all rounded-lg"
                 >
                     <ArrowRight className="w-4 h-4 rotate-180" />
                 </Button>
 
-                {Array.from({ length: total }, (_, i) => i + 1).map(p => (
-                    <Button
-                        key={p}
-                        variant={current === p ? "secondary" : "ghost"}
-                        size="sm"
-                        onClick={() => onPageChange(p)}
-                        className={`h-8 w-8 p-0 text-xs ${current === p ? 'bg-white text-black font-bold' : 'text-neutral-400'}`}
-                    >
-                        {p}
-                    </Button>
-                ))}
+                <div className="flex items-center gap-1.5 px-3 py-1 bg-neutral-800/50 rounded-xl border border-white/10">
+                    {Array.from({ length: total }, (_, i) => i + 1).map(p => (
+                        <Button
+                            key={p}
+                            variant={current === p ? "secondary" : "ghost"}
+                            size="sm"
+                            onClick={() => onPageChange(p)}
+                            className={`h-7 w-7 p-0 text-[10px] font-black transition-all rounded-lg ${current === p
+                                ? 'bg-white text-black shadow-lg'
+                                : 'text-neutral-400 hover:text-white hover:bg-white/10'}`}
+                        >
+                            {p}
+                        </Button>
+                    ))}
+                </div>
 
                 <Button
-                    variant="ghost"
+                    variant="outline"
                     size="sm"
                     disabled={current === total}
                     onClick={() => onPageChange(current + 1)}
-                    className="h-8 w-8 p-0 text-neutral-400 hover:text-white"
+                    className="h-9 w-9 p-0 bg-neutral-800 border-white/20 text-white hover:bg-white hover:text-black disabled:opacity-20 transition-all rounded-lg"
                 >
                     <ArrowRight className="w-4 h-4" />
                 </Button>
