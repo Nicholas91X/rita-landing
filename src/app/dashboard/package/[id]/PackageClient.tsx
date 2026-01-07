@@ -202,47 +202,52 @@ export default function PackageClient({ pkg, videos }: { pkg: Package, videos: V
                                     )}
 
                                     <div className="flex items-start gap-4">
-                                        {/* Status Icon */}
-                                        <div className={`mt-1 h-9 w-9 rounded-xl flex items-center justify-center shrink-0 transition-colors ${isActive ? 'bg-[var(--brand)] text-white' :
-                                            isDone ? 'bg-emerald-500/10 text-emerald-500' : 'bg-black/5 text-black/20 group-hover:bg-black/10'
-                                            }`}>
-                                            {isDone ? (
-                                                <CheckCircle2 className="h-5 w-5" />
-                                            ) : isActive ? (
-                                                <PlayCircle className="h-5 w-5 animate-pulse" />
-                                            ) : (
-                                                <span className="text-xs font-black">{String(index + 1).padStart(2, '0')}</span>
-                                            )}
+                                        {/* Thumbnail or Status Icon */}
+                                        <div className="relative shrink-0">
+                                            <div className={`h-16 w-24 rounded-lg overflow-hidden border border-white/5 relative ${isActive ? 'ring-2 ring-[var(--brand)]' : 'group-hover:ring-1 group-hover:ring-white/20'}`}>
+                                                {/* Fallback pattern or real image */}
+                                                <div className="absolute inset-0 bg-neutral-800" />
+                                                <img
+                                                    src={`https://${process.env.NEXT_PUBLIC_BUNNY_CDN_HOSTNAME}/${v.bunny_video_id}/preview.webp`}
+                                                    alt={v.title}
+                                                    className={`w-full h-full object-cover transition-opacity duration-300 ${isDone ? 'opacity-50' : 'opacity-100'}`}
+                                                    onError={(e) => {
+                                                        e.currentTarget.style.display = 'none';
+                                                        e.currentTarget.parentElement?.classList.add('fallback-icon-container');
+                                                    }}
+                                                />
+                                                {/* Center Icon Overlay */}
+                                                <div className="absolute inset-0 flex items-center justify-center">
+                                                    {isDone ? (
+                                                        <CheckCircle2 className="h-6 w-6 text-emerald-500 bg-black/50 rounded-full p-1" />
+                                                    ) : isActive ? (
+                                                        <div className="bg-[var(--brand)]/80 rounded-full p-1.5 animate-pulse">
+                                                            <PlayCircle className="h-4 w-4 text-white fill-white" />
+                                                        </div>
+                                                    ) : (
+                                                        <span className="text-[10px] font-bold text-white/50 bg-black/40 px-1.5 rounded backdrop-blur-sm">
+                                                            {String(index + 1).padStart(2, '0')}
+                                                        </span>
+                                                    )}
+                                                </div>
+                                            </div>
                                         </div>
 
-                                        <div className="flex-1 min-w-0">
-                                            <h4 className={`font-bold text-sm lg:text-base leading-tight transition-colors ${isActive ? 'text-[var(--brand)]' : 'text-[var(--foreground)]'
+                                        <div className="flex-1 min-w-0 py-1">
+                                            <h4 className={`font-bold text-sm leading-tight transition-colors line-clamp-2 ${isActive ? 'text-[var(--brand)]' : 'text-[var(--foreground)]'
                                                 }`}>
                                                 {v.title}
                                             </h4>
 
                                             {/* Nested Progress Bar for each lesson */}
                                             {progress && !isDone && percent > 0 && (
-                                                <div className="mt-2.5 h-1 w-full bg-black/5 rounded-full overflow-hidden">
+                                                <div className="mt-2 h-1 w-full bg-black/5 rounded-full overflow-hidden">
                                                     <div
                                                         className="h-full bg-[var(--brand)] opacity-60 transition-all duration-500"
                                                         style={{ width: `${percent}%` }}
                                                     />
                                                 </div>
                                             )}
-
-                                            <div className="mt-2 flex items-center gap-3">
-                                                {isDone && (
-                                                    <span className="text-[10px] text-emerald-500 font-bold uppercase tracking-wider flex items-center gap-1">
-                                                        Video visto
-                                                    </span>
-                                                )}
-                                                {progress?.last_watched_at && (
-                                                    <span className="text-[9px] text-[var(--foreground)]/40 font-medium">
-                                                        {new Date(progress.last_watched_at).toLocaleDateString('it-IT')}
-                                                    </span>
-                                                )}
-                                            </div>
                                         </div>
                                     </div>
                                 </div>
