@@ -26,7 +26,8 @@ export async function getUserSubscriptionInfo() {
             packages ( 
                 name, 
                 description,
-                price
+                price,
+                image_url
             ),
             refund_requests (
                 status,
