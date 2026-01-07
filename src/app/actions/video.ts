@@ -134,3 +134,97 @@ export async function getAllPackageProgress(packageId: string) {
 
     return data
 }
+
+export type LibraryProgress = {
+    packageId: string;
+    resumeVideoTitle?: string;
+    resumeVideoId?: string;
+    completionPercentage: number;
+    isFullyCompleted: boolean;
+}
+
+export async function getLibraryProgress() {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+
+    if (!user) return []
+
+    // 1. Get all purchased packages
+    const { data: subs } = await supabase
+        .from('user_subscriptions')
+        .select('package_id')
+        .eq('user_id', user.id)
+        .in('status', ['active', 'trialing'])
+
+    if (!subs || subs.length === 0) return []
+    const packageIds = subs.map(s => s.package_id)
+
+    // 2. Get all videos for these packages
+    const { data: videos, error: videosError } = await supabase
+        .from('videos')
+        .select('id, title, package_id, order_index')
+        .in('package_id', packageIds)
+        .order('order_index', { ascending: true })
+
+    if (videosError || !videos) return []
+
+    // 3. Get all progress for these videos
+    const { data: progress, error: progressError } = await supabase
+        .from('video_watch_progress')
+        .select('*')
+        .eq('user_id', user.id)
+        .in('video_id', videos.map(v => v.id))
+
+    if (progressError) return []
+
+    // 4. Calculate progress per package
+    const progressMap = new Map(progress?.map(p => [p.video_id, p]))
+    const libraryProgress: LibraryProgress[] = packageIds.map(pkgId => {
+        const pkgVideos = videos.filter(v => v.package_id === pkgId)
+        if (pkgVideos.length === 0) return { packageId: pkgId, completionPercentage: 0, isFullyCompleted: false }
+
+        let completedVideos = 0
+        let totalProgressPoints = 0
+        let lastWatchedVideo = null
+        let nextUncompletedVideo = null
+
+        for (const v of pkgVideos) {
+            const p = progressMap.get(v.id)
+            if (p) {
+                if (p.is_completed) {
+                    completedVideos++
+                    totalProgressPoints += 1
+                } else {
+                    const percent = p.progress_seconds / p.duration_seconds
+                    totalProgressPoints += percent
+                    if (!lastWatchedVideo || new Date(p.last_watched_at) > new Date(lastWatchedVideo.last_watched_at)) {
+                        lastWatchedVideo = { ...v, last_watched_at: p.last_watched_at }
+                    }
+                }
+            } else if (!nextUncompletedVideo) {
+                nextUncompletedVideo = v
+            }
+        }
+
+        const isFullyCompleted = completedVideos === pkgVideos.length
+        const completionPercentage = (totalProgressPoints / pkgVideos.length) * 100
+
+        // Resume point:
+        // 1. If currently watching something (last watched and not completed)
+        // 2. Else first uncompleted video
+        // 3. Else first video
+        const resumeVideo = (!isFullyCompleted && lastWatchedVideo)
+            ? lastWatchedVideo
+            : (nextUncompletedVideo || pkgVideos[0])
+
+        return {
+            packageId: pkgId,
+            resumeVideoTitle: resumeVideo?.title,
+            resumeVideoId: resumeVideo?.id,
+            completionPercentage,
+            isFullyCompleted
+        }
+    })
+
+    return libraryProgress
+}

@@ -9,13 +9,24 @@ import LibrarySection from './LibrarySection'
 import DiscoverSection from './DiscoverSection'
 import BillingSection from './BillingSection'
 import ProfileSection from './ProfileSection'
+import { getLibraryProgress, LibraryProgress } from '@/app/actions/video'
 import { Loader2 } from 'lucide-react'
 
 import { NotificationBell } from './NotificationBell'
 
 export default function DashboardClient({ levels }: { levels: Level[] }) {
     const [activeTab, setActiveTab] = useState<TabType>('home')
+    const [libraryProgress, setLibraryProgress] = useState<LibraryProgress[]>([])
     const searchParams = useSearchParams()
+
+    // Fetch library progress
+    useEffect(() => {
+        const fetchProgress = async () => {
+            const progress = await getLibraryProgress()
+            setLibraryProgress(progress)
+        }
+        fetchProgress()
+    }, [])
 
     // Auto-select tab logic from search params
     useEffect(() => {
@@ -37,7 +48,11 @@ export default function DashboardClient({ levels }: { levels: Level[] }) {
             case 'home':
                 return <HomeSection levels={levels} onShowLibrary={() => setActiveTab('library')} />
             case 'library':
-                return <LibrarySection levels={levels} onShowDiscover={() => setActiveTab('discover')} />
+                return <LibrarySection
+                    levels={levels}
+                    progress={libraryProgress}
+                    onShowDiscover={() => setActiveTab('discover')}
+                />
             case 'discover':
                 return <DiscoverSection levels={levels} />
             case 'billing':
