@@ -58,6 +58,33 @@ export async function POST(req: Request) {
         } else {
             console.warn('Missing metadata in checkout session')
         }
+    } else if (event.type === 'customer.subscription.updated' || event.type === 'customer.subscription.deleted') {
+        const subscription = event.data.object as Stripe.Subscription
+
+        const supabaseAdmin = createClient(
+            process.env.NEXT_PUBLIC_SUPABASE_URL!,
+            process.env.SUPABASE_SERVICE_ROLE_KEY!
+        )
+
+        // Map Stripe status to our schema
+        // Stripe: active, past_due, unpaid, canceled, incomplete, incomplete_expired, trialing
+        // DB: active, trialing, past_due, unpaid, canceled, refunded, incomplete
+
+        const { error } = await supabaseAdmin
+            .from('user_subscriptions')
+            .update({
+                status: subscription.status,
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                current_period_end: new Date((subscription as any).current_period_end * 1000).toISOString(),
+                cancel_at_period_end: subscription.cancel_at_period_end
+            })
+            .eq('stripe_subscription_id', subscription.id)
+
+        if (error) {
+            console.error('Error updating subscription status:', error)
+            return new NextResponse('Error syncing subscription', { status: 500 })
+        }
+        console.log(`Synced subscription ${subscription.id} to status: ${subscription.status}`)
     }
 
     return new NextResponse(null, { status: 200 })
