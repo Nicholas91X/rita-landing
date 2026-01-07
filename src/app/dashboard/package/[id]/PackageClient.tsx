@@ -212,8 +212,17 @@ export default function PackageClient({ pkg, videos }: { pkg: Package, videos: V
                                                     alt={v.title}
                                                     className={`w-full h-full object-cover transition-opacity duration-300 ${isDone ? 'opacity-50' : 'opacity-100'}`}
                                                     onError={(e) => {
-                                                        e.currentTarget.style.display = 'none';
-                                                        e.currentTarget.parentElement?.classList.add('fallback-icon-container');
+                                                        const target = e.currentTarget;
+                                                        // Fallback mechanism:
+                                                        // 1. Try preview.webp (default)
+                                                        // 2. If fails, try thumbnail.jpg
+                                                        // 3. If that also fails, hide image
+                                                        if (target.src.includes('preview.webp')) {
+                                                            target.src = target.src.replace('preview.webp', 'thumbnail.jpg');
+                                                        } else {
+                                                            target.style.display = 'none';
+                                                            target.parentElement?.classList.add('fallback-icon-container');
+                                                        }
                                                     }}
                                                 />
                                                 {/* Center Icon Overlay */}
