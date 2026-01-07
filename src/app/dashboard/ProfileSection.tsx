@@ -279,11 +279,13 @@ export default function ProfileSection({ onProfileUpdate }: { onProfileUpdate?: 
                                 </div>
                                 <div className="flex-1">
                                     <label className="text-[10px] text-neutral-500 uppercase font-bold tracking-widest block mb-1">Sicurezza</label>
-                                    <div className="flex items-center justify-between">
+                                    <div className="flex flex-col gap-2">
                                         <p className="text-white font-medium">Password</p>
                                         <Dialog open={isPasswordDialogOpen} onOpenChange={setIsPasswordDialogOpen}>
                                             <DialogTrigger asChild>
-                                                <Button variant="ghost" size="sm" className="text-brand hover:text-brand/80 h-auto p-0 font-bold text-xs">Cambia Password</Button>
+                                                <Button variant="outline" size="sm" className="w-fit text-xs h-8 border-white/10 hover:bg-white/5 hover:text-white">
+                                                    Cambia Password
+                                                </Button>
                                             </DialogTrigger>
                                             <DialogContent className="bg-neutral-900 border-neutral-800">
                                                 <DialogHeader>
