@@ -79,17 +79,25 @@ export async function getUserSubscriptionInfo() {
 
         if (customerId) {
             try {
-                // Fetch all invoices for this customer
-                const invoices = await stripe.invoices.list({
+                // Fetch invoices for this specific subscription if available
+                const invoiceFetchOptions: any = {
                     customer: customerId,
-                    limit: 15,
-                })
+                    limit: 20,
+                }
 
-                // Fetch all credit notes for this customer
+                if (sub.stripe_subscription_id) {
+                    invoiceFetchOptions.subscription = sub.stripe_subscription_id
+                }
+
+                const invoices = await stripe.invoices.list(invoiceFetchOptions)
+
+                // Fetch all credit notes for this customer (Stripe doesn't support direct subscription filter)
                 const creditNotes = await stripe.creditNotes.list({
                     customer: customerId,
-                    limit: 15,
+                    limit: 20,
                 })
+
+                const invoiceIds = invoices.data.map(i => i.id)
 
                 // Map invoices to documents
                 const invoiceDocs = invoices.data.map((inv: any) => ({
@@ -103,17 +111,20 @@ export async function getUserSubscriptionInfo() {
                     status: inv.status
                 }))
 
-                // Map credit notes to documents
-                const creditNoteDocs = creditNotes.data.map(cn => ({
-                    id: cn.id,
-                    type: 'credit_note',
-                    number: cn.number,
-                    date: cn.created,
-                    amount: cn.amount / 100,
-                    currency: cn.currency,
-                    url: cn.pdf,
-                    status: cn.status
-                }))
+                // Map credit notes to documents, filtering those that belong to the relevant invoices
+                // or have the same subscription metadata if applicable (usually CNs are tied to invoices)
+                const creditNoteDocs = creditNotes.data
+                    .filter(cn => cn.invoice && invoiceIds.includes(cn.invoice as string))
+                    .map(cn => ({
+                        id: cn.id,
+                        type: 'credit_note',
+                        number: cn.number,
+                        date: cn.created,
+                        amount: cn.amount / 100,
+                        currency: cn.currency,
+                        url: cn.pdf,
+                        status: cn.status
+                    }))
 
                 // Combine and sort by date descending
                 documents = [...invoiceDocs, ...creditNoteDocs].sort((a, b) => b.date - a.date)
