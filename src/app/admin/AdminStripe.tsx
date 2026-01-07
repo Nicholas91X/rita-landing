@@ -55,10 +55,12 @@ export default function AdminStripe() {
     const [isRefundDialogOpen, setIsRefundDialogOpen] = useState(false)
     const [submitting, setSubmitting] = useState(false)
 
-    // Pagination State
+    // Pagination & Filter State
     const ITEMS_PER_PAGE = 8
     const [paymentPage, setPaymentPage] = useState(1)
     const [subscriptionPage, setSubscriptionPage] = useState(1)
+    const [paymentStatusFilter, setPaymentStatusFilter] = useState<'all' | 'succeeded' | 'refunded'>('all')
+    const [subscriptionStatusFilter, setSubscriptionStatusFilter] = useState<'all' | 'active' | 'canceled' | 'trialing'>('all')
 
     const loadData = async () => {
         setLoading(true)
@@ -116,11 +118,11 @@ export default function AdminStripe() {
         loadData()
     }, [])
 
-    // Reset page on search
+    // Reset page on search or filter
     useEffect(() => {
         setPaymentPage(1)
         setSubscriptionPage(1)
-    }, [searchTerm])
+    }, [searchTerm, paymentStatusFilter, subscriptionStatusFilter])
 
     if (loading) {
         return (
@@ -141,15 +143,19 @@ export default function AdminStripe() {
         })
     }
 
-    const filteredPayments = data.payments.filter(p =>
-        (p.email || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (p.id || '').toLowerCase().includes(searchTerm.toLowerCase())
-    )
+    const filteredPayments = data.payments.filter(p => {
+        const matchesSearch = (p.email || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+            (p.id || '').toLowerCase().includes(searchTerm.toLowerCase())
+        const matchesStatus = paymentStatusFilter === 'all' || p.status === paymentStatusFilter
+        return matchesSearch && matchesStatus
+    })
 
-    const filteredSubscriptions = data.subscriptions.filter(s =>
-        (s.email || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (s.id || '').toLowerCase().includes(searchTerm.toLowerCase())
-    )
+    const filteredSubscriptions = data.subscriptions.filter(s => {
+        const matchesSearch = (s.email || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+            (s.id || '').toLowerCase().includes(searchTerm.toLowerCase())
+        const matchesStatus = subscriptionStatusFilter === 'all' || s.status === subscriptionStatusFilter
+        return matchesSearch && matchesStatus
+    })
 
     // Pagination Logic
     const totalPaymentPages = Math.ceil(filteredPayments.length / ITEMS_PER_PAGE)
@@ -265,14 +271,25 @@ export default function AdminStripe() {
             <div className="grid grid-cols-1 xl:grid-cols-12 gap-8">
                 {/* RECENT PAYMENTS */}
                 <div className="xl:col-span-7 space-y-4">
-                    <div className="flex items-center justify-between">
+                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
                         <div className="flex items-center gap-2">
                             <CreditCard className="w-5 h-5 text-emerald-500" />
                             <h3 className="text-lg font-semibold">Transazioni</h3>
                         </div>
-                        <span className="text-[10px] text-neutral-500 uppercase tracking-widest">
-                            Pagina {paymentPage} di {totalPaymentPages || 1}
-                        </span>
+                        <div className="flex items-center gap-3">
+                            <select
+                                value={paymentStatusFilter}
+                                onChange={(e) => setPaymentStatusFilter(e.target.value as any)}
+                                className="bg-neutral-800 border-white/10 text-neutral-300 text-[10px] font-black uppercase tracking-widest px-3 h-8 rounded-lg focus:outline-none focus:ring-1 focus:ring-emerald-500/50 cursor-pointer appearance-none min-w-[120px]"
+                            >
+                                <option value="all">Tutti gli stati</option>
+                                <option value="succeeded">Riuscite</option>
+                                <option value="refunded">Rimborsate</option>
+                            </select>
+                            <span className="text-[10px] text-neutral-500 uppercase tracking-widest hidden sm:inline-block">
+                                Pagina {paymentPage} / {totalPaymentPages || 1}
+                            </span>
+                        </div>
                     </div>
 
                     <div className="bg-neutral-900 border border-neutral-800 rounded-xl overflow-hidden shadow-sm">
@@ -359,14 +376,26 @@ export default function AdminStripe() {
 
                 {/* ACTIVE SUBSCRIPTIONS */}
                 <div className="xl:col-span-5 space-y-4">
-                    <div className="flex items-center justify-between">
+                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
                         <div className="flex items-center gap-2">
                             <Calendar className="w-5 h-5 text-emerald-500" />
                             <h3 className="text-lg font-semibold">Abbonamenti</h3>
                         </div>
-                        <span className="text-[10px] text-neutral-500 uppercase tracking-widest">
-                            Pagina {subscriptionPage} di {totalSubscriptionPages || 1}
-                        </span>
+                        <div className="flex items-center gap-3">
+                            <select
+                                value={subscriptionStatusFilter}
+                                onChange={(e) => setSubscriptionStatusFilter(e.target.value as any)}
+                                className="bg-neutral-800 border-white/10 text-neutral-300 text-[10px] font-black uppercase tracking-widest px-3 h-8 rounded-lg focus:outline-none focus:ring-1 focus:ring-emerald-500/50 cursor-pointer appearance-none min-w-[120px]"
+                            >
+                                <option value="all">Tutti gli stati</option>
+                                <option value="active">Attivi</option>
+                                <option value="trialing">In Prova</option>
+                                <option value="canceled">Annullati</option>
+                            </select>
+                            <span className="text-[10px] text-neutral-500 uppercase tracking-widest hidden sm:inline-block">
+                                Pagina {subscriptionPage} / {totalSubscriptionPages || 1}
+                            </span>
+                        </div>
                     </div>
 
                     <div className="space-y-3">
