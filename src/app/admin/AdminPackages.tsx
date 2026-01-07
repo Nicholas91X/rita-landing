@@ -14,6 +14,7 @@ import {
     DialogHeader,
     DialogTitle,
 } from '@/components/ui/dialog'
+import { cn } from '@/lib/utils'
 import { Plus, Pencil, Loader2, Package as PackageIcon } from 'lucide-react'
 import { toast } from 'sonner'
 
@@ -25,6 +26,7 @@ type Package = {
     stripe_product_id: string | null
     stripe_price_id: string | null
     course_id: string | null
+    image_url: string | null
     courses?: { name: string }
 }
 
@@ -41,6 +43,8 @@ export default function AdminPackages() {
     const [isDialogOpen, setIsDialogOpen] = useState(false)
     const [editingPackage, setEditingPackage] = useState<Package | null>(null)
     const [formData, setFormData] = useState({ name: '', description: '', price: 0, course_id: '' })
+    const [imageFile, setImageFile] = useState<File | null>(null)
+    const [imagePreview, setImagePreview] = useState<string | null>(null)
     const [submitting, setSubmitting] = useState(false)
 
     useEffect(() => {
@@ -76,22 +80,38 @@ export default function AdminPackages() {
                 price: pkg.price,
                 course_id: pkg.course_id || ''
             })
+            setImagePreview(pkg.image_url)
         } else {
             setEditingPackage(null)
             setFormData({ name: '', description: '', price: 0, course_id: '' })
+            setImagePreview(null)
         }
+        setImageFile(null)
         setIsDialogOpen(true)
     }
 
     async function handleSubmit(e: React.FormEvent) {
         e.preventDefault()
         setSubmitting(true)
+
+        const data = new FormData()
+        data.append('name', formData.name)
+        data.append('description', formData.description)
+        data.append('price', formData.price.toString())
+        data.append('course_id', formData.course_id)
+        if (imageFile) {
+            data.append('image', imageFile)
+        }
+        if (!imagePreview && editingPackage?.image_url) {
+            data.append('removeImage', 'true')
+        }
+
         try {
             if (editingPackage) {
-                await updatePackage(editingPackage.id, formData)
+                await updatePackage(editingPackage.id, data)
                 toast.success('Pacchetto aggiornato')
             } else {
-                await createPackage(formData)
+                await createPackage(data)
                 toast.success('Pacchetto creato')
             }
             setIsDialogOpen(false)
@@ -119,14 +139,25 @@ export default function AdminPackages() {
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {packages.map((pkg) => (
-                    <Card key={pkg.id} className="bg-neutral-900 border-neutral-800 text-neutral-100">
-                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                            <CardTitle className="text-sm font-medium text-neutral-400">
-                                {pkg.stripe_product_id ? 'Sincronizzato Stripe' : 'Non Sincronizzato'}
-                            </CardTitle>
-                            <PackageIcon className="h-4 w-4 text-emerald-500" />
-                        </CardHeader>
-                        <CardContent>
+                    <Card key={pkg.id} className="bg-neutral-900 border-neutral-800 text-neutral-100 overflow-hidden flex flex-col">
+                        <div className="h-32 w-full bg-neutral-800 relative overflow-hidden">
+                            {pkg.image_url ? (
+                                <img src={pkg.image_url} alt={pkg.name} className="w-full h-full object-cover" />
+                            ) : (
+                                <div className="w-full h-full flex items-center justify-center text-neutral-700">
+                                    <PackageIcon className="w-12 h-12" />
+                                </div>
+                            )}
+                            <div className="absolute top-2 right-2">
+                                <span className={cn(
+                                    "px-2 py-1 rounded text-[10px] font-bold uppercase",
+                                    pkg.stripe_product_id ? "bg-emerald-500/20 text-emerald-500" : "bg-neutral-500/20 text-neutral-500"
+                                )}>
+                                    {pkg.stripe_product_id ? 'Sincronizzato' : 'Off-line'}
+                                </span>
+                            </div>
+                        </div>
+                        <CardContent className="pt-6 flex-1 flex flex-col">
                             <div className="text-2xl font-bold mb-1">{pkg.name}</div>
                             <div className="text-xs font-black text-brand uppercase tracking-widest mb-3">
                                 {pkg.courses?.name || 'Nessun Corso'}
@@ -134,7 +165,7 @@ export default function AdminPackages() {
                             <p className="text-xs text-neutral-500 mb-4 h-10 overflow-hidden line-clamp-2">
                                 {pkg.description}
                             </p>
-                            <div className="flex justify-between items-end">
+                            <div className="mt-auto flex justify-between items-end">
                                 <span className="text-xl font-semibold">€ {pkg.price}</span>
                                 <Button size="sm" variant="outline" className="border-neutral-700 hover:bg-neutral-800" onClick={() => handleOpenDialog(pkg)}>
                                     <Pencil className="w-4 h-4" />
@@ -154,56 +185,112 @@ export default function AdminPackages() {
                         </DialogDescription>
                     </DialogHeader>
                     <form onSubmit={handleSubmit} className="space-y-4 py-4">
-                        <div className="space-y-2">
-                            <label className="text-sm font-medium">Nome</label>
-                            <Input
-                                value={formData.name}
-                                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                                className="bg-neutral-800 border-neutral-700"
-                                required
-                            />
+                        <div className="space-y-4">
+                            {/* Image Upload Area */}
+                            <div className="space-y-2">
+                                <label className="text-sm font-medium">Immagine Cover</label>
+                                <div
+                                    className="h-40 w-full bg-neutral-800 rounded-xl border-2 border-dashed border-neutral-700 flex flex-col items-center justify-center relative overflow-hidden group cursor-pointer hover:border-brand/40 transition-colors"
+                                    onClick={() => document.getElementById('image-upload')?.click()}
+                                >
+                                    {imagePreview ? (
+                                        <>
+                                            <img src={imagePreview} className="w-full h-full object-cover" />
+                                            <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
+                                                <Button
+                                                    type="button"
+                                                    variant="ghost"
+                                                    size="sm"
+                                                    className="text-white hover:text-red-400"
+                                                    onClick={(e) => {
+                                                        e.stopPropagation()
+                                                        setImagePreview(null)
+                                                        setImageFile(null)
+                                                    }}
+                                                >
+                                                    Rimuovi
+                                                </Button>
+                                            </div>
+                                        </>
+                                    ) : (
+                                        <div className="text-center p-4">
+                                            <Plus className="w-8 h-8 text-neutral-600 mx-auto mb-2" />
+                                            <p className="text-xs text-neutral-500 font-medium">Carica Immagine</p>
+                                        </div>
+                                    )}
+                                    <input
+                                        id="image-upload"
+                                        type="file"
+                                        accept="image/*"
+                                        className="hidden"
+                                        onChange={(e) => {
+                                            const file = e.target.files?.[0]
+                                            if (file) {
+                                                setImageFile(file)
+                                                const url = URL.createObjectURL(file)
+                                                setImagePreview(url)
+                                            }
+                                        }}
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="space-y-2 col-span-2">
+                                    <label className="text-sm font-medium">Nome</label>
+                                    <Input
+                                        value={formData.name}
+                                        onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                                        className="bg-neutral-800 border-neutral-700"
+                                        required
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="space-y-2">
+                                <label className="text-sm font-medium">Descrizione</label>
+                                <Textarea
+                                    value={formData.description}
+                                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                                    className="bg-neutral-800 border-neutral-700"
+                                />
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="space-y-2">
+                                    <label className="text-sm font-medium">Prezzo (€)</label>
+                                    <Input
+                                        type="number"
+                                        step="0.01"
+                                        min="0"
+                                        value={formData.price}
+                                        onChange={(e) => setFormData({ ...formData, price: parseFloat(e.target.value) || 0 })}
+                                        className="bg-neutral-800 border-neutral-700"
+                                        required
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-sm font-medium text-neutral-300">Corso</label>
+                                    <select
+                                        value={formData.course_id}
+                                        onChange={(e) => setFormData({ ...formData, course_id: e.target.value })}
+                                        className="w-full h-10 bg-neutral-800 border-neutral-700 rounded-md px-3 text-sm focus:ring-2 focus:ring-emerald-500 outline-none"
+                                        required
+                                    >
+                                        <option value="" disabled>Seleziona...</option>
+                                        {courses.map(course => (
+                                            <option key={course.id} value={course.id}>
+                                                {course.name}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
+                            </div>
                         </div>
-                        <div className="space-y-2">
-                            <label className="text-sm font-medium">Descrizione</label>
-                            <Textarea
-                                value={formData.description}
-                                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                                className="bg-neutral-800 border-neutral-700"
-                            />
-                        </div>
-                        <div className="space-y-2">
-                            <label className="text-sm font-medium">Prezzo (€)</label>
-                            <Input
-                                type="number"
-                                step="0.01"
-                                min="0"
-                                value={formData.price}
-                                onChange={(e) => setFormData({ ...formData, price: parseFloat(e.target.value) || 0 })}
-                                className="bg-neutral-800 border-neutral-700"
-                                required
-                            />
-                        </div>
-                        <div className="space-y-2">
-                            <label className="text-sm font-medium text-neutral-300">Corso Associato</label>
-                            <select
-                                value={formData.course_id}
-                                onChange={(e) => setFormData({ ...formData, course_id: e.target.value })}
-                                className="w-full bg-neutral-800 border-neutral-700 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 outline-none appearance-none"
-                                required
-                            >
-                                <option value="" disabled>Seleziona un corso...</option>
-                                {courses.map(course => (
-                                    <option key={course.id} value={course.id}>
-                                        {course.name} ({Array.isArray(course.levels) ? course.levels[0]?.name : course.levels?.name || 'Senza Livello'})
-                                    </option>
-                                ))}
-                            </select>
-                        </div>
-                        <DialogFooter>
+                        <DialogFooter className="pt-2">
                             <Button type="button" variant="ghost" onClick={() => setIsDialogOpen(false)}>Annulla</Button>
-                            <Button type="submit" className="bg-emerald-600 hover:bg-emerald-700 text-white" disabled={submitting}>
-                                {submitting && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-                                {editingPackage ? 'Aggiorna' : 'Crea'}
+                            <Button type="submit" className="bg-emerald-600 hover:bg-emerald-700 text-white min-w-[100px]" disabled={submitting}>
+                                {submitting ? <Loader2 className="w-4 h-4 animate-spin" /> : (editingPackage ? 'Aggiorna' : 'Crea')}
                             </Button>
                         </DialogFooter>
                     </form>

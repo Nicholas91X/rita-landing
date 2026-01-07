@@ -55,9 +55,23 @@ export default function DiscoverSection({ levels }: { levels: Level[] }) {
                                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                                     {course.packages.map((pkg) => (
                                         <Card key={pkg.id} className="bg-white/10 border-white/10 backdrop-blur-md shadow-2xl overflow-hidden group hover:border-[var(--brand)]/40 transition-all duration-300 rounded-[32px] flex flex-col">
-                                            <div className="h-2 w-full bg-[var(--brand)] shadow-[var(--brand)]/30" />
+                                            <div className="h-48 w-full relative overflow-hidden">
+                                                {pkg.image_url ? (
+                                                    <img
+                                                        src={pkg.image_url}
+                                                        alt={pkg.name}
+                                                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                                                    />
+                                                ) : (
+                                                    <div className="w-full h-full bg-neutral-800 flex items-center justify-center opacity-80">
+                                                        <Compass className="w-12 h-12 text-white/10" />
+                                                    </div>
+                                                )}
+                                                <div className="absolute inset-0 bg-gradient-to-t from-neutral-900/60 to-transparent" />
+                                                <div className="absolute top-0 left-0 w-full h-1.5 bg-[var(--brand)] shadow-[var(--brand)]/30" />
+                                            </div>
 
-                                            <CardHeader className="pb-4 pt-8 px-8 flex-1">
+                                            <CardHeader className="pb-4 pt-6 px-8 flex-1">
                                                 <CardTitle className="text-xl font-black text-white line-clamp-2 min-h-[3.5rem] italic uppercase tracking-tighter group-hover:text-[var(--brand)] transition-colors">
                                                     {pkg.name}
                                                 </CardTitle>

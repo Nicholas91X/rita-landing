@@ -49,96 +49,154 @@ export async function getAdminCourses() {
     return courses
 }
 
-export async function createPackage(data: { name: string, description: string, price: number, course_id: string }) {
+export async function createPackage(formData: FormData) {
     const isSuperAdmin = await isAdmin()
     if (!isSuperAdmin) throw new Error('Unauthorized')
 
+    const name = formData.get('name') as string
+    const description = formData.get('description') as string
+    const priceAmount = parseFloat(formData.get('price') as string)
+    const courseId = formData.get('course_id') as string
+    const imageFile = formData.get('image') as File
+
     // 1. Create Product in Stripe
     const product = await stripe.products.create({
-        name: data.name,
-        description: data.description,
+        name: name,
+        description: description,
     })
 
     // 2. Create Price in Stripe
     const price = await stripe.prices.create({
         product: product.id,
-        unit_amount: Math.round(data.price * 100), // Convert to cents
+        unit_amount: Math.round(priceAmount * 100), // Convert to cents
         currency: 'eur',
         recurring: {
             interval: 'month',
         },
     })
 
-    // 3. Save to DB
     const supabase = await createClient()
+    let imageUrl = null
+
+    // 3. Handle Image Upload
+    if (imageFile && imageFile.size > 0) {
+        const fileExt = imageFile.name.split('.').pop()
+        const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`
+        const { error: uploadError } = await supabase.storage
+            .from('package-images')
+            .upload(fileName, imageFile)
+
+        if (!uploadError) {
+            const { data: { publicUrl } } = supabase.storage
+                .from('package-images')
+                .getPublicUrl(fileName)
+            imageUrl = publicUrl
+        }
+    }
+
+    // 4. Save to DB
     const { error } = await supabase
         .from('packages')
         .insert({
-            name: data.name,
-            description: data.description,
-            price: data.price,
-            course_id: data.course_id,
+            name: name,
+            description: description,
+            price: priceAmount,
+            course_id: courseId,
             stripe_product_id: product.id,
-            stripe_price_id: price.id
+            stripe_price_id: price.id,
+            image_url: imageUrl
         })
 
     if (error) throw new Error(error.message)
     return { success: true }
 }
 
-export async function updatePackage(id: string, data: { name: string, description: string, price: number, course_id: string }) {
+export async function updatePackage(id: string, formData: FormData) {
     const isSuperAdmin = await isAdmin()
     if (!isSuperAdmin) throw new Error('Unauthorized')
 
+    const name = formData.get('name') as string
+    const description = formData.get('description') as string
+    const priceAmount = parseFloat(formData.get('price') as string)
+    const courseId = formData.get('course_id') as string
+    const imageFile = formData.get('image') as File
+    const removeImage = formData.get('removeImage') === 'true'
+
     const supabase = await createClient()
 
-    // Get current package to check if price changed
+    // Get current package
     const { data: currentPkg } = await supabase
         .from('packages')
-        .select('stripe_product_id, price, stripe_price_id')
+        .select('stripe_product_id, price, stripe_price_id, image_url')
         .eq('id', id)
         .single()
 
     if (!currentPkg) throw new Error('Package not found')
 
     let newStripePriceId = currentPkg.stripe_price_id
+    let newImageUrl = currentPkg.image_url
 
-    // 1. Update Stripe Product (Name/Description)
+    // 1. Update Stripe Product
     if (currentPkg.stripe_product_id) {
         await stripe.products.update(currentPkg.stripe_product_id, {
-            name: data.name,
-            description: data.description
+            name: name,
+            description: description
         })
     }
 
     // 2. Handle Price Change
-    if (data.price !== currentPkg.price && currentPkg.stripe_product_id) {
-        // Create NEW Price
+    if (priceAmount !== currentPkg.price && currentPkg.stripe_product_id) {
         const price = await stripe.prices.create({
             product: currentPkg.stripe_product_id,
-            unit_amount: Math.round(data.price * 100),
+            unit_amount: Math.round(priceAmount * 100),
             currency: 'eur',
             recurring: {
                 interval: 'month',
             },
         })
         newStripePriceId = price.id
-
-        // Update Product Default Price
         await stripe.products.update(currentPkg.stripe_product_id, {
             default_price: price.id
         })
     }
 
-    // 3. Update DB
+    // 3. Handle External Image Changes
+    if (removeImage || (imageFile && imageFile.size > 0)) {
+        // Cleanup old image
+        if (currentPkg.image_url) {
+            const oldFileName = currentPkg.image_url.split('/').pop()
+            if (oldFileName) {
+                await supabase.storage.from('package-images').remove([oldFileName])
+            }
+        }
+        newImageUrl = null
+    }
+
+    if (imageFile && imageFile.size > 0) {
+        const fileExt = imageFile.name.split('.').pop()
+        const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`
+        const { error: uploadError } = await supabase.storage
+            .from('package-images')
+            .upload(fileName, imageFile)
+
+        if (!uploadError) {
+            const { data: { publicUrl } } = supabase.storage
+                .from('package-images')
+                .getPublicUrl(fileName)
+            newImageUrl = publicUrl
+        }
+    }
+
+    // 4. Update DB
     const { error } = await supabase
         .from('packages')
         .update({
-            name: data.name,
-            description: data.description,
-            price: data.price,
-            course_id: data.course_id,
-            stripe_price_id: newStripePriceId
+            name: name,
+            description: description,
+            price: priceAmount,
+            course_id: courseId,
+            stripe_price_id: newStripePriceId,
+            image_url: newImageUrl
         })
         .eq('id', id)
 

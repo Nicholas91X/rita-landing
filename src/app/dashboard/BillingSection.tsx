@@ -7,7 +7,7 @@ import { cn } from '@/lib/utils'
 import { createPortalSession, cancelSubscription, requestRefund } from '@/app/actions/stripe'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Loader2, CreditCard, ExternalLink, Calendar, CheckCircle2, Clock, Receipt, RefreshCcw, XCircle, AlertCircle, FileText } from 'lucide-react'
+import { Loader2, CreditCard, ExternalLink, Calendar, CheckCircle2, Clock, Receipt, RefreshCcw, XCircle, AlertCircle, FileText, Package as PackageIcon } from 'lucide-react'
 import { toast } from 'sonner'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Textarea } from '@/components/ui/textarea'
@@ -188,7 +188,24 @@ export default function BillingSection() {
 
                     return (
                         <Card key={sub.id} className="bg-white/5 backdrop-blur-md border-white/5 shadow-2xl overflow-hidden group">
-                            <div className={sub.status === 'active' ? 'h-1.5 w-full bg-emerald-500' : 'h-1.5 w-full bg-neutral-700'} />
+                            <div className="h-32 w-full relative overflow-hidden">
+                                {sub.packages?.image_url ? (
+                                    <img
+                                        src={sub.packages.image_url}
+                                        alt={sub.packages.name}
+                                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                                    />
+                                ) : (
+                                    <div className="w-full h-full bg-neutral-800 flex items-center justify-center">
+                                        <PackageIcon className="w-10 h-10 text-white/5" />
+                                    </div>
+                                )}
+                                <div className="absolute inset-0 bg-gradient-to-t from-neutral-950/60 to-transparent" />
+                                <div className={cn(
+                                    "absolute top-0 left-0 w-full h-1.5 shadow-lg",
+                                    sub.status === 'active' ? 'bg-emerald-500 shadow-emerald-500/20' : 'bg-neutral-700'
+                                )} />
+                            </div>
                             <CardHeader className="pb-4">
                                 <div className="flex justify-between items-start">
                                     <CardTitle className="text-xl font-bold text-white line-clamp-1">{sub.packages?.name}</CardTitle>
