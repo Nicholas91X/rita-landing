@@ -5,7 +5,7 @@ import { getAdminNotifications, getRefundRequests, handleRefundRequest, markNoti
 import { createClient } from '@/utils/supabase/client'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Loader2, Bell, RefreshCcw, XCircle, CheckCircle2, User, Clock, AlertTriangle, ChevronLeft, ChevronRight } from 'lucide-react'
+import { Loader2, Bell, RefreshCcw, XCircle, CheckCircle2, User, Clock, AlertTriangle, ChevronLeft, ChevronRight, ShoppingBag } from 'lucide-react'
 import { toast } from 'sonner'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Badge } from "@/components/ui/badge"
@@ -164,14 +164,25 @@ export default function AdminRequests() {
                                 {paginatedNotifs.map((n) => (
                                     <Card key={n.id} className={`bg-black border-white/20 backdrop-blur-sm transition-all hover:bg-neutral-900/40 overflow-hidden ${!n.is_read ? 'border-brand/40 bg-brand/5' : ''}`}>
                                         <div className="p-4 md:p-6 flex flex-col md:flex-row gap-4 items-start">
-                                            <div className={`p-3 rounded-2xl shrink-0 ${n.type === 'cancellation' ? 'bg-red-500/10' : 'bg-brand/10'}`}>
-                                                {n.type === 'cancellation' ? <XCircle className="w-6 h-6 text-red-500" /> : <RefreshCcw className="w-6 h-6 text-brand" />}
+                                            <div className={`p-3 rounded-2xl shrink-0 ${n.type === 'cancellation' ? 'bg-red-500/10' :
+                                                    n.type === 'package_purchase' ? 'bg-emerald-500/10' :
+                                                        'bg-brand/10'
+                                                }`}>
+                                                {n.type === 'cancellation' ? (
+                                                    <XCircle className="w-6 h-6 text-red-500" />
+                                                ) : n.type === 'package_purchase' ? (
+                                                    <ShoppingBag className="w-6 h-6 text-emerald-500" />
+                                                ) : (
+                                                    <RefreshCcw className="w-6 h-6 text-brand" />
+                                                )}
                                             </div>
 
                                             <div className="flex-1 min-w-0 space-y-2">
                                                 <div className="flex flex-wrap items-center gap-2">
                                                     <h3 className="font-black italic uppercase tracking-tight text-white text-base md:text-lg">
-                                                        {n.type === 'cancellation' ? 'Abbonamento Annullato' : 'Nuova Richiesta Rimborso'}
+                                                        {n.type === 'cancellation' ? 'Abbonamento Annullato' :
+                                                            n.type === 'package_purchase' ? 'Nuovo Acquisto' :
+                                                                'Nuova Richiesta Rimborso'}
                                                     </h3>
                                                     {!n.is_read && <Badge className="bg-brand text-white text-[9px] uppercase font-bold px-2 h-4 border-none shadow-lg shadow-brand/20">Nuova</Badge>}
                                                 </div>
@@ -189,7 +200,9 @@ export default function AdminRequests() {
                                                     <p className="text-sm text-white leading-relaxed font-medium">
                                                         {n.type === 'cancellation'
                                                             ? `Pacchetto: "${n.data?.packageName || 'N/A'}"`
-                                                            : `Pacchetto: "${n.data?.packageName || 'N/A'}". Motivazione: "${n.data?.reason || 'Nessuna motivazione fornita'}"`
+                                                            : n.type === 'package_purchase'
+                                                                ? `Pacchetto: "${n.data?.packageName || 'N/A'}". Importo: €${n.data?.amount || '0'}`
+                                                                : `Pacchetto: "${n.data?.packageName || 'N/A'}". Motivazione: "${n.data?.reason || 'Nessuna motivazione fornita'}"`
                                                         }
                                                     </p>
                                                 </div>

@@ -69,6 +69,7 @@ export default function DiscoverSection({ levels }: { levels: Level[] }) {
                                             <CardFooter className="pt-2 pb-8 px-6">
                                                 <BuyButton
                                                     packageId={pkg.id}
+                                                    packageName={pkg.name}
                                                     price={pkg.price}
                                                     className="w-full h-14 rounded-2xl font-black uppercase tracking-widest transition-all duration-300 shadow-2xl bg-[var(--brand)] hover:bg-white hover:text-[var(--brand)] text-white shadow-[var(--brand)]/30 hover:scale-[1.02] active:scale-[0.98]"
                                                 />

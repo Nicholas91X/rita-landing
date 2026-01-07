@@ -68,6 +68,35 @@ export async function POST(req: Request) {
                     console.error('Failed to sync stripe_customer_id to profile:', profileError)
                 }
             }
+
+            // Create Admin Notification for Purchase
+            try {
+                // Get User Info
+                const { data: profile } = await supabaseAdmin
+                    .from('profiles')
+                    .select('full_name, email')
+                    .eq('id', userId)
+                    .single()
+
+                // Get Package Info
+                const { data: pkg } = await supabaseAdmin
+                    .from('packages')
+                    .select('name')
+                    .eq('id', packageId)
+                    .single()
+
+                await supabaseAdmin.from('admin_notifications').insert({
+                    type: 'package_purchase',
+                    user_id: userId,
+                    data: {
+                        packageName: pkg?.name || 'Pacchetto',
+                        customerName: profile?.full_name || profile?.email || 'Utente',
+                        amount: (session.amount_total || 0) / 100
+                    }
+                })
+            } catch (notifyErr) {
+                console.error('Failed to create admin notification:', notifyErr)
+            }
         } else {
             console.warn('Missing metadata in checkout session')
         }
