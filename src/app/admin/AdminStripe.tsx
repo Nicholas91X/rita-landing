@@ -128,7 +128,7 @@ export default function AdminStripe() {
         return (
             <div className="flex flex-col items-center justify-center p-20 space-y-4">
                 <Loader2 className="w-8 h-8 animate-spin text-emerald-500" />
-                <p className="text-neutral-400">Recupero dati da Stripe...</p>
+                <p className="text-white font-medium">Recupero dati da Stripe...</p>
             </div>
         )
     }
@@ -194,7 +194,7 @@ export default function AdminStripe() {
                             onClick={() => onPageChange(p)}
                             className={`h-7 w-7 p-0 text-[10px] font-black transition-all rounded-lg ${current === p
                                 ? 'bg-white text-black shadow-lg'
-                                : 'text-neutral-400 hover:text-white hover:bg-white/10'}`}
+                                : 'text-white hover:text-white hover:bg-white/10'}`}
                         >
                             {p}
                         </Button>
@@ -222,12 +222,12 @@ export default function AdminStripe() {
                 </h2>
                 <div className="flex items-center gap-3 w-full sm:w-auto">
                     <div className="relative w-full sm:w-64">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-500" />
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400" />
                         <Input
                             placeholder="Cerca per email..."
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
-                            className="pl-9 bg-neutral-900 border-neutral-800 focus:ring-emerald-500/20"
+                            className="pl-9 bg-neutral-900 border-neutral-800 focus:ring-emerald-500/20 text-white placeholder:text-neutral-400"
                         />
                     </div>
                     <Button variant="outline" size="sm" onClick={loadData} className="border-neutral-700 bg-neutral-900 h-10 text-white hover:bg-neutral-800">
@@ -241,7 +241,7 @@ export default function AdminStripe() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <Card className="bg-neutral-900 border-neutral-800">
                     <CardHeader className="pb-2">
-                        <CardTitle className="text-xs font-medium text-neutral-400 uppercase tracking-wider">
+                        <CardTitle className="text-xs font-bold text-white uppercase tracking-wider">
                             Disponibile nel Saldo
                         </CardTitle>
                     </CardHeader>
@@ -249,13 +249,13 @@ export default function AdminStripe() {
                         <div className="text-3xl font-bold text-emerald-500">
                             € {data.balance.available.toFixed(2)}
                         </div>
-                        <p className="text-xs text-neutral-500 mt-1">Disponibile per il bonifico</p>
+                        <p className="text-xs text-neutral-200 mt-1">Disponibile per il bonifico</p>
                     </CardContent>
                 </Card>
 
                 <Card className="bg-neutral-900 border-neutral-800">
                     <CardHeader className="pb-2">
-                        <CardTitle className="text-xs font-medium text-neutral-400 uppercase tracking-wider">
+                        <CardTitle className="text-xs font-bold text-white uppercase tracking-wider">
                             Saldo in Arrivo
                         </CardTitle>
                     </CardHeader>
@@ -263,7 +263,7 @@ export default function AdminStripe() {
                         <div className="text-3xl font-bold text-amber-500">
                             € {data.balance.pending.toFixed(2)}
                         </div>
-                        <p className="text-xs text-neutral-500 mt-1">Transazioni in elaborazione</p>
+                        <p className="text-xs text-neutral-200 mt-1">Transazioni in elaborazione</p>
                     </CardContent>
                 </Card>
             </div>
@@ -286,7 +286,7 @@ export default function AdminStripe() {
                                 <option value="succeeded">Riuscite</option>
                                 <option value="refunded">Rimborsate</option>
                             </select>
-                            <span className="text-[10px] text-neutral-500 uppercase tracking-widest hidden sm:inline-block">
+                            <span className="text-[10px] text-white font-bold uppercase tracking-widest hidden sm:inline-block">
                                 Pagina {paymentPage} / {totalPaymentPages || 1}
                             </span>
                         </div>
@@ -295,24 +295,24 @@ export default function AdminStripe() {
                     <div className="bg-neutral-900 border border-neutral-800 rounded-xl overflow-hidden shadow-sm">
                         <div className="overflow-x-auto">
                             <table className="w-full text-sm text-left">
-                                <thead className="bg-neutral-800/50 text-neutral-400 text-xs uppercase tracking-wider">
+                                <thead className="bg-neutral-800/50 text-white text-xs uppercase tracking-widest font-black">
                                     <tr>
-                                        <th className="px-6 py-3 font-medium">Data</th>
-                                        <th className="px-6 py-3 font-medium">Cliente</th>
-                                        <th className="px-6 py-3 font-medium text-right">Azioni / Stato</th>
+                                        <th className="px-6 py-3">Data</th>
+                                        <th className="px-6 py-3">Cliente</th>
+                                        <th className="px-6 py-3 text-right">Azioni / Stato</th>
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-neutral-800">
                                     {paginatedPayments.map((p) => (
                                         <tr key={p.id} className="hover:bg-neutral-800/30 transition-colors">
-                                            <td className="px-6 py-4 whitespace-nowrap text-neutral-400 font-mono text-[10px]">
+                                            <td className="px-6 py-4 whitespace-nowrap text-white font-mono text-[10px] font-bold">
                                                 {formatDate(p.created)}
                                             </td>
                                             <td className="px-6 py-4">
                                                 <div className="flex flex-col gap-0.5">
                                                     <div className="flex items-center gap-2">
-                                                        <User className="w-3 h-3 text-neutral-500" />
-                                                        <span className="truncate max-w-[150px] text-sm font-medium">{p.email || 'N/A'}</span>
+                                                        <User className="w-3 h-3 text-neutral-300" />
+                                                        <span className="truncate max-w-[150px] text-sm font-bold text-white">{p.email || 'N/A'}</span>
                                                     </div>
                                                     <div className="flex items-center gap-2">
                                                         <div className="font-semibold text-neutral-100">
@@ -346,7 +346,7 @@ export default function AdminStripe() {
                                                             variant="link"
                                                             size="sm"
                                                             onClick={() => handleRefundClick(p)}
-                                                            className="h-auto p-0 text-[10px] text-neutral-500 hover:text-amber-500"
+                                                            className="h-auto p-0 text-[10px] text-neutral-300 hover:text-amber-500 font-bold"
                                                         >
                                                             <RotateCcw className="w-2.5 h-2.5 mr-1" />
                                                             Rimborsa
@@ -358,7 +358,7 @@ export default function AdminStripe() {
                                     ))}
                                     {filteredPayments.length === 0 && (
                                         <tr>
-                                            <td colSpan={3} className="px-6 py-12 text-center text-neutral-500">
+                                            <td colSpan={3} className="px-6 py-12 text-center text-white font-bold italic">
                                                 Nessuna transazione trovata
                                             </td>
                                         </tr>
@@ -392,7 +392,7 @@ export default function AdminStripe() {
                                 <option value="trialing">In Prova</option>
                                 <option value="canceled">Annullati</option>
                             </select>
-                            <span className="text-[10px] text-neutral-500 uppercase tracking-widest hidden sm:inline-block">
+                            <span className="text-[10px] text-white font-bold uppercase tracking-widest hidden sm:inline-block">
                                 Pagina {subscriptionPage} / {totalSubscriptionPages || 1}
                             </span>
                         </div>
@@ -403,7 +403,7 @@ export default function AdminStripe() {
                             <div key={s.id} className={`p-4 bg-neutral-900 border border-neutral-800 rounded-xl hover:border-neutral-700 transition-all group ${s.status === 'canceled' ? 'opacity-50' : ''}`}>
                                 <div className="flex justify-between items-start mb-3">
                                     <div className="flex items-center gap-3">
-                                        <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${s.status === 'active' ? 'bg-emerald-500/10 text-emerald-500' : 'bg-neutral-800 text-neutral-500'
+                                        <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${s.status === 'active' ? 'bg-emerald-500/10 text-emerald-500' : 'bg-neutral-800 text-white'
                                             }`}>
                                             {s.status === 'active' ? (
                                                 <CheckCircle2 className="w-5 h-5" />
@@ -412,8 +412,8 @@ export default function AdminStripe() {
                                             )}
                                         </div>
                                         <div>
-                                            <div className="text-sm font-semibold truncate max-w-[180px]">{s.email}</div>
-                                            <div className="text-[10px] text-neutral-500 font-mono tracking-tighter uppercase">{s.id}</div>
+                                            <div className="text-sm font-bold text-white truncate max-w-[180px]">{s.email}</div>
+                                            <div className="text-[10px] text-neutral-200 font-mono tracking-tighter uppercase font-bold">{s.id}</div>
                                         </div>
                                     </div>
                                     <div className="flex flex-col items-end gap-2">
@@ -439,19 +439,19 @@ export default function AdminStripe() {
                                 </div>
                                 <div className="flex justify-between items-end pt-3 border-t border-white/5">
                                     <div className="space-y-0.5">
-                                        <div className="text-[10px] text-neutral-500 uppercase tracking-tighter">
+                                        <div className="text-[10px] text-white font-black uppercase tracking-widest">
                                             {s.status === 'canceled' ? 'Terminato' : `Rinnovo: ${formatDate(s.next_invoice)}`}
                                         </div>
                                         <div className="text-xl font-black text-white">
                                             € {s.amount.toFixed(2)}
-                                            <span className="text-xs text-neutral-500 font-medium ml-1">/ {s.interval === 'month' ? 'mese' : s.interval}</span>
+                                            <span className="text-xs text-neutral-300 font-bold ml-1">/ {s.interval === 'month' ? 'mese' : s.interval}</span>
                                         </div>
                                     </div>
                                 </div>
                             </div>
                         ))}
                         {filteredSubscriptions.length === 0 && (
-                            <div className="p-8 text-center text-neutral-500 bg-neutral-900 border border-neutral-800 rounded-xl">
+                            <div className="p-8 text-center text-white font-bold italic bg-neutral-900 border border-neutral-800 rounded-xl">
                                 Nessun abbonamento trovato
                             </div>
                         )}

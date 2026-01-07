@@ -135,7 +135,7 @@ export default function AdminDashboardClient({ packages, libraryId, stats }: { p
                 <Accordion type="multiple" defaultValue={["overview"]} className="mb-0">
                     <AccordionItem value="overview" className="border-none">
                         <AccordionTrigger className="hover:no-underline py-0 mb-4 focus-visible:ring-0">
-                            <h2 className="text-lg font-semibold text-muted-foreground tracking-tight">Panoramica Attività</h2>
+                            <h2 className="text-lg font-black uppercase italic tracking-tighter text-white">Panoramica Attività</h2>
                         </AccordionTrigger>
                         <AccordionContent className="pb-8">
                             <AdminStats stats={stats} />
@@ -153,7 +153,7 @@ export default function AdminDashboardClient({ packages, libraryId, stats }: { p
 
                     <button
                         onClick={() => setActiveTab('content')}
-                        className={`relative z-10 flex flex-col items-center justify-center py-8 transition-all duration-300 group ${activeTab === 'content' ? 'text-white' : 'text-neutral-500 hover:text-neutral-300'}`}
+                        className={`relative z-10 flex flex-col items-center justify-center py-8 transition-all duration-300 group ${activeTab === 'content' ? 'text-white' : 'text-neutral-400 hover:text-white'}`}
                     >
                         {activeTab === 'content' && (
                             <div className="absolute inset-2 bg-white/10 rounded-3xl z-[-1] animate-in fade-in zoom-in-95 duration-300" />
@@ -164,7 +164,7 @@ export default function AdminDashboardClient({ packages, libraryId, stats }: { p
 
                     <button
                         onClick={() => setActiveTab('packages')}
-                        className={`relative z-10 flex flex-col items-center justify-center py-8 transition-all duration-300 group ${activeTab === 'packages' ? 'text-white' : 'text-neutral-500 hover:text-neutral-300'}`}
+                        className={`relative z-10 flex flex-col items-center justify-center py-8 transition-all duration-300 group ${activeTab === 'packages' ? 'text-white' : 'text-neutral-400 hover:text-white'}`}
                     >
                         {activeTab === 'packages' && (
                             <div className="absolute inset-2 bg-white/10 rounded-3xl z-[-1] animate-in fade-in zoom-in-95 duration-300" />
@@ -175,7 +175,7 @@ export default function AdminDashboardClient({ packages, libraryId, stats }: { p
 
                     <button
                         onClick={() => setActiveTab('payments')}
-                        className={`relative z-10 flex flex-col items-center justify-center py-8 transition-all duration-300 group ${activeTab === 'payments' ? 'text-white' : 'text-neutral-500 hover:text-neutral-300'}`}
+                        className={`relative z-10 flex flex-col items-center justify-center py-8 transition-all duration-300 group ${activeTab === 'payments' ? 'text-white' : 'text-neutral-400 hover:text-white'}`}
                     >
                         {activeTab === 'payments' && (
                             <div className="absolute inset-2 bg-white/10 rounded-3xl z-[-1] animate-in fade-in zoom-in-95 duration-300" />
@@ -186,7 +186,7 @@ export default function AdminDashboardClient({ packages, libraryId, stats }: { p
 
                     <button
                         onClick={() => setActiveTab('requests')}
-                        className={`relative z-10 flex flex-col items-center justify-center py-8 transition-all duration-300 group ${activeTab === 'requests' ? 'text-white' : 'text-neutral-500 hover:text-neutral-300'}`}
+                        className={`relative z-10 flex flex-col items-center justify-center py-8 transition-all duration-300 group ${activeTab === 'requests' ? 'text-white' : 'text-neutral-400 hover:text-white'}`}
                     >
                         {activeTab === 'requests' && (
                             <div className="absolute inset-2 bg-white/10 rounded-3xl z-[-1] animate-in fade-in zoom-in-95 duration-300" />
@@ -222,7 +222,7 @@ export default function AdminDashboardClient({ packages, libraryId, stats }: { p
                                     <UploadCloud className="h-6 w-6 text-[var(--brand)] drop-shadow-[0_0_8px_rgba(244,101,48,0.4)]" />
                                     Carica Video
                                 </h3>
-                                <p className="text-xs font-bold text-neutral-500 uppercase tracking-widest px-1">Aggiungi una nuova lezione</p>
+                                <p className="text-xs font-bold text-neutral-300 uppercase tracking-widest px-1">Aggiungi una nuova lezione</p>
                             </div>
 
                             {/* Status logic */}
@@ -249,27 +249,27 @@ export default function AdminDashboardClient({ packages, libraryId, stats }: { p
 
                             <div className="space-y-6">
                                 <div className="space-y-2 group">
-                                    <label className="text-[10px] font-black uppercase text-neutral-500 tracking-widest ml-1 group-focus-within:text-[var(--brand)] transition-colors">Titolo Lezione</label>
+                                    <label className="text-[10px] font-black uppercase text-neutral-300 tracking-widest ml-1 group-focus-within:text-[var(--brand)] transition-colors">Titolo Lezione</label>
                                     <input
                                         value={title}
                                         onChange={(e) => setTitle(e.target.value)}
                                         placeholder="Esempio: Warm-up dinamico"
-                                        className="flex h-12 w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-2 text-sm text-white placeholder:text-neutral-600 focus:outline-none focus:ring-2 focus:ring-[var(--brand)]/30 focus:border-[var(--brand)]/50 transition-all font-medium"
+                                        className="flex h-12 w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-2 text-sm text-white placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-[var(--brand)]/30 focus:border-[var(--brand)]/50 transition-all font-medium"
                                     />
                                 </div>
                                 <div className="space-y-2 group">
-                                    <label className="text-[10px] font-black uppercase text-neutral-500 tracking-widest ml-1 group-focus-within:text-[var(--brand)] transition-colors">Pacchetto di Destinazione</label>
+                                    <label className="text-[10px] font-black uppercase text-neutral-300 tracking-widest ml-1 group-focus-within:text-[var(--brand)] transition-colors">Pacchetto di Destinazione</label>
                                     <select
                                         value={selectedPackage}
                                         onChange={(e) => setSelectedPackage(e.target.value)}
                                         className="flex h-12 w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-[var(--brand)]/30 focus:border-[var(--brand)]/50 transition-all appearance-none cursor-pointer font-medium"
                                     >
-                                        <option value="" disabled className="bg-neutral-900 text-neutral-500">Scegli un pacchetto...</option>
+                                        <option value="" disabled className="bg-neutral-900 text-neutral-200">Scegli un pacchetto...</option>
                                         {packages.map(p => <option key={p.id} value={p.id} className="bg-neutral-900">{p.name}</option>)}
                                     </select>
                                 </div>
                                 <div className="space-y-2">
-                                    <label className="text-[10px] font-black uppercase text-neutral-500 tracking-widest ml-1">File Video</label>
+                                    <label className="text-[10px] font-black uppercase text-neutral-300 tracking-widest ml-1">File Video</label>
                                     <div className={`border-2 border-dashed rounded-[2rem] p-10 text-center transition-all cursor-pointer relative group ${file ? 'border-[var(--brand)] bg-[var(--brand)]/5' : 'border-white/5 hover:border-[var(--brand)]/30 hover:bg-[var(--brand)]/5'}`}>
                                         <input type="file" accept="video/*" onChange={(e) => setFile(e.target.files?.[0] || null)} className="absolute inset-0 opacity-0 cursor-pointer z-10" />
                                         {file ? (
@@ -280,8 +280,8 @@ export default function AdminDashboardClient({ packages, libraryId, stats }: { p
                                                 <span className="text-xs truncate w-full px-4 uppercase tracking-tight">{file.name}</span>
                                             </div>
                                         ) : (
-                                            <div className="text-neutral-500 flex flex-col items-center gap-3 group-hover:text-neutral-300 transition-all">
-                                                <UploadCloud className="h-12 w-12 text-neutral-600 group-hover:text-[var(--brand)] group-hover:drop-shadow-[0_0_8px_rgba(244,101,48,0.3)] transition-all" />
+                                            <div className="text-neutral-400 flex flex-col items-center gap-3 group-hover:text-white transition-all">
+                                                <UploadCloud className="h-12 w-12 text-neutral-400 group-hover:text-[var(--brand)] group-hover:drop-shadow-[0_0_8px_rgba(244,101,48,0.3)] transition-all" />
                                                 <p className="text-[10px] font-black uppercase tracking-widest">Trascina o seleziona</p>
                                             </div>
                                         )}
@@ -314,7 +314,7 @@ export default function AdminDashboardClient({ packages, libraryId, stats }: { p
                                     <div className="w-2 h-2 rounded-full bg-[var(--brand)] animate-pulse" />
                                     Libreria Contenuti
                                 </h2>
-                                <p className="text-[10px] font-bold text-neutral-500 uppercase tracking-widest mt-1 ml-4">{videos.length} video caricati con successo</p>
+                                <p className="text-[10px] font-bold text-neutral-300 uppercase tracking-widest mt-1 ml-4">{videos.length} video caricati con successo</p>
                             </div>
                             <div className="relative w-full md:w-auto">
                                 <select
@@ -331,21 +331,21 @@ export default function AdminDashboardClient({ packages, libraryId, stats }: { p
                         <div className="bg-neutral-900 rounded-[2.5rem] border border-white/10 shadow-3xl overflow-hidden min-h-[500px] relative">
                             <div className="overflow-x-auto">
                                 <div className="min-w-[900px]">
-                                    <div className="grid grid-cols-12 gap-4 border-b border-white/5 bg-white/5 px-8 py-5 text-[10px] font-black uppercase tracking-[0.2em] text-neutral-500">
+                                    <div className="grid grid-cols-12 gap-4 border-b border-white/5 bg-white/5 px-8 py-5 text-[10px] font-black uppercase tracking-[0.2em] text-white/50">
                                         <div className="col-span-6">Scheda Video</div>
                                         <div className="col-span-4">Pacchetto Collegato</div>
-                                        <div className="col-span-2 text-right">Azioni</div>
+                                        <div className="col-span-2 text-right text-white">Azioni</div>
                                     </div>
 
                                     {loadingVideos ? (
-                                        <div className="p-32 flex flex-col items-center gap-4 text-neutral-500">
+                                        <div className="p-32 flex flex-col items-center gap-4 text-white">
                                             <Loader2 className="h-10 w-10 animate-spin text-[var(--brand)]" />
                                             <span className="text-[10px] font-black uppercase tracking-widest">Sincronizzazione in corso...</span>
                                         </div>
                                     ) : videos.length === 0 ? (
                                         <div className="p-32 text-center space-y-4">
                                             <Video className="w-16 h-16 text-white/5 mx-auto" />
-                                            <p className="text-neutral-500 text-sm font-medium">Nessun video trovato in questa categoria.</p>
+                                            <p className="text-white text-sm font-black italic uppercase tracking-widest">Nessun video trovato in questa categoria.</p>
                                         </div>
                                     ) : (
                                         <div className="divide-y divide-white/5">
@@ -353,7 +353,7 @@ export default function AdminDashboardClient({ packages, libraryId, stats }: { p
                                                 <div key={video.id} className="grid grid-cols-12 gap-4 px-8 py-6 items-center hover:bg-white/[0.02] transition-colors group/row border-l-4 border-transparent hover:border-l-[var(--brand)]/50">
                                                     <div className="col-span-6 flex items-center gap-4">
                                                         <div className="w-12 h-12 rounded-xl bg-white/5 flex items-center justify-center group-hover/row:bg-[var(--brand)]/10 transition-all">
-                                                            <PlayCircle className="h-6 w-6 text-neutral-600 group-hover/row:text-[var(--brand)] group-hover/row:scale-110 transition-all" />
+                                                            <PlayCircle className="h-6 w-6 text-neutral-400 group-hover/row:text-[var(--brand)] group-hover/row:scale-110 transition-all" />
                                                         </div>
                                                         <div className="flex flex-col">
                                                             {editingVideo === video.id ? (
@@ -366,7 +366,7 @@ export default function AdminDashboardClient({ packages, libraryId, stats }: { p
                                                             ) : (
                                                                 <span className="font-black text-sm text-white tracking-tight group-hover/row:text-[var(--brand)] transition-colors">{video.title}</span>
                                                             )}
-                                                            <span className="text-[9px] font-bold text-neutral-600 uppercase tracking-widest mt-0.5">ID: {video.video_id?.slice(0, 8)}...</span>
+                                                            <span className="text-[9px] font-bold text-neutral-200 uppercase tracking-widest mt-0.5">ID: {video.video_id?.slice(0, 8)}...</span>
                                                         </div>
                                                     </div>
                                                     <div className="col-span-4">

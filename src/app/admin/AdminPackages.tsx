@@ -123,7 +123,7 @@ export default function AdminPackages() {
         }
     }
 
-    if (loading) return <div className="text-center p-8 text-neutral-400">Caricamento...</div>
+    if (loading) return <div className="text-center p-8 text-white font-bold italic animate-pulse">Caricamento...</div>
 
     return (
         <div className="space-y-6">
@@ -140,18 +140,18 @@ export default function AdminPackages() {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {packages.map((pkg) => (
                     <Card key={pkg.id} className="bg-neutral-900 border-neutral-800 text-neutral-100 overflow-hidden flex flex-col">
-                        <div className="h-32 w-full bg-neutral-800 relative overflow-hidden">
+                        <div className="h-32 w-full bg-neutral-800 relative overflow-hidden flex items-center justify-center">
                             {pkg.image_url ? (
                                 <img src={pkg.image_url} alt={pkg.name} className="w-full h-full object-cover" />
                             ) : (
-                                <div className="w-full h-full flex items-center justify-center text-neutral-700">
+                                <div className="text-neutral-600">
                                     <PackageIcon className="w-12 h-12" />
                                 </div>
                             )}
                             <div className="absolute top-2 right-2">
                                 <span className={cn(
                                     "px-2 py-1 rounded text-[10px] font-bold uppercase",
-                                    pkg.stripe_product_id ? "bg-emerald-500/20 text-emerald-500" : "bg-neutral-500/20 text-neutral-500"
+                                    pkg.stripe_product_id ? "bg-emerald-500/20 text-emerald-500" : "bg-neutral-500/20 text-neutral-200"
                                 )}>
                                     {pkg.stripe_product_id ? 'Sincronizzato' : 'Off-line'}
                                 </span>
@@ -162,7 +162,7 @@ export default function AdminPackages() {
                             <div className="text-xs font-black text-brand uppercase tracking-widest mb-3">
                                 {pkg.courses?.name || 'Nessun Corso'}
                             </div>
-                            <p className="text-xs text-neutral-500 mb-4 h-10 overflow-hidden line-clamp-2">
+                            <p className="text-xs text-neutral-200 font-medium mb-4 h-10 overflow-hidden line-clamp-2 leading-relaxed">
                                 {pkg.description}
                             </p>
                             <div className="mt-auto flex justify-between items-end">
@@ -179,8 +179,10 @@ export default function AdminPackages() {
             <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
                 <DialogContent className="bg-neutral-900 border-neutral-800 text-neutral-100 sm:max-w-[425px]">
                     <DialogHeader>
-                        <DialogTitle>{editingPackage ? 'Modifica Pacchetto' : 'Nuovo Pacchetto'}</DialogTitle>
-                        <DialogDescription className="text-neutral-400">
+                        <DialogTitle className="text-white font-black uppercase italic tracking-tight">
+                            {editingPackage ? 'Modifica Pacchetto' : 'Nuovo Pacchetto'}
+                        </DialogTitle>
+                        <DialogDescription className="text-neutral-200 font-medium">
                             {editingPackage ? 'Modifica i dettagli e sincronizza con Stripe.' : 'Crea un nuovo pacchetto e il relativo prodotto su Stripe.'}
                         </DialogDescription>
                     </DialogHeader>
@@ -188,7 +190,7 @@ export default function AdminPackages() {
                         <div className="space-y-4">
                             {/* Image Upload Area */}
                             <div className="space-y-2">
-                                <label className="text-sm font-medium">Immagine Cover</label>
+                                <label className="text-sm font-bold text-white uppercase tracking-widest text-[10px]">Immagine Cover</label>
                                 <div
                                     className="h-40 w-full bg-neutral-800 rounded-xl border-2 border-dashed border-neutral-700 flex flex-col items-center justify-center relative overflow-hidden group cursor-pointer hover:border-brand/40 transition-colors"
                                     onClick={() => document.getElementById('image-upload')?.click()}
@@ -214,8 +216,8 @@ export default function AdminPackages() {
                                         </>
                                     ) : (
                                         <div className="text-center p-4">
-                                            <Plus className="w-8 h-8 text-neutral-600 mx-auto mb-2" />
-                                            <p className="text-xs text-neutral-500 font-medium">Carica Immagine</p>
+                                            <Plus className="w-8 h-8 text-neutral-400 mx-auto mb-2" />
+                                            <p className="text-xs text-white font-bold uppercase tracking-widest">Carica Immagine</p>
                                         </div>
                                     )}
                                     <input
@@ -237,7 +239,7 @@ export default function AdminPackages() {
 
                             <div className="grid grid-cols-2 gap-4">
                                 <div className="space-y-2 col-span-2">
-                                    <label className="text-sm font-medium">Nome</label>
+                                    <label className="text-sm font-bold text-white uppercase tracking-widest text-[10px]">Nome</label>
                                     <Input
                                         value={formData.name}
                                         onChange={(e) => setFormData({ ...formData, name: e.target.value })}
@@ -248,7 +250,7 @@ export default function AdminPackages() {
                             </div>
 
                             <div className="space-y-2">
-                                <label className="text-sm font-medium">Descrizione</label>
+                                <label className="text-sm font-bold text-white uppercase tracking-widest text-[10px]">Descrizione</label>
                                 <Textarea
                                     value={formData.description}
                                     onChange={(e) => setFormData({ ...formData, description: e.target.value })}
@@ -258,7 +260,7 @@ export default function AdminPackages() {
 
                             <div className="grid grid-cols-2 gap-4">
                                 <div className="space-y-2">
-                                    <label className="text-sm font-medium">Prezzo (€)</label>
+                                    <label className="text-sm font-bold text-white uppercase tracking-widest text-[10px]">Prezzo (€)</label>
                                     <Input
                                         type="number"
                                         step="0.01"
@@ -270,7 +272,7 @@ export default function AdminPackages() {
                                     />
                                 </div>
                                 <div className="space-y-2">
-                                    <label className="text-sm font-medium text-neutral-300">Corso</label>
+                                    <label className="text-sm font-bold text-white uppercase tracking-widest text-[10px]">Corso</label>
                                     <select
                                         value={formData.course_id}
                                         onChange={(e) => setFormData({ ...formData, course_id: e.target.value })}

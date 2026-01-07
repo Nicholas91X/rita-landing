@@ -35,18 +35,18 @@ export default function AdminStats({ stats }: { stats: AdminStatsData }) {
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
             <Card className="bg-neutral-900/80 border-white/10 backdrop-blur-md hover:bg-neutral-900 transition-colors group shadow-xl">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-xs uppercase font-black tracking-widest text-neutral-400">Utenti Totali</CardTitle>
+                    <CardTitle className="text-xs uppercase font-black tracking-widest text-white/70">Utenti Totali</CardTitle>
                     <Users className="h-5 w-5 text-[var(--brand)] opacity-70 group-hover:opacity-100 transition-opacity" />
                 </CardHeader>
                 <CardContent>
                     <div className="text-3xl font-black text-white italic tracking-tighter">{stats.supabase.totalUsers}</div>
-                    <p className="text-[10px] uppercase font-bold text-neutral-500 mt-1">Registrati</p>
+                    <p className="text-[10px] uppercase font-bold text-neutral-300 mt-1">Registrati</p>
                 </CardContent>
             </Card>
 
             <Card className="bg-neutral-900/80 border-white/10 backdrop-blur-md hover:bg-neutral-900 transition-colors group shadow-xl">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-xs uppercase font-black tracking-widest text-neutral-400">Abbonamenti</CardTitle>
+                    <CardTitle className="text-xs uppercase font-black tracking-widest text-white/70">Abbonamenti</CardTitle>
                     <CreditCard className="h-5 w-5 text-[var(--brand)] opacity-70 group-hover:opacity-100 transition-opacity" />
                 </CardHeader>
                 <CardContent>
@@ -57,25 +57,25 @@ export default function AdminStats({ stats }: { stats: AdminStatsData }) {
 
             <Card className="bg-neutral-900/80 border-white/10 backdrop-blur-md hover:bg-neutral-900 transition-colors group shadow-xl">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-xs uppercase font-black tracking-widest text-neutral-400">Transazioni</CardTitle>
+                    <CardTitle className="text-xs uppercase font-black tracking-widest text-white/70">Transazioni</CardTitle>
                     <ShoppingBag className="h-5 w-5 text-[var(--brand)] opacity-70 group-hover:opacity-100 transition-opacity" />
                 </CardHeader>
                 <CardContent>
                     <div className="text-3xl font-black text-white italic tracking-tighter">{stats.supabase.totalOneTimePurchases}</div>
-                    <p className="text-[10px] uppercase font-bold text-neutral-500 mt-1">Acquisti Singoli</p>
+                    <p className="text-[10px] uppercase font-bold text-neutral-300 mt-1">Acquisti Singoli</p>
                 </CardContent>
             </Card>
 
             <Card className="bg-neutral-900/80 border-white/10 backdrop-blur-md hover:bg-neutral-900 transition-colors group shadow-xl">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-xs uppercase font-black tracking-widest text-neutral-400">Traffico Video</CardTitle>
+                    <CardTitle className="text-xs uppercase font-black tracking-widest text-white/70">Traffico Video</CardTitle>
                     <Activity className="h-5 w-5 text-emerald-500 opacity-70 group-hover:opacity-100 transition-opacity" />
                 </CardHeader>
                 <CardContent>
                     <div className="text-3xl font-black text-white italic tracking-tighter">{formatBytes(stats.bunny.bandwidthUsed)}</div>
                     <div className="flex items-center gap-2 mt-1">
                         <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                        <p className="text-[10px] uppercase font-bold text-neutral-400">{stats.bunny.totalViews} views (30gg)</p>
+                        <p className="text-[10px] uppercase font-bold text-neutral-200">{stats.bunny.totalViews} views (30gg)</p>
                     </div>
                 </CardContent>
             </Card>

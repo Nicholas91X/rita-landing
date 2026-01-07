@@ -108,9 +108,9 @@ export default function AdminRequests() {
 
     if (loading) {
         return (
-            <div className="flex flex-col items-center justify-center p-20 gap-4 text-neutral-400">
+            <div className="flex flex-col items-center justify-center p-20 gap-4 text-white font-bold italic">
                 <Loader2 className="w-8 h-8 animate-spin text-brand" />
-                <p className="text-sm font-medium animate-pulse">Caricamento richieste e notifiche...</p>
+                <p className="text-sm font-black animate-pulse tracking-widest uppercase">Caricamento richieste e notifiche...</p>
             </div>
         )
     }
@@ -136,7 +136,7 @@ export default function AdminRequests() {
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-6 bg-white/5 rounded-[2.5rem] border border-white/10">
                 <div>
                     <h2 className="text-3xl font-black italic uppercase tracking-tighter text-white">Gestione Fatturazione</h2>
-                    <p className="text-neutral-300 font-medium">Monitora rimborsi e cancellazioni degli utenti</p>
+                    <p className="text-white font-bold italic uppercase text-[10px] tracking-widest">Monitora rimborsi e cancellazioni degli utenti</p>
                 </div>
             </div>
 
@@ -188,10 +188,10 @@ export default function AdminRequests() {
                                                 </div>
 
                                                 <div className="flex flex-col gap-1">
-                                                    <p className="text-sm text-neutral-200 font-medium break-words">
-                                                        Utente: <span className="text-white font-bold">{n.profiles?.full_name || 'Utente sconosciuto'}</span>
+                                                    <p className="text-sm text-white font-bold break-words">
+                                                        Utente: <span className="text-white font-black italic uppercase tracking-tight">{n.profiles?.full_name || 'Utente sconosciuto'}</span>
                                                     </p>
-                                                    <p className="text-xs text-neutral-300 italic break-all">
+                                                    <p className="text-xs text-neutral-200 italic font-medium break-all">
                                                         {n.profiles?.email}
                                                     </p>
                                                 </div>
@@ -209,7 +209,7 @@ export default function AdminRequests() {
                                             </div>
 
                                             <div className="w-full md:w-auto md:text-right flex flex-row md:flex-col justify-between md:justify-start items-center md:items-end gap-2 shrink-0 pt-2 md:pt-0 border-t md:border-t-0 border-white/5">
-                                                <div className="text-[10px] text-neutral-300 flex items-center gap-1.5 uppercase font-black tracking-widest whitespace-nowrap">
+                                                <div className="text-[10px] text-white flex items-center gap-1.5 uppercase font-black tracking-widest whitespace-nowrap">
                                                     <Clock className="w-3 h-3 text-brand" />
                                                     {new Date(n.created_at).toLocaleString('it-IT', { day: '2-digit', month: '2-digit', year: '2-digit', hour: '2-digit', minute: '2-digit' })}
                                                 </div>
@@ -258,8 +258,8 @@ export default function AdminRequests() {
                         </>
                     ) : (
                         <div className="text-center py-20 border-2 border-dashed border-white/10 rounded-[2.5rem] bg-black">
-                            <Bell className="w-12 h-12 text-neutral-800 mx-auto mb-4 hover:text-brand transition-colors" />
-                            <p className="text-neutral-600 font-black uppercase italic tracking-tighter text-xl">Nessuna notifica di sistema</p>
+                            <Bell className="w-12 h-12 text-neutral-700 mx-auto mb-4 hover:text-brand transition-colors" />
+                            <p className="text-white font-black uppercase italic tracking-tighter text-xl">Nessuna notifica di sistema</p>
                         </div>
                     )}
                 </TabsContent>
@@ -279,7 +279,7 @@ export default function AdminRequests() {
                                                     <CardTitle className="text-sm font-black uppercase italic tracking-tight text-white truncate max-w-[150px] md:max-w-none">
                                                         {req.profiles?.full_name}
                                                     </CardTitle>
-                                                    <CardDescription className="text-[10px] text-neutral-300 font-medium truncate max-w-[150px] md:max-w-none">
+                                                    <CardDescription className="text-[10px] text-white font-bold truncate max-w-[150px] md:max-w-none">
                                                         {req.profiles?.email}
                                                     </CardDescription>
                                                 </div>
@@ -307,13 +307,13 @@ export default function AdminRequests() {
 
                                             <div className="pt-4 border-t border-white/10 grid grid-cols-2 md:grid-cols-3 gap-4">
                                                 <div className="space-y-1">
-                                                    <label className="text-[9px] uppercase font-black text-neutral-400 tracking-widest block">Pacchetto</label>
+                                                    <label className="text-[9px] uppercase font-black text-white/50 tracking-widest block">Pacchetto</label>
                                                     <p className="text-xs text-white font-black italic uppercase tracking-tight truncate">
                                                         {req.user_subscriptions?.packages?.name || 'N/A'}
                                                     </p>
                                                 </div>
                                                 <div className="space-y-1">
-                                                    <label className="text-[9px] uppercase font-black text-neutral-400 tracking-widest block">Data Richiesta</label>
+                                                    <label className="text-[9px] uppercase font-black text-white/50 tracking-widest block">Data Richiesta</label>
                                                     <p className="text-xs text-white font-black italic uppercase tracking-tight">
                                                         {new Date(req.created_at).toLocaleDateString('it-IT')}
                                                     </p>
@@ -380,8 +380,8 @@ export default function AdminRequests() {
                         </>
                     ) : (
                         <div className="text-center py-20 border-2 border-dashed border-white/10 rounded-[2.5rem] bg-black">
-                            <RefreshCcw className="w-12 h-12 text-neutral-800 mx-auto mb-4 hover:text-brand transition-colors" />
-                            <p className="text-neutral-600 font-black uppercase italic tracking-tighter text-xl">Nessuna richiesta di rimborso pendente</p>
+                            <RefreshCcw className="w-12 h-12 text-neutral-700 mx-auto mb-4 hover:text-brand transition-colors" />
+                            <p className="text-white font-black uppercase italic tracking-tighter text-xl">Nessuna richiesta di rimborso pendente</p>
                         </div>
                     )}
                 </TabsContent>
