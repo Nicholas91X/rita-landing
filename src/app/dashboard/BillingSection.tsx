@@ -7,7 +7,7 @@ import { cn } from '@/lib/utils'
 import { createPortalSession, cancelSubscription, requestRefund } from '@/app/actions/stripe'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Loader2, CreditCard, ExternalLink, Calendar, CheckCircle2, Clock, Receipt, RefreshCcw, XCircle, AlertCircle } from 'lucide-react'
+import { Loader2, CreditCard, ExternalLink, Calendar, CheckCircle2, Clock, Receipt, RefreshCcw, XCircle, AlertCircle, FileText } from 'lucide-react'
 import { toast } from 'sonner'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Textarea } from '@/components/ui/textarea'
@@ -182,18 +182,59 @@ export default function BillingSection() {
                                     <span className="font-mono">{new Date(sub.next_invoice).toLocaleDateString('it-IT')}</span>
                                 </div>
                             </div>
+
+                            {/* Documentation Section */}
+                            {sub.documents && sub.documents.length > 0 && (
+                                <div className="pt-4 mt-2 border-t border-white/5 space-y-3">
+                                    <div className="flex items-center gap-2 mb-2">
+                                        <Receipt className="w-3.5 h-3.5 text-brand" />
+                                        <span className="text-[10px] uppercase font-black tracking-widest text-white">Documentazione</span>
+                                    </div>
+                                    <div className="space-y-2 max-h-[160px] overflow-y-auto pr-2 custom-scrollbar">
+                                        {sub.documents.map((doc: any) => (
+                                            <div key={doc.id} className="flex items-center justify-between p-2 rounded-xl bg-white/5 border border-white/5 hover:bg-white/10 transition-colors group/doc">
+                                                <div className="flex items-center gap-2 min-w-0">
+                                                    {doc.type === 'invoice' ? (
+                                                        <FileText className="w-3.5 h-3.5 text-emerald-500" />
+                                                    ) : (
+                                                        <RefreshCcw className="w-3.5 h-3.5 text-amber-500" />
+                                                    )}
+                                                    <div className="flex flex-col min-w-0">
+                                                        <span className="text-[9px] font-bold text-white truncate">
+                                                            {doc.type === 'invoice' ? 'Fattura' : 'Nota di Credito'} {doc.number}
+                                                        </span>
+                                                        <span className="text-[8px] text-neutral-500">
+                                                            {new Date(doc.date * 1000).toLocaleDateString('it-IT')} • €{doc.amount.toFixed(2)}
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                                <Button
+                                                    variant="ghost"
+                                                    size="icon"
+                                                    className="w-7 h-7 rounded-lg hover:bg-white/10"
+                                                    onClick={() => window.open(doc.url, '_blank')}
+                                                >
+                                                    <ExternalLink className="w-3.5 h-3.5 text-neutral-400 group-hover/doc:text-white" />
+                                                </Button>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
                         </CardContent>
                         <CardFooter className="pt-2 pb-6 px-6 flex flex-col gap-3">
-                            {sub.receipt_url && (
-                                <Button
-                                    variant="link"
-                                    className="p-0 h-auto text-[10px] text-brand hover:text-brand/80 flex items-center gap-1.5 self-start"
-                                    onClick={() => window.open(sub.receipt_url, '_blank')}
-                                >
-                                    <Receipt className="w-3 h-3" />
-                                    Visualizza ultima ricevuta
-                                </Button>
-                            )}
+                            <div className="hidden">
+                                {sub.receipt_url && (
+                                    <Button
+                                        variant="link"
+                                        className="p-0 h-auto text-[10px] text-brand hover:text-brand/80 flex items-center gap-1.5 self-start"
+                                        onClick={() => window.open(sub.receipt_url, '_blank')}
+                                    >
+                                        <Receipt className="w-3 h-3" />
+                                        Visualizza ultima ricevuta
+                                    </Button>
+                                )}
+                            </div>
 
                             <div className="flex items-center gap-2 w-full mt-2">
                                 {sub.status === 'active' && (

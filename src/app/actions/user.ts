@@ -42,17 +42,82 @@ export async function getUserSubscriptionInfo() {
 
     // Map and fetch receipts from Stripe
     const subsWithDetailedInfo = await Promise.all(subs.map(async (sub) => {
-        let receipt_url = null
-        if (sub.stripe_subscription_id) {
+        let documents: any[] = []
+        let customerId = sub.stripe_customer_id
+
+        // Fallback: If customer_id is missing but subscription_id exists, fetch it from Stripe
+        if (!customerId && sub.stripe_subscription_id) {
             try {
-                const invoices = await stripe.invoices.list({
-                    subscription: sub.stripe_subscription_id,
-                    limit: 1,
-                })
-                const lastInvoice = invoices.data[0] as any
-                receipt_url = lastInvoice?.receipt_url || lastInvoice?.hosted_invoice_url
+                const stripeSub = await stripe.subscriptions.retrieve(sub.stripe_subscription_id)
+                customerId = stripeSub.customer as string
+
+                // Proactively update DB if we found it
+                if (customerId) {
+                    await supabase
+                        .from('user_subscriptions')
+                        .update({ stripe_customer_id: customerId })
+                        .eq('id', sub.id)
+                }
             } catch (err) {
-                console.error('Error fetching invoice for sub:', sub.id, err)
+                console.error('Error resolving customer from sub:', sub.stripe_subscription_id, err)
+            }
+        }
+
+        // Second Fallback: Search by email
+        if (!customerId) {
+            try {
+                const customers = await stripe.customers.list({ email: user.email, limit: 1 })
+                if (customers.data.length > 0) {
+                    customerId = customers.data[0].id
+                }
+            } catch (err) {
+                console.error('Error resolving customer from email:', user.email, err)
+            }
+        }
+
+        if (customerId) {
+            try {
+                // Fetch all invoices for this customer
+                const invoices = await stripe.invoices.list({
+                    customer: customerId,
+                    limit: 15,
+                })
+
+                // Fetch all credit notes for this customer
+                const creditNotes = await stripe.creditNotes.list({
+                    customer: customerId,
+                    limit: 15,
+                })
+
+                // Map invoices to documents
+                const invoiceDocs = invoices.data.map((inv: any) => ({
+                    id: inv.id,
+                    type: 'invoice',
+                    number: inv.number,
+                    date: inv.created,
+                    amount: inv.total / 100,
+                    currency: inv.currency,
+                    url: inv.receipt_url || inv.hosted_invoice_url,
+                    status: inv.status
+                }))
+
+                // Map credit notes to documents
+                const creditNoteDocs = creditNotes.data.map(cn => ({
+                    id: cn.id,
+                    type: 'credit_note',
+                    number: cn.number,
+                    date: cn.created,
+                    amount: cn.amount / 100,
+                    currency: cn.currency,
+                    url: cn.pdf,
+                    status: cn.status
+                }))
+
+                // Combine and sort by date descending
+                documents = [...invoiceDocs, ...creditNoteDocs].sort((a, b) => b.date - a.date)
+
+            } catch (err) {
+                console.error('Error fetching documentation for customer:', sub.stripe_customer_id, err)
             }
         }
 
@@ -61,7 +126,8 @@ export async function getUserSubscriptionInfo() {
             next_invoice: sub.current_period_end,
             amount: Number((sub.packages as any)?.price || 0),
             interval: 'mese',
-            receipt_url
+            documents,
+            receipt_url: documents.find(d => d.type === 'invoice')?.url // legacy support if needed
         }
     }))
 
