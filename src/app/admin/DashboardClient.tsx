@@ -147,10 +147,9 @@ export default function AdminDashboardClient({ packages, libraryId, stats }: { p
             {/* TAB NAVIGATION - Premium Restructured Design (2x2 Grid with Cross Separator) */}
             <div className="flex justify-center mb-10 px-4">
                 <div className="grid grid-cols-2 p-1 bg-neutral-900 border border-white/10 rounded-[2.5rem] shadow-2xl relative overflow-hidden w-full max-w-md">
-                    {/* Horizontal Divider */}
-                    <div className="absolute top-1/2 left-0 w-full h-px bg-white/10 -translate-y-1/2" />
-                    {/* Vertical Divider */}
-                    <div className="absolute top-0 left-1/2 w-px h-full bg-white/10 -translate-x-1/2" />
+                    {/* Orange Cross Separator */}
+                    <div className="absolute top-1/2 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-[var(--brand)]/80 to-transparent z-0 shadow-[0_0_10px_rgba(244,101,48,0.2)]" />
+                    <div className="absolute top-0 left-1/2 w-[1px] h-full bg-gradient-to-b from-transparent via-[var(--brand)]/80 to-transparent z-0 shadow-[0_0_10px_rgba(244,101,48,0.2)]" />
 
                     <button
                         onClick={() => setActiveTab('content')}
