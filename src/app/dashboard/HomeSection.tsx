@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button'
 import { PlayCircle, ArrowRight } from 'lucide-react'
 import Link from 'next/link'
 
-export default function HomeSection({ levels, onShowLibrary }: { levels: Level[], onShowLibrary: () => void }) {
+export default function HomeSection({ levels, onShowLibrary, userName }: { levels: Level[], onShowLibrary: () => void, userName?: string }) {
     // Find the first purchased package as "Recent" (simplified logic)
     let recentPackage = null
     for (const level of levels) {
@@ -30,7 +30,9 @@ export default function HomeSection({ levels, onShowLibrary }: { levels: Level[]
                     <div className="absolute top-0 right-0 w-64 h-64 bg-brand/20 blur-[100px] -mr-32 -mt-32" />
                     <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-8">
                         <div className="max-w-xl space-y-4">
-                            <span className="text-brand text-xs font-black uppercase tracking-[0.3em]">Bentornata nella tua Area</span>
+                            <span className="text-brand text-xs font-black uppercase tracking-[0.3em]">
+                                {userName ? `Bentornata, ${userName}` : 'Bentornata nella tua Area'}
+                            </span>
                             <h3 className="text-3xl md:text-4xl font-black text-white leading-tight italic uppercase tracking-tighter">
                                 Pronta per la tua prossima sfida?
                             </h3>

@@ -22,7 +22,8 @@ export default function LibrarySection({
 }: {
     levels: Level[],
     progress?: LibraryProgress[],
-    onShowDiscover: () => void
+    onShowDiscover: () => void,
+    userName?: string
 }) {
     // Filter only purchased packages
     const purchasedLevels = levels.map(level => {

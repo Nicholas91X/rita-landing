@@ -55,14 +55,18 @@ export default function DashboardClient({ levels }: { levels: Level[] }) {
     }
 
     const renderContent = () => {
+        const fullName = userProfile?.profile?.full_name || ''
+        const firstName = fullName.split(' ')[0] // Extract first name for greeting
+
         switch (activeTab) {
             case 'home':
-                return <HomeSection levels={levels} onShowLibrary={() => setActiveTab('library')} />
+                return <HomeSection levels={levels} onShowLibrary={() => setActiveTab('library')} userName={firstName} />
             case 'library':
                 return <LibrarySection
                     levels={levels}
                     progress={libraryProgress}
                     onShowDiscover={() => setActiveTab('discover')}
+                    userName={firstName}
                 />
             case 'discover':
                 return <DiscoverSection levels={levels} />
