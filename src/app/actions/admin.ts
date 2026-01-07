@@ -2,6 +2,7 @@
 
 import { createClient } from '@/utils/supabase/server'
 import { isAdmin } from '@/utils/supabase/admin'
+import { revalidatePath } from 'next/cache'
 import Stripe from 'stripe'
 
 // Initialize Stripe
@@ -495,12 +496,76 @@ export async function handleRefundRequest(requestId: string, status: 'approved' 
 
     const supabase = await createClient()
 
-    const { error } = await supabase
+    // 1. Get request details
+    const { data: request, error: reqError } = await supabase
         .from('refund_requests')
-        .update({ status })
+        .select(`
+            *,
+            user_subscriptions (
+                stripe_subscription_id,
+                packages ( name )
+            )
+        `)
+        .eq('id', requestId)
+        .single()
+
+    if (reqError || !request) throw new Error('Richiesta non trovata')
+
+    // 2. If approved, try to refund on Stripe
+    if (status === 'approved' && request.user_subscriptions?.stripe_subscription_id) {
+        try {
+            // Find the latest charge for this subscription
+            const invoices = await stripe.invoices.list({
+                subscription: request.user_subscriptions.stripe_subscription_id,
+                limit: 1
+            })
+
+            const chargeId = (invoices.data[0] as any)?.charge as string
+            if (chargeId) {
+                await stripe.refunds.create({ charge: chargeId })
+            }
+
+            // Cancel subscription immediately if it was a refund of the current period
+            await stripe.subscriptions.cancel(request.user_subscriptions.stripe_subscription_id)
+        } catch (err) {
+            console.error('Stripe Refund error:', err)
+            // We might want to handle this differently, but for now let's notify admin
+            throw new Error('Errore durante il rimborso su Stripe')
+        }
+    }
+
+    // 3. Update request status
+    const { error: updateError } = await supabase
+        .from('refund_requests')
+        .update({
+            status,
+            processed_at: new Date().toISOString()
+        })
         .eq('id', requestId)
 
-    if (error) throw new Error('Errore durante l\'aggiornamento della richiesta')
+    if (updateError) throw new Error('Errore durante l\'aggiornamento della richiesta')
+
+    // 4. Update subscription status if approved
+    if (status === 'approved') {
+        await supabase
+            .from('user_subscriptions')
+            .update({ status: 'refunded' })
+            .eq('id', request.subscription_id)
+    }
+
+    // 5. Notify User
+    const packageName = request.user_subscriptions?.packages?.name || 'pacchetto'
+    await supabase.from('user_notifications').insert({
+        user_id: request.user_id,
+        type: status === 'approved' ? 'refund_approved' : 'refund_rejected',
+        title: status === 'approved' ? 'Rimborso Approvato' : 'Richiesta Rimborso Rifiutata',
+        message: status === 'approved'
+            ? `La tua richiesta di rimborso per "${packageName}" è stata approvata. Riceverai l'accredito tra pochi giorni.`
+            : `Siamo spiacenti, ma la tua richiesta di rimborso per "${packageName}" non è stata approvata.`,
+    })
+    // 6. Revalidate
+    revalidatePath('/admin')
+    revalidatePath('/dashboard')
 
     return { success: true }
 }

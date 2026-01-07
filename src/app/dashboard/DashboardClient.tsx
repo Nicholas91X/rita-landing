@@ -11,6 +11,8 @@ import BillingSection from './BillingSection'
 import ProfileSection from './ProfileSection'
 import { Loader2 } from 'lucide-react'
 
+import { NotificationBell } from './NotificationBell'
+
 export default function DashboardClient({ levels }: { levels: Level[] }) {
     const [activeTab, setActiveTab] = useState<TabType>('home')
     const searchParams = useSearchParams()
@@ -55,13 +57,19 @@ export default function DashboardClient({ levels }: { levels: Level[] }) {
             {/* Main Content Area */}
             <main className="flex-1 lg:ml-72 pb-24 lg:pb-0 relative">
                 {/* Content Header (Visible only on Desktop for Profile name or breadcrumbs if needed) */}
-                <header className="hidden lg:flex h-20 items-center justify-end px-12 border-b border-white/5 sticky top-0 bg-white/5 backdrop-blur-xl z-10 transition-all">
-                    <div className="flex items-center gap-4">
-                        <div className="text-right">
-                            <p className="text-[10px] text-brand uppercase tracking-widest font-black">Rita Workout</p>
-                        </div>
-                        <div className="w-10 h-10 rounded-2xl bg-white flex items-center justify-center text-xs font-black text-[#001F3D] shadow-xl border border-white/20">
-                            RU
+                <header className="hidden lg:flex h-20 items-center justify-between px-12 border-b border-white/5 sticky top-0 bg-white/5 backdrop-blur-xl z-20 transition-all">
+                    <div>
+                        {/* Empty spacing for alignment with desktop layout if needed */}
+                    </div>
+                    <div className="flex items-center gap-6">
+                        <NotificationBell />
+                        <div className="flex items-center gap-4 border-l border-white/10 pl-6">
+                            <div className="text-right">
+                                <p className="text-[10px] text-brand uppercase tracking-widest font-black">Rita Workout</p>
+                            </div>
+                            <div className="w-10 h-10 rounded-2xl bg-white flex items-center justify-center text-xs font-black text-[#001F3D] shadow-xl border border-white/20">
+                                RU
+                            </div>
                         </div>
                     </div>
                 </header>

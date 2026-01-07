@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from 'react'
 import { getUserSubscriptionInfo } from '@/app/actions/user'
+import { createClient } from '@/utils/supabase/client'
+import { cn } from '@/lib/utils'
 import { createPortalSession, cancelSubscription, requestRefund } from '@/app/actions/stripe'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -36,6 +38,37 @@ export default function BillingSection() {
 
     useEffect(() => {
         fetchSubs()
+
+        const supabase = createClient()
+
+        // Listen for changes in refund_requests
+        const refundChannel = supabase
+            .channel('user_refund_requests')
+            .on('postgres_changes', {
+                event: '*',
+                schema: 'public',
+                table: 'refund_requests'
+            }, () => {
+                fetchSubs()
+            })
+            .subscribe()
+
+        // Listen for changes in user_subscriptions (e.g. status changes)
+        const subChannel = supabase
+            .channel('user_subscriptions_sync')
+            .on('postgres_changes', {
+                event: '*',
+                schema: 'public',
+                table: 'user_subscriptions'
+            }, () => {
+                fetchSubs()
+            })
+            .subscribe()
+
+        return () => {
+            supabase.removeChannel(refundChannel)
+            supabase.removeChannel(subChannel)
+        }
     }, [])
 
     const handleManageBilling = async () => {
@@ -120,6 +153,8 @@ export default function BillingSection() {
                                     <span className="px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-500 text-[10px] font-bold border border-emerald-500/20 uppercase">Attivo</span>
                                 ) : sub.status === 'trialing' ? (
                                     <span className="px-2 py-0.5 rounded-full bg-blue-500/10 text-blue-500 text-[10px] font-bold border border-blue-500/20 uppercase">In Prova</span>
+                                ) : sub.status === 'refunded' ? (
+                                    <span className="px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-500 text-[10px] font-bold border border-amber-500/20 uppercase">Rimborsato</span>
                                 ) : (
                                     <span className="px-2 py-0.5 rounded-full bg-neutral-500/10 text-neutral-500 text-[10px] font-bold border border-neutral-500/20 uppercase">{sub.status}</span>
                                 )}
@@ -174,15 +209,38 @@ export default function BillingSection() {
                                     </Button>
                                 )}
 
-                                <Button
-                                    variant="outline"
-                                    size="sm"
-                                    className="flex-1 h-8 text-[10px] border-brand/20 hover:bg-brand/5 text-brand gap-2 font-bold"
-                                    onClick={() => setRefundDialog({ open: true, subId: sub.id })}
-                                >
-                                    <RefreshCcw className="w-3.5 h-3.5" />
-                                    Rimborso
-                                </Button>
+                                {sub.refund_requests && sub.refund_requests.length > 0 ? (
+                                    <div className="flex-1 flex flex-col gap-1">
+                                        <div className={cn(
+                                            "h-8 flex items-center justify-center gap-2 px-3 rounded-md border text-[9px] font-black uppercase tracking-tighter",
+                                            sub.refund_requests[0].status === 'pending' ? "border-amber-500/20 bg-amber-500/5 text-amber-500" :
+                                                sub.refund_requests[0].status === 'approved' ? "border-emerald-500/20 bg-emerald-500/5 text-emerald-500" :
+                                                    "border-red-500/20 bg-red-500/5 text-red-500"
+                                        )}>
+                                            {sub.refund_requests[0].status === 'pending' ? <Clock className="w-3 h-3" /> :
+                                                sub.refund_requests[0].status === 'approved' ? <CheckCircle2 className="w-3 h-3" /> :
+                                                    <XCircle className="w-3 h-3" />}
+                                            {sub.refund_requests[0].status === 'pending' ? 'In attesa rimborso' :
+                                                sub.refund_requests[0].status === 'approved' ? 'Rimborso approvato' :
+                                                    'Rimborso rifiutato'}
+                                        </div>
+                                        {sub.refund_requests[0].processed_at && (
+                                            <span className="text-[8px] text-neutral-500 uppercase font-bold text-center">
+                                                Elaborata il {new Date(sub.refund_requests[0].processed_at).toLocaleDateString('it-IT')}
+                                            </span>
+                                        )}
+                                    </div>
+                                ) : (
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        className="flex-1 h-8 text-[10px] border-brand/20 hover:bg-brand/5 text-brand gap-2 font-bold"
+                                        onClick={() => setRefundDialog({ open: true, subId: sub.id })}
+                                    >
+                                        <RefreshCcw className="w-3.5 h-3.5" />
+                                        Rimborso
+                                    </Button>
+                                )}
                             </div>
 
                             <div className="w-full flex items-center gap-2 text-[8px] text-neutral-500 mt-2 uppercase tracking-widest font-bold">

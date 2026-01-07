@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { getAdminNotifications, getRefundRequests, handleRefundRequest, markNotificationAsRead } from '@/app/actions/admin'
+import { createClient } from '@/utils/supabase/client'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Loader2, Bell, RefreshCcw, XCircle, CheckCircle2, User, Clock, AlertTriangle, ChevronLeft, ChevronRight } from 'lucide-react'
@@ -21,9 +22,9 @@ export default function AdminRequests() {
     const [currentPageNotifs, setCurrentPageNotifs] = useState(1)
     const [currentPageRefunds, setCurrentPageRefunds] = useState(1)
 
-    const loadData = async () => {
+    const loadData = async (silent = false) => {
         try {
-            setLoading(true)
+            if (!silent) setLoading(true)
             const [notifs, refunds] = await Promise.all([
                 getAdminNotifications(),
                 getRefundRequests()
@@ -32,23 +33,64 @@ export default function AdminRequests() {
             setRefundRequests(refunds)
         } catch (error) {
             console.error('Failed to load admin billing data', error)
-            toast.error('Errore nel caricamento dei dati')
+            if (!silent) toast.error('Errore nel caricamento dei dati')
         } finally {
-            setLoading(false)
+            if (!silent) setLoading(false)
         }
     }
 
     useEffect(() => {
         loadData()
+
+        const supabase = createClient()
+
+        // Listen for changes in refund_requests
+        const refundChannel = supabase
+            .channel('admin_refund_requests')
+            .on('postgres_changes', {
+                event: '*',
+                schema: 'public',
+                table: 'refund_requests'
+            }, () => {
+                loadData(true)
+            })
+            .subscribe()
+
+        // Listen for changes in admin_notifications
+        const notifChannel = supabase
+            .channel('admin_notifications_sync')
+            .on('postgres_changes', {
+                event: '*',
+                schema: 'public',
+                table: 'admin_notifications'
+            }, () => {
+                loadData(true)
+            })
+            .subscribe()
+
+        return () => {
+            supabase.removeChannel(refundChannel)
+            supabase.removeChannel(notifChannel)
+        }
     }, [])
 
     const handleAction = async (requestId: string, status: 'approved' | 'rejected') => {
         try {
             setActionLoading(requestId)
+
+            // Optimistic update
+            setRefundRequests(prev => prev.map(req =>
+                req.id === requestId ? { ...req, status } : req
+            ))
+
             await handleRefundRequest(requestId, status)
             toast.success(`Richiesta ${status === 'approved' ? 'approvata' : 'rifiutata'}`)
-            loadData()
+
+            // Background reload to sync everything exactly
+            loadData(true)
         } catch (error: any) {
+            // Rollback on error
+            loadData(true)
             toast.error(error.message || 'Errore durante l\'azione')
         } finally {
             setActionLoading(null)
@@ -250,7 +292,7 @@ export default function AdminRequests() {
                                                 </div>
                                             </div>
 
-                                            <div className="pt-4 border-t border-white/10 grid grid-cols-2 gap-4">
+                                            <div className="pt-4 border-t border-white/10 grid grid-cols-2 md:grid-cols-3 gap-4">
                                                 <div className="space-y-1">
                                                     <label className="text-[9px] uppercase font-black text-neutral-400 tracking-widest block">Pacchetto</label>
                                                     <p className="text-xs text-white font-black italic uppercase tracking-tight truncate">
@@ -263,6 +305,14 @@ export default function AdminRequests() {
                                                         {new Date(req.created_at).toLocaleDateString('it-IT')}
                                                     </p>
                                                 </div>
+                                                {req.processed_at && (
+                                                    <div className="space-y-1 col-span-2 md:col-span-1">
+                                                        <label className="text-[9px] uppercase font-black text-brand tracking-widest block">Data {req.status === 'approved' ? 'Approvazione' : 'Rifiuto'}</label>
+                                                        <p className="text-xs text-white font-black italic uppercase tracking-tight">
+                                                            {new Date(req.processed_at).toLocaleDateString('it-IT')}
+                                                        </p>
+                                                    </div>
+                                                )}
                                             </div>
                                         </CardContent>
                                         {req.status === 'pending' && (

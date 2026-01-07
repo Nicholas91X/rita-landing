@@ -26,6 +26,11 @@ export async function getUserSubscriptionInfo() {
                 name, 
                 description,
                 price
+            ),
+            refund_requests (
+                status,
+                reason,
+                created_at
             )
         `)
         .eq('user_id', user.id)
@@ -84,4 +89,43 @@ export async function signOutUser() {
     const supabase = await createClient()
     await supabase.auth.signOut()
     redirect('/login')
+}
+export async function getUserNotifications() {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+
+    if (!user) return []
+
+    const { data: notifications, error } = await supabase
+        .from('user_notifications')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false })
+
+    if (error) {
+        console.error('Error fetching notifications:', error)
+        return []
+    }
+
+    return notifications
+}
+
+export async function markUserNotificationAsRead(id: string) {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+
+    if (!user) return { success: false }
+
+    const { error } = await supabase
+        .from('user_notifications')
+        .update({ is_read: true })
+        .eq('id', id)
+        .eq('user_id', user.id)
+
+    if (error) {
+        console.error('Error marking notification as read:', error)
+        return { success: false }
+    }
+
+    return { success: true }
 }

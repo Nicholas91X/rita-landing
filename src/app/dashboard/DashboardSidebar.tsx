@@ -7,6 +7,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { signOutUser } from '@/app/actions/user'
 import { toast } from 'sonner'
+import { NotificationBell } from './NotificationBell'
 
 export type TabType = 'home' | 'library' | 'discover' | 'billing' | 'profile'
 
@@ -18,9 +19,9 @@ interface NavItem {
 
 const NAV_ITEMS: NavItem[] = [
     { id: 'home', label: 'Home', icon: Home },
-    { id: 'library', label: 'I Miei Corsi', icon: BookOpen },
+    { id: 'library', label: 'CORSI', icon: BookOpen },
     { id: 'discover', label: 'Scopri', icon: Search },
-    { id: 'billing', label: 'Fatturazione', icon: CreditCard },
+    { id: 'billing', label: 'Billing', icon: CreditCard },
     { id: 'profile', label: 'Profilo', icon: User },
 ]
 
@@ -92,21 +93,18 @@ export default function DashboardSidebar({ activeTab, setActiveTab }: DashboardS
             </aside>
 
             {/* Mobile Bottom Bar */}
-            <nav className="lg:hidden fixed bottom-0 left-0 right-0 h-20 bg-[var(--brand)] shadow-[0_-8px_30px_rgba(244,101,48,0.4)] border-t border-white/10 px-4 flex items-center justify-around z-50 rounded-t-[32px]">
+            <nav className="lg:hidden fixed bottom-0 left-0 right-0 h-20 bg-[var(--brand)] shadow-[0_-8px_30px_rgba(244,101,48,0.4)] border-t border-white/10 px-2 flex items-center justify-around z-50 rounded-t-[32px]">
                 {NAV_ITEMS.map((item) => (
                     <button
                         key={item.id}
                         onClick={() => setActiveTab(item.id)}
                         className={cn(
-                            "flex flex-col items-center gap-1.5 transition-all duration-300 relative px-4 py-2 rounded-2xl",
-                            activeTab === item.id ? "text-[#001F3D] bg-white scale-105 -translate-y-1.5 shadow-[0_10px_25px_rgba(0,0,0,0.1)]" : "text-white/70"
+                            "flex flex-col items-center gap-1 transition-all duration-300 relative px-2 py-2 rounded-xl min-w-[60px]",
+                            activeTab === item.id ? "text-[#001F3D] bg-white scale-105 -translate-y-1 shadow-[0_10px_25px_rgba(0,0,0,0.1)]" : "text-white/70"
                         )}
                     >
-                        <item.icon className={cn(
-                            "w-5 h-5",
-                            activeTab === item.id && "scale-110"
-                        )} />
-                        <span className="text-[9px] font-black uppercase tracking-tighter">{item.id === 'library' ? 'Corsi' : item.label.split(' ')[0]}</span>
+                        <item.icon className="w-5 h-5 transition-transform duration-300" />
+                        <span className="text-[9px] font-black uppercase tracking-tight text-center">{item.label}</span>
                     </button>
                 ))}
             </nav>
@@ -125,8 +123,11 @@ export default function DashboardSidebar({ activeTab, setActiveTab }: DashboardS
                         Rita <span className="not-italic font-bold text-sm tracking-widest opacity-80">Workout</span>
                     </h1>
                 </Link>
-                <div className="w-8 h-8 rounded-full bg-white flex items-center justify-center text-[10px] font-black text-[#001F3D] shadow-lg border border-brand/10">
-                    RU
+                <div className="flex items-center gap-4">
+                    <NotificationBell />
+                    <div className="w-8 h-8 rounded-full bg-white flex items-center justify-center text-[10px] font-black text-[#001F3D] shadow-lg border border-brand/10">
+                        RU
+                    </div>
                 </div>
             </header>
         </>
