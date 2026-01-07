@@ -131,9 +131,24 @@ export default async function PackagesPage() {
             {allPackages.map((pkg) => (
               <Card
                 key={pkg.id}
-                className="h-full border-[var(--border)] bg-[var(--panel)] text-[var(--accent-foreground)] backdrop-blur transition-all duration-200 shadow-lg hover:shadow-xl hover:border-[var(--brand)]/50"
+                className="h-full border-[var(--border)] bg-[var(--panel)] text-[var(--accent-foreground)] backdrop-blur transition-all duration-200 shadow-lg hover:shadow-xl hover:border-[var(--brand)]/50 overflow-hidden group"
               >
-                <CardHeader className="border-b border-[var(--border)] pb-6">
+                <div className="h-40 w-full relative overflow-hidden">
+                  {pkg.image_url ? (
+                    <img
+                      src={pkg.image_url}
+                      alt={pkg.name}
+                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                    />
+                  ) : (
+                    <div className="w-full h-full bg-neutral-900/50 flex items-center justify-center">
+                      <Dumbbell className="w-10 h-10 text-white/5" />
+                    </div>
+                  )}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+                  <div className="absolute top-0 left-0 w-full h-1 bg-[var(--brand)]" />
+                </div>
+                <CardHeader className="border-b border-[var(--border)] pb-6 pt-6">
                   <div>
                     <div className="text-xs uppercase tracking-wide text-[var(--brand)] mb-2 font-bold">
                       {pkg.levelName} - {pkg.courseName}

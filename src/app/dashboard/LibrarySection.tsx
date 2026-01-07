@@ -108,9 +108,23 @@ export default function LibrarySection({
 
                                             return (
                                                 <Card key={pkg.id} className="bg-white/10 border-white/10 backdrop-blur-md shadow-2xl overflow-hidden group hover:border-[var(--brand)]/40 transition-all duration-300 rounded-[32px] flex flex-col">
-                                                    <div className={`h-2 w-full shadow-[0_0_15px_rgba(0,0,0,0.3)] ${isDone ? 'bg-emerald-500 shadow-emerald-500/30' : 'bg-[var(--brand)] shadow-[var(--brand)]/30'}`} style={{ width: '100%' }} />
+                                                    <div className="h-40 w-full relative overflow-hidden">
+                                                        {pkg.image_url ? (
+                                                            <img
+                                                                src={pkg.image_url}
+                                                                alt={pkg.name}
+                                                                className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                                                            />
+                                                        ) : (
+                                                            <div className="w-full h-full bg-neutral-800 flex items-center justify-center opacity-80">
+                                                                <PlayCircle className="w-10 h-10 text-white/10" />
+                                                            </div>
+                                                        )}
+                                                        <div className="absolute inset-0 bg-gradient-to-t from-neutral-900/60 to-transparent" />
+                                                        <div className={`absolute top-0 left-0 w-full h-1.5 shadow-lg ${isDone ? 'bg-emerald-500 shadow-emerald-500/30' : 'bg-[var(--brand)] shadow-[var(--brand)]/30'}`} />
+                                                    </div>
 
-                                                    <CardHeader className="pb-4 pt-8 px-8 flex-1">
+                                                    <CardHeader className="pb-4 pt-6 px-8 flex-1">
                                                         <CardTitle className="text-xl font-black text-white line-clamp-2 min-h-[3.5rem] italic uppercase tracking-tighter group-hover:text-[var(--brand)] transition-colors">
                                                             {pkg.name}
                                                         </CardTitle>
