@@ -15,7 +15,16 @@ export default async function DashboardPage() {
 
     return (
         <main className="min-h-screen bg-[var(--secondary)]">
-            <DashboardClient levels={levels} />
+            <Suspense fallback={
+                <div className="flex flex-col items-center justify-center min-h-screen gap-4 text-neutral-500 bg-[var(--secondary)]">
+                    <Loader2 className="w-10 h-10 animate-spin text-[var(--brand)]" />
+                    <p className="text-sm font-bold uppercase tracking-widest">Inizializzazione Dashboard...</p>
+                </div>
+            }>
+                <DashboardClient levels={levels} />
+            </Suspense>
         </main>
     )
 }
+import { Suspense } from 'react'
+import { Loader2 } from 'lucide-react'

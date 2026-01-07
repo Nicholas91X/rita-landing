@@ -76,12 +76,12 @@ export default function PackageClient({ pkg, videos }: { pkg: Package, videos: V
     return (
         <main className="h-[100dvh] flex flex-col bg-[var(--bg)] text-[var(--foreground)] selection:bg-[var(--brand)]/10">
             {/* Header / Navigation - Part of the flex flow */}
-            <header className="flex-none z-50 bg-[#B4A697] border-b border-white/10 shadow-xl">
+            <header className="flex-none relative z-[100] bg-[#B4A697] border-b border-white/10 shadow-xl pt-[safe-area-inset-top]">
                 <div className="max-w-[1400px] mx-auto px-4 lg:px-8 py-3 md:py-4 flex items-center justify-between">
                     <div className="flex items-center gap-4">
                         <Link
                             href="/dashboard?tab=library"
-                            className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 border border-white/10 text-white/80 hover:text-white transition-all hover:bg-white/20 text-sm font-medium"
+                            className="relative z-[110] flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 border border-white/10 text-white/80 hover:text-white transition-all hover:bg-white/20 text-sm font-medium touch-manipulation"
                         >
                             <ChevronLeft className="h-4 w-4" />
                             <span className="hidden md:inline">Esci dalla lezione</span>
