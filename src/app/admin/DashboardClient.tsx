@@ -6,8 +6,10 @@ import AdminStats from './AdminStats'
 import AdminPackages from './AdminPackages'
 import AdminStripe from './AdminStripe'
 import AdminRequests from './AdminRequests'
+import AdminUsers from './AdminUsers'
 import { Button } from '@/components/ui/button'
-import { Loader2, UploadCloud, CheckCircle, AlertCircle, Trash2, Edit2, Save, X, PlayCircle, Video, Package as PackageIcon, CreditCard, Bell } from 'lucide-react'
+import { Loader2, UploadCloud, CheckCircle, AlertCircle, Trash2, Edit2, Save, X, PlayCircle, Video, Package as PackageIcon, CreditCard, Bell, Users, Home } from 'lucide-react'
+import Link from 'next/link'
 import {
     Accordion,
     AccordionContent,
@@ -44,7 +46,7 @@ type AdminStatsData = {
 };
 
 export default function AdminDashboardClient({ packages, libraryId, stats }: { packages: Package[], libraryId?: string, stats?: AdminStatsData }) {
-    const [activeTab, setActiveTab] = useState<'content' | 'packages' | 'payments' | 'requests'>('content')
+    const [activeTab, setActiveTab] = useState<'content' | 'packages' | 'payments' | 'requests' | 'users'>('content')
 
     // Video State
     const [title, setTitle] = useState('')
@@ -145,56 +147,85 @@ export default function AdminDashboardClient({ packages, libraryId, stats }: { p
             )}
 
             {/* TAB NAVIGATION - Premium Restructured Design (2x2 Grid with Cross Separator) */}
-            <div className="flex justify-center mb-10 px-4">
-                <div className="grid grid-cols-2 p-1 bg-neutral-900 border border-white/10 rounded-[2.5rem] shadow-2xl relative overflow-hidden w-full max-w-md">
-                    {/* Orange Cross Separator */}
-                    <div className="absolute top-1/2 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-[var(--brand)]/80 to-transparent z-0 shadow-[0_0_10px_rgba(244,101,48,0.2)]" />
-                    <div className="absolute top-0 left-1/2 w-[1px] h-full bg-gradient-to-b from-transparent via-[var(--brand)]/80 to-transparent z-0 shadow-[0_0_10px_rgba(244,101,48,0.2)]" />
-
-                    <button
-                        onClick={() => setActiveTab('content')}
-                        className={`relative z-10 flex flex-col items-center justify-center py-8 transition-all duration-300 group ${activeTab === 'content' ? 'text-white' : 'text-neutral-400 hover:text-white'}`}
-                    >
-                        {activeTab === 'content' && (
-                            <div className="absolute inset-2 bg-white/10 rounded-3xl z-[-1] animate-in fade-in zoom-in-95 duration-300" />
-                        )}
-                        <Video className={`w-7 h-7 mb-2 transition-all duration-500 ${activeTab === 'content' ? 'text-white scale-110 shadow-[0_0_15px_rgba(255,255,255,0.3)]' : 'group-hover:scale-110'}`} />
-                        <span className="text-[11px] font-black uppercase tracking-widest">Contenuti</span>
-                    </button>
-
-                    <button
-                        onClick={() => setActiveTab('packages')}
-                        className={`relative z-10 flex flex-col items-center justify-center py-8 transition-all duration-300 group ${activeTab === 'packages' ? 'text-white' : 'text-neutral-400 hover:text-white'}`}
-                    >
-                        {activeTab === 'packages' && (
-                            <div className="absolute inset-2 bg-white/10 rounded-3xl z-[-1] animate-in fade-in zoom-in-95 duration-300" />
-                        )}
-                        <PackageIcon className={`w-7 h-7 mb-2 transition-all duration-500 ${activeTab === 'packages' ? 'text-white scale-110 shadow-[0_0_15px_rgba(255,255,255,0.3)]' : 'group-hover:scale-110'}`} />
-                        <span className="text-[11px] font-black uppercase tracking-widest">Pacchetti</span>
-                    </button>
-
-                    <button
-                        onClick={() => setActiveTab('payments')}
-                        className={`relative z-10 flex flex-col items-center justify-center py-8 transition-all duration-300 group ${activeTab === 'payments' ? 'text-white' : 'text-neutral-400 hover:text-white'}`}
-                    >
-                        {activeTab === 'payments' && (
-                            <div className="absolute inset-2 bg-white/10 rounded-3xl z-[-1] animate-in fade-in zoom-in-95 duration-300" />
-                        )}
-                        <CreditCard className={`w-7 h-7 mb-2 transition-all duration-500 ${activeTab === 'payments' ? 'text-white scale-110 shadow-[0_0_15px_rgba(255,255,255,0.3)]' : 'group-hover:scale-110'}`} />
-                        <span className="text-[11px] font-black uppercase tracking-widest">Transazioni</span>
-                    </button>
-
-                    <button
-                        onClick={() => setActiveTab('requests')}
-                        className={`relative z-10 flex flex-col items-center justify-center py-8 transition-all duration-300 group ${activeTab === 'requests' ? 'text-white' : 'text-neutral-400 hover:text-white'}`}
-                    >
-                        {activeTab === 'requests' && (
-                            <div className="absolute inset-2 bg-white/10 rounded-3xl z-[-1] animate-in fade-in zoom-in-95 duration-300" />
-                        )}
-                        <Bell className={`w-7 h-7 mb-2 transition-all duration-500 ${activeTab === 'requests' ? 'text-white scale-110 shadow-[0_0_15px_rgba(255,255,255,0.3)]' : 'group-hover:scale-110'}`} />
-                        <span className="text-[11px] font-black uppercase tracking-widest">Fatturazione</span>
-                    </button>
+            <div className="grid grid-cols-2 md:grid-cols-3 p-1 bg-neutral-900 border border-white/10 rounded-[2.5rem] shadow-2xl relative overflow-hidden w-full max-w-4xl">
+                {/* Grid Separators */}
+                <div className="absolute inset-0 pointer-events-none">
+                    {/* Desktop: 3 columns, 2 rows */}
+                    <div className="hidden md:block">
+                        <div className="absolute top-1/2 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-[var(--brand)]/80 to-transparent z-0 shadow-[0_0_10px_rgba(244,101,48,0.2)]" />
+                        <div className="absolute top-0 left-1/3 w-[1px] h-full bg-gradient-to-b from-transparent via-[var(--brand)]/80 to-transparent z-0 shadow-[0_0_10px_rgba(244,101,48,0.2)]" />
+                        <div className="absolute top-0 left-2/3 w-[1px] h-full bg-gradient-to-b from-transparent via-[var(--brand)]/80 to-transparent z-0 shadow-[0_0_10px_rgba(244,101,48,0.2)]" />
+                    </div>
+                    {/* Mobile: 2 columns, 3 rows */}
+                    <div className="md:hidden">
+                        <div className="absolute top-1/3 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-[var(--brand)]/80 to-transparent z-0 shadow-[0_0_10px_rgba(244,101,48,0.2)]" />
+                        <div className="absolute top-2/3 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-[var(--brand)]/80 to-transparent z-0 shadow-[0_0_10px_rgba(244,101,48,0.2)]" />
+                        <div className="absolute top-0 left-1/2 w-[1px] h-full bg-gradient-to-b from-transparent via-[var(--brand)]/80 to-transparent z-0 shadow-[0_0_10px_rgba(244,101,48,0.2)]" />
+                    </div>
                 </div>
+
+                <button
+                    onClick={() => setActiveTab('content')}
+                    className={`relative z-10 flex flex-col items-center justify-center py-6 transition-all duration-300 group ${activeTab === 'content' ? 'text-white' : 'text-neutral-400 hover:text-white'}`}
+                >
+                    {activeTab === 'content' && (
+                        <div className="absolute inset-2 bg-white/10 rounded-3xl z-[-1] animate-in fade-in zoom-in-95 duration-300" />
+                    )}
+                    <Video className={`w-5 h-5 mb-2 transition-all duration-500 ${activeTab === 'content' ? 'text-white scale-110 shadow-[0_0_15px_rgba(255,255,255,0.3)]' : 'group-hover:scale-110'}`} />
+                    <span className="text-[10px] font-black uppercase tracking-widest text-center">Contenuti</span>
+                </button>
+
+                <button
+                    onClick={() => setActiveTab('packages')}
+                    className={`relative z-10 flex flex-col items-center justify-center py-6 transition-all duration-300 group ${activeTab === 'packages' ? 'text-white' : 'text-neutral-400 hover:text-white'}`}
+                >
+                    {activeTab === 'packages' && (
+                        <div className="absolute inset-2 bg-white/10 rounded-3xl z-[-1] animate-in fade-in zoom-in-95 duration-300" />
+                    )}
+                    <PackageIcon className={`w-5 h-5 mb-2 transition-all duration-500 ${activeTab === 'packages' ? 'text-white scale-110 shadow-[0_0_15px_rgba(255,255,255,0.3)]' : 'group-hover:scale-110'}`} />
+                    <span className="text-[10px] font-black uppercase tracking-widest text-center">Pacchetti</span>
+                </button>
+
+                <button
+                    onClick={() => setActiveTab('payments')}
+                    className={`relative z-10 flex flex-col items-center justify-center py-6 transition-all duration-300 group ${activeTab === 'payments' ? 'text-white' : 'text-neutral-400 hover:text-white'}`}
+                >
+                    {activeTab === 'payments' && (
+                        <div className="absolute inset-2 bg-white/10 rounded-3xl z-[-1] animate-in fade-in zoom-in-95 duration-300" />
+                    )}
+                    <CreditCard className={`w-5 h-5 mb-2 transition-all duration-500 ${activeTab === 'payments' ? 'text-white scale-110 shadow-[0_0_15px_rgba(255,255,255,0.3)]' : 'group-hover:scale-110'}`} />
+                    <span className="text-[10px] font-black uppercase tracking-widest text-center">Transazioni</span>
+                </button>
+
+                <button
+                    onClick={() => setActiveTab('requests')}
+                    className={`relative z-10 flex flex-col items-center justify-center py-6 transition-all duration-300 group ${activeTab === 'requests' ? 'text-white' : 'text-neutral-400 hover:text-white'}`}
+                >
+                    {activeTab === 'requests' && (
+                        <div className="absolute inset-2 bg-white/10 rounded-3xl z-[-1] animate-in fade-in zoom-in-95 duration-300" />
+                    )}
+                    <Bell className={`w-5 h-5 mb-2 transition-all duration-500 ${activeTab === 'requests' ? 'text-white scale-110 shadow-[0_0_15px_rgba(255,255,255,0.3)]' : 'group-hover:scale-110'}`} />
+                    <span className="text-[10px] font-black uppercase tracking-widest text-center">Fatturazione</span>
+                </button>
+
+                <button
+                    onClick={() => setActiveTab('users')}
+                    className={`relative z-10 flex flex-col items-center justify-center py-6 transition-all duration-300 group ${activeTab === 'users' ? 'text-white' : 'text-neutral-400 hover:text-white'}`}
+                >
+                    {activeTab === 'users' && (
+                        <div className="absolute inset-2 bg-white/10 rounded-3xl z-[-1] animate-in fade-in zoom-in-95 duration-300" />
+                    )}
+                    <Users className={`w-5 h-5 mb-2 transition-all duration-500 ${activeTab === 'users' ? 'text-white scale-110 shadow-[0_0_15px_rgba(255,255,255,0.3)]' : 'group-hover:scale-110'}`} />
+                    <span className="text-[10px] font-black uppercase tracking-widest text-center">Utenti</span>
+                </button>
+
+                <Link
+                    href="/"
+                    className="relative z-10 flex flex-col items-center justify-center py-6 transition-all duration-300 group text-neutral-400 hover:text-white"
+                >
+                    <Home className="w-5 h-5 mb-2 transition-all duration-500 group-hover:scale-110 group-hover:text-white" />
+                    <span className="text-[10px] font-black uppercase tracking-widest text-center">Landing Page</span>
+                </Link>
             </div>
 
             {activeTab === 'packages' ? (
@@ -208,6 +239,10 @@ export default function AdminDashboardClient({ packages, libraryId, stats }: { p
             ) : activeTab === 'requests' ? (
                 <div className="animate-in slide-in-from-bottom-4 duration-500">
                     <AdminRequests />
+                </div>
+            ) : activeTab === 'users' ? (
+                <div className="animate-in slide-in-from-bottom-4 duration-500">
+                    <AdminUsers />
                 </div>
             ) : (
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start animate-in slide-in-from-bottom-4 duration-500">
@@ -366,7 +401,7 @@ export default function AdminDashboardClient({ packages, libraryId, stats }: { p
                                                             ) : (
                                                                 <span className="font-black text-sm text-white tracking-tight group-hover/row:text-[var(--brand)] transition-colors">{video.title}</span>
                                                             )}
-                                                            <span className="text-[9px] font-bold text-neutral-200 uppercase tracking-widest mt-0.5">ID: {video.video_id?.slice(0, 8)}...</span>
+                                                            <span className="text-[9px] font-bold text-neutral-200 uppercase tracking-widest mt-0.5">ID: {video.bunny_video_id?.slice(0, 8)}...</span>
                                                         </div>
                                                     </div>
                                                     <div className="col-span-4">

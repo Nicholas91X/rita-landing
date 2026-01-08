@@ -631,3 +631,76 @@ export async function handleRefundRequest(requestId: string, status: 'approved' 
 
     return { success: true }
 }
+
+export async function getAdminUsers() {
+    const isSuperAdmin = await isAdmin()
+    if (!isSuperAdmin) throw new Error('Unauthorized')
+
+    const supabase = await createClient()
+    const { data: users, error } = await supabase
+        .from('profiles')
+        .select(`
+            *,
+            user_subscriptions ( id ),
+            one_time_purchases ( id )
+        `)
+        .order('full_name', { ascending: true })
+
+    if (error) {
+        console.error('Error fetching admin users:', error)
+        throw new Error('Errore durante il recupero della lista utenti')
+    }
+
+    return (users || []).map(user => ({
+        ...user,
+        total_operations: (user.user_subscriptions?.length || 0) + (user.one_time_purchases?.length || 0)
+    }))
+}
+
+export async function getUserHistory(userId: string) {
+    const isSuperAdmin = await isAdmin()
+    if (!isSuperAdmin) throw new Error('Unauthorized')
+
+    const supabase = await createClient()
+
+    // Fetch all related data
+    const [
+        { data: subscriptions },
+        { data: purchases },
+        { data: refunds }
+    ] = await Promise.all([
+        supabase.from('user_subscriptions').select('*, packages(name, price)').eq('user_id', userId).order('created_at', { ascending: false }),
+        supabase.from('one_time_purchases').select('*').eq('user_id', userId).order('created_at', { ascending: false }),
+        supabase.from('refund_requests').select('*, packages:user_subscriptions(packages(name))').eq('user_id', userId).order('created_at', { ascending: false })
+    ])
+
+    // Combine and label operations
+    const history = [
+        ...(subscriptions || []).map(s => ({
+            id: s.id,
+            type: 'subscription',
+            title: `Abbonamento: ${s.packages?.name || 'N/A'}`,
+            status: s.status,
+            date: s.created_at,
+            amount: s.status === 'trialing' ? 0 : (s.packages as any)?.price || 0
+        })),
+        ...(purchases || []).map(p => ({
+            id: p.id,
+            type: 'purchase',
+            title: `Acquisto Singolo: ${p.item_type}`,
+            status: 'completed',
+            date: p.created_at,
+            amount: 0 // We don't store price in one_time_purchases yet, but we could add it if needed
+        })),
+        ...(refunds || []).map(r => ({
+            id: r.id,
+            type: 'refund_request',
+            title: `Richiesta Rimborso: ${(r as any).packages?.packages?.name || 'Percorso'}`,
+            status: r.status,
+            date: r.created_at,
+            amount: 0
+        }))
+    ].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+
+    return history
+}
