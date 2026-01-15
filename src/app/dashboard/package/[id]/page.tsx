@@ -35,7 +35,7 @@ export default async function PackagePage(props: { params: Promise<{ id: string 
 
     const { data: videos } = await supabase
         .from('videos')
-        .select('id, title, bunny_video_id')
+        .select('id, title, bunny_video_id, order_index')
         .eq('package_id', packageId)
         .order('order_index', { ascending: true })
 

@@ -11,6 +11,7 @@ type Video = {
     id: string
     title: string
     bunny_video_id: string
+    order_index?: number
 }
 
 type Package = {
@@ -164,7 +165,7 @@ export default function PackageClient({ pkg, videos }: { pkg: Package, videos: V
                 {/* Sidebar - Playlist with Glassmorphism */}
                 <aside className="w-full lg:w-[400px] xl:w-[450px] bg-white/40 backdrop-blur-3xl lg:border-l border-white/20 flex flex-col h-auto min-h-[400px] lg:h-full relative z-30 shadow-2xl shrink-0">
                     {/* Progress Overview Header */}
-                    <div className="p-6 lg:p-8 border-b border-white/10">
+                    <div className="p-6 lg:p-8 border-b border-[var(--brand)]/20">
                         <div className="flex items-center justify-between">
                             <h2 className="text-xs font-black uppercase tracking-[0.3em] text-[var(--foreground)]/50">
                                 Playlist Corso
@@ -176,91 +177,112 @@ export default function PackageClient({ pkg, videos }: { pkg: Package, videos: V
                     </div>
 
                     {/* Lesson Scroll Area */}
-                    <div className="flex-1 overflow-y-auto p-4 lg:p-6 space-y-3 custom-scrollbar">
-                        {videos.map((v, index) => {
-                            const isActive = v.id === activeVideo.id
-                            const progress = progressData[v.id]
-                            const percent = progress ? (progress.progress_seconds / progress.duration_seconds) * 100 : 0
-                            const isDone = progress?.is_completed
+                    <div className="flex-1 overflow-y-auto p-4 lg:p-6 space-y-8 custom-scrollbar">
+                        {[1, 2, 3, 4].map((weekNum) => {
+                            const weekVideos = videos.filter(v => {
+                                const index = v.order_index ?? (videos.indexOf(v) + 1);
+                                if (weekNum === 1) return index >= 1 && index <= 3;
+                                if (weekNum === 2) return index >= 4 && index <= 6;
+                                if (weekNum === 3) return index >= 7 && index <= 9;
+                                if (weekNum === 4) return index >= 10 && index <= 12;
+                                return false;
+                            });
+
+                            if (weekVideos.length === 0) return null;
 
                             return (
-                                <div
-                                    key={v.id}
-                                    ref={(el) => {
-                                        if (el) itemRefs.current.set(v.id, el)
-                                        else itemRefs.current.delete(v.id)
-                                    }}
-                                    onClick={() => setActiveVideo(v)}
-                                    className={`relative p-4 rounded-2xl transition-all duration-300 cursor-pointer group flex flex-col gap-3 ${isActive
-                                        ? 'bg-white/40 shadow-[0_8px_32px_rgba(0,0,0,0.08)] scale-[1.02] ring-1 ring-[var(--brand)]/20'
-                                        : 'hover:bg-white/30 border border-transparent'
-                                        }`}
-                                >
-                                    {/* Active Glow Indicator */}
-                                    {isActive && (
-                                        <div className="absolute left-[-4px] top-1/2 -translate-y-1/2 w-1 h-8 bg-[var(--brand)] rounded-full shadow-[0_0_10px_rgba(244,101,48,0.5)]" />
-                                    )}
+                                <div key={`week-${weekNum}`} className="space-y-4">
+                                    <div className="flex items-center gap-3 px-2">
+                                        <div className="h-px flex-1 bg-[var(--brand)]/20" />
+                                        <h3 className="text-[10px] font-black uppercase tracking-[0.4em] text-[var(--brand)] whitespace-nowrap">
+                                            Settimana {weekNum}
+                                        </h3>
+                                        <div className="h-px flex-1 bg-[var(--brand)]/20" />
+                                    </div>
 
-                                    <div className="flex items-start gap-4">
-                                        {/* Thumbnail or Status Icon */}
-                                        <div className="relative shrink-0">
-                                            <div className={`h-16 w-24 rounded-lg overflow-hidden border border-white/5 relative ${isActive ? 'ring-2 ring-[var(--brand)]' : 'group-hover:ring-1 group-hover:ring-white/20'}`}>
-                                                {/* Fallback pattern or real image */}
-                                                <div className="absolute inset-0 bg-neutral-800" />
-                                                <img
-                                                    src={`https://${process.env.NEXT_PUBLIC_BUNNY_CDN_HOSTNAME}/${v.bunny_video_id}/preview.webp`}
-                                                    alt={v.title}
-                                                    className={`w-full h-full object-cover transition-opacity duration-300 ${isDone ? 'opacity-50' : 'opacity-100'}`}
-                                                    onError={(e) => {
-                                                        const target = e.currentTarget;
-                                                        // Fallback mechanism:
-                                                        // 1. Try preview.webp (default)
-                                                        // 2. If fails, try thumbnail.jpg
-                                                        // 3. If that also fails, hide image
-                                                        if (target.src.includes('preview.webp')) {
-                                                            target.src = target.src.replace('preview.webp', 'thumbnail.jpg');
-                                                        } else {
-                                                            target.style.display = 'none';
-                                                            target.parentElement?.classList.add('fallback-icon-container');
-                                                        }
+                                    <div className="space-y-3">
+                                        {weekVideos.map((v) => {
+                                            const globalIndex = videos.indexOf(v);
+                                            const isActive = v.id === activeVideo.id
+                                            const progress = progressData[v.id]
+                                            const percent = progress ? (progress.progress_seconds / progress.duration_seconds) * 100 : 0
+                                            const isDone = progress?.is_completed
+
+                                            return (
+                                                <div
+                                                    key={v.id}
+                                                    ref={(el) => {
+                                                        if (el) itemRefs.current.set(v.id, el)
+                                                        else itemRefs.current.delete(v.id)
                                                     }}
-                                                />
-                                                {/* Center Icon Overlay */}
-                                                <div className="absolute inset-0 flex items-center justify-center">
-                                                    {isDone ? (
-                                                        <CheckCircle2 className="h-6 w-6 text-emerald-500 bg-black/50 rounded-full p-1" />
-                                                    ) : isActive ? (
-                                                        <div className="bg-[var(--brand)]/80 rounded-full p-1.5 animate-pulse">
-                                                            <PlayCircle className="h-4 w-4 text-white fill-white" />
-                                                        </div>
-                                                    ) : (
-                                                        <span className="text-[10px] font-bold text-white/50 bg-black/40 px-1.5 rounded backdrop-blur-sm">
-                                                            {String(index + 1).padStart(2, '0')}
-                                                        </span>
+                                                    onClick={() => setActiveVideo(v)}
+                                                    className={`relative p-4 rounded-2xl transition-all duration-300 cursor-pointer group flex flex-col gap-3 ${isActive
+                                                        ? 'bg-white/40 shadow-[0_8px_32px_rgba(0,0,0,0.08)] scale-[1.02] ring-1 ring-[var(--brand)]/20'
+                                                        : 'hover:bg-white/30 border border-transparent'
+                                                        }`}
+                                                >
+                                                    {/* Active Glow Indicator */}
+                                                    {isActive && (
+                                                        <div className="absolute left-[-4px] top-1/2 -translate-y-1/2 w-1 h-8 bg-[var(--brand)] rounded-full shadow-[0_0_10px_rgba(244,101,48,0.5)]" />
                                                     )}
-                                                </div>
-                                            </div>
-                                        </div>
 
-                                        <div className="flex-1 min-w-0 py-1">
-                                            <h4 className={`font-bold text-sm leading-tight transition-colors line-clamp-2 ${isActive ? 'text-[var(--brand)]' : 'text-[var(--foreground)]'
-                                                }`}>
-                                                {v.title}
-                                            </h4>
+                                                    <div className="flex items-start gap-4">
+                                                        {/* Thumbnail or Status Icon */}
+                                                        <div className="relative shrink-0">
+                                                            <div className={`h-16 w-24 rounded-lg overflow-hidden border border-white/5 relative ${isActive ? 'ring-2 ring-[var(--brand)]' : 'group-hover:ring-1 group-hover:ring-white/20'}`}>
+                                                                <div className="absolute inset-0 bg-neutral-800" />
+                                                                <img
+                                                                    src={`https://${process.env.NEXT_PUBLIC_BUNNY_CDN_HOSTNAME}/${v.bunny_video_id}/preview.webp`}
+                                                                    alt={v.title}
+                                                                    className={`w-full h-full object-cover transition-opacity duration-300 ${isDone ? 'opacity-50' : 'opacity-100'}`}
+                                                                    onError={(e) => {
+                                                                        const target = e.currentTarget;
+                                                                        if (target.src.includes('preview.webp')) {
+                                                                            target.src = target.src.replace('preview.webp', 'thumbnail.jpg');
+                                                                        } else {
+                                                                            target.style.display = 'none';
+                                                                            target.parentElement?.classList.add('fallback-icon-container');
+                                                                        }
+                                                                    }}
+                                                                />
+                                                                <div className="absolute inset-0 flex items-center justify-center">
+                                                                    {isDone ? (
+                                                                        <CheckCircle2 className="h-6 w-6 text-emerald-500 bg-black/50 rounded-full p-1" />
+                                                                    ) : isActive ? (
+                                                                        <div className="bg-[var(--brand)]/80 rounded-full p-1.5 animate-pulse">
+                                                                            <PlayCircle className="h-4 w-4 text-white fill-white" />
+                                                                        </div>
+                                                                    ) : (
+                                                                        <span className="text-[10px] font-bold text-white/50 bg-black/40 px-1.5 rounded backdrop-blur-sm">
+                                                                            {String(globalIndex + 1).padStart(2, '0')}
+                                                                        </span>
+                                                                    )}
+                                                                </div>
+                                                            </div>
+                                                        </div>
 
-                                            {/* Nested Progress Bar for each lesson */}
-                                            {progress && !isDone && percent > 0 && (
-                                                <div className="mt-2 h-1 w-full bg-black/5 rounded-full overflow-hidden">
-                                                    <div
-                                                        className="h-full bg-[var(--brand)] opacity-60 transition-all duration-500"
-                                                        style={{ width: `${percent}%` }}
-                                                    />
+                                                        <div className="flex-1 min-w-0 py-1">
+                                                            <h4 className={`font-bold text-sm leading-tight transition-colors line-clamp-2 ${isActive ? 'text-[var(--brand)]' : 'text-[var(--foreground)]'
+                                                                }`}>
+                                                                {v.title}
+                                                            </h4>
+
+                                                            {progress && !isDone && percent > 0 && (
+                                                                <div className="mt-2 h-1 w-full bg-black/5 rounded-full overflow-hidden">
+                                                                    <div
+                                                                        className="h-full bg-[var(--brand)] opacity-60 transition-all duration-500"
+                                                                        style={{ width: `${percent}%` }}
+                                                                    />
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                    </div>
                                                 </div>
-                                            )}
-                                        </div>
+                                            )
+                                        })}
                                     </div>
                                 </div>
-                            )
+                            );
                         })}
                     </div>
                 </aside>
