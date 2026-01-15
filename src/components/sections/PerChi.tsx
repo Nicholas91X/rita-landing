@@ -17,22 +17,6 @@ export default function PerChi() {
             stravolgere le proprie giornate.
           </p>
 
-          {/* Persona chips */}
-          <div className="mt-4 flex flex-wrap gap-2">
-            {[
-              "Poco tempo",
-              "Routine semplice",
-              "Risultati concreti",
-              "Allenamenti brevi",
-            ].map((label) => (
-              <span
-                key={label}
-                className="px-3 py-1 rounded-full border-2 border-[var(--primary)] text-[var(--accent-foreground)] text-xs font-medium"
-              >
-                {label}
-              </span>
-            ))}
-          </div>
 
           {/* Lista punti dal contenuto */}
           <ul className="mt-6 space-y-3">
