@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from 'react'
 import { getAdminUsers, getUserHistory } from '@/app/actions/admin'
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
+import { CardContent } from '@/components/ui/card'
+import Image from 'next/image'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import {
@@ -15,7 +16,6 @@ import {
     Calendar,
     ArrowUpRight,
     Clock,
-    X,
     CreditCard,
     Undo2
 } from 'lucide-react'
@@ -169,9 +169,15 @@ export default function AdminUsers() {
                                 <tr key={user.id} className="hover:bg-neutral-800/30 transition-colors">
                                     <td className="px-6 py-4">
                                         <div className="flex items-center gap-3">
-                                            <div className="w-8 h-8 rounded-full bg-[var(--brand)]/10 flex items-center justify-center border border-[var(--brand)]/20 shrink-0 overflow-hidden">
+                                            <div className="w-8 h-8 rounded-full bg-[var(--brand)]/10 flex items-center justify-center border border-[var(--brand)]/20 shrink-0 overflow-hidden relative">
                                                 {user.avatar_url ? (
-                                                    <img src={user.avatar_url} alt="" className="w-full h-full object-cover" />
+                                                    <Image
+                                                        src={user.avatar_url}
+                                                        alt={user.full_name || 'Avatar'}
+                                                        fill
+                                                        className="object-cover"
+                                                        sizes="32px"
+                                                    />
                                                 ) : (
                                                     <User className="h-4 w-4 text-[var(--brand)]" />
                                                 )}
@@ -273,9 +279,15 @@ export default function AdminUsers() {
                 <DialogContent className="max-w-2xl w-[95vw] sm:w-full max-h-[90vh] flex flex-col bg-[#0a0a0a] border-white/10 p-0 overflow-hidden rounded-[32px] gap-0">
                     <DialogHeader className="p-8 pb-4 relative shrink-0">
                         <div className="flex items-center gap-4">
-                            <div className="w-14 h-14 rounded-full bg-[var(--brand)]/10 flex items-center justify-center border border-[var(--brand)]/20 shadow-2xl shrink-0 overflow-hidden">
+                            <div className="w-14 h-14 rounded-full bg-[var(--brand)]/10 flex items-center justify-center border border-[var(--brand)]/20 shadow-2xl shrink-0 overflow-hidden relative">
                                 {selectedUser?.avatar_url ? (
-                                    <img src={selectedUser.avatar_url} alt="" className="w-full h-full object-cover" />
+                                    <Image
+                                        src={selectedUser.avatar_url}
+                                        alt={selectedUser.full_name || 'Avatar'}
+                                        fill
+                                        className="object-cover"
+                                        sizes="56px"
+                                    />
                                 ) : (
                                     <User className="h-6 w-6 text-[var(--brand)]" />
                                 )}

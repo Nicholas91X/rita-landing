@@ -5,7 +5,8 @@ import { createPackage, updatePackage, getAdminPackages, getAdminCourses } from 
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent } from '@/components/ui/card'
+import Image from 'next/image'
 import {
     Dialog,
     DialogContent,
@@ -145,7 +146,13 @@ export default function AdminPackages() {
                     <Card key={pkg.id} className="bg-neutral-900 border-neutral-800 text-neutral-100 overflow-hidden flex flex-col">
                         <div className="h-32 w-full bg-neutral-800 relative overflow-hidden flex items-center justify-center">
                             {pkg.image_url ? (
-                                <img src={pkg.image_url} alt={pkg.name} className="w-full h-full object-cover" />
+                                <Image
+                                    src={pkg.image_url}
+                                    alt={pkg.name}
+                                    fill
+                                    className="object-cover"
+                                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                                />
                             ) : (
                                 <div className="text-neutral-600">
                                     <PackageIcon className="w-12 h-12" />
@@ -200,7 +207,12 @@ export default function AdminPackages() {
                                 >
                                     {imagePreview ? (
                                         <>
-                                            <img src={imagePreview} className="w-full h-full object-cover" />
+                                            <Image
+                                                src={imagePreview}
+                                                alt="Anteprima immagine"
+                                                fill
+                                                className="object-cover"
+                                            />
                                             <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
                                                 <Button
                                                     type="button"

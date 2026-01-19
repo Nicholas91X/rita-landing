@@ -12,13 +12,37 @@ import ProfileSection from './ProfileSection'
 import { getLibraryProgress, LibraryProgress } from '@/app/actions/video'
 import { getUserProfile } from '@/app/actions/user'
 import { Loader2 } from 'lucide-react'
+import Image from 'next/image'
 
 import { NotificationBell } from './NotificationBell'
+
+interface DashboardProfile {
+    user: {
+        id: string;
+        email?: string;
+    };
+    profile: {
+        full_name: string | null;
+        avatar_url: string | null;
+        has_used_trial: boolean;
+    } | null;
+    activeSubscriptions: Array<{
+        id: string;
+        status: string;
+    }>;
+    badges: Array<{
+        id: string;
+        badge_type: string;
+        packages: {
+            name: string;
+        };
+    }>;
+}
 
 export default function DashboardClient({ levels }: { levels: Level[] }) {
     const [activeTab, setActiveTab] = useState<TabType>('home')
     const [libraryProgress, setLibraryProgress] = useState<LibraryProgress[]>([])
-    const [userProfile, setUserProfile] = useState<any>(null)
+    const [userProfile, setUserProfile] = useState<DashboardProfile | null>(null)
     const searchParams = useSearchParams()
 
     // Fetch library progress & user profile
@@ -101,12 +125,14 @@ export default function DashboardClient({ levels }: { levels: Level[] }) {
                             <div className="text-right">
                                 <p className="text-[10px] text-[var(--brand)] uppercase tracking-widest font-black">Rita Workout</p>
                             </div>
-                            <div className="w-10 h-10 rounded-2xl bg-white flex items-center justify-center text-xs font-black text-[#001F3D] shadow-xl border border-white/20 overflow-hidden">
+                            <div className="w-10 h-10 rounded-2xl bg-white flex items-center justify-center text-xs font-black text-[#001F3D] shadow-xl border border-white/20 overflow-hidden relative">
                                 {userProfile?.profile?.avatar_url ? (
-                                    <img
+                                    <Image
                                         src={userProfile.profile.avatar_url}
                                         alt="Profile"
-                                        className="w-full h-full object-cover"
+                                        fill
+                                        className="object-cover"
+                                        sizes="40px"
                                     />
                                 ) : (
                                     <span>

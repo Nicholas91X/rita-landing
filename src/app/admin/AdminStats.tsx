@@ -2,7 +2,7 @@
 'use client'
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Users, CreditCard, Video, Activity, ShoppingBag } from "lucide-react"
+import { Users, CreditCard, Activity, ShoppingBag } from "lucide-react"
 
 // Define the stats type based on the server action return type
 type AdminStatsData = {

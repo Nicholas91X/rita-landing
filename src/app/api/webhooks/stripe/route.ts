@@ -48,7 +48,7 @@ export async function POST(req: Request) {
                 if (session.subscription) {
                     const stripeSub = await stripe.subscriptions.retrieve(session.subscription as string)
                     subscriptionStatus = stripeSub.status
-                    periodEnd = new Date((stripeSub as any).current_period_end * 1000).toISOString()
+                    periodEnd = new Date((stripeSub as unknown as { current_period_end: number }).current_period_end * 1000).toISOString()
                     console.log(`Syncing subscription ${session.subscription}: Status ${subscriptionStatus}`)
                 }
 
@@ -110,10 +110,11 @@ export async function POST(req: Request) {
 
                 console.log(`Successfully processed checkout for User ${userId}`)
 
-            } catch (err: any) {
-                console.error('Webhook processing error:', err.message || err)
+            } catch (err: unknown) {
+                const errorMessage = err instanceof Error ? err.message : 'Unknown error'
+                console.error('Webhook processing error:', errorMessage)
                 // Returning a non-200 here will make Stripe retry the webhook
-                return new NextResponse(`Internal Error: ${err.message}`, { status: 500 })
+                return new NextResponse(`Internal Error: ${errorMessage}`, { status: 500 })
             }
         } else {
             console.warn('Skipping webhook: Missing userId or packageId in session metadata')
@@ -132,7 +133,7 @@ export async function POST(req: Request) {
             .from('user_subscriptions')
             .update({
                 status: subscription.status,
-                current_period_end: new Date((subscription as any).current_period_end * 1000).toISOString(),
+                current_period_end: new Date((subscription as unknown as { current_period_end: number }).current_period_end * 1000).toISOString(),
                 cancel_at_period_end: subscription.cancel_at_period_end
             })
             .eq('stripe_subscription_id', subscription.id)

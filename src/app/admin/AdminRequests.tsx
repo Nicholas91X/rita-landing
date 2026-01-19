@@ -5,16 +5,42 @@ import { getAdminNotifications, getRefundRequests, handleRefundRequest, markNoti
 import { createClient } from '@/utils/supabase/client'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Loader2, Bell, RefreshCcw, XCircle, CheckCircle2, User, Clock, AlertTriangle, ChevronLeft, ChevronRight, ShoppingBag } from 'lucide-react'
+import { Loader2, Bell, RefreshCcw, XCircle, User, Clock, AlertTriangle, ChevronLeft, ChevronRight, ShoppingBag } from 'lucide-react'
 import { toast } from 'sonner'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Badge } from "@/components/ui/badge"
 
 const ITEMS_PER_PAGE = 6
 
+interface AdminNotification {
+    id: string
+    type: string
+    created_at: string
+    is_read: boolean
+    profiles: { full_name: string; email: string } | null
+    data: {
+        packageName?: string
+        amount?: number
+        reason?: string
+    } | null
+}
+
+interface RefundRequest {
+    id: string
+    status: string
+    reason: string
+    created_at: string
+    processed_at: string | null
+    profiles: { full_name: string; email: string } | null
+    user_subscriptions: {
+        package_id: string
+        packages: { name: string } | null
+    } | null
+}
+
 export default function AdminRequests() {
-    const [notifications, setNotifications] = useState<any[]>([])
-    const [refundRequests, setRefundRequests] = useState<any[]>([])
+    const [notifications, setNotifications] = useState<AdminNotification[]>([])
+    const [refundRequests, setRefundRequests] = useState<RefundRequest[]>([])
     const [loading, setLoading] = useState(true)
     const [actionLoading, setActionLoading] = useState<string | null>(null)
 
@@ -88,10 +114,10 @@ export default function AdminRequests() {
 
             // Background reload to sync everything exactly
             loadData(true)
-        } catch (error: any) {
+        } catch (error: unknown) {
             // Rollback on error
             loadData(true)
-            toast.error(error.message || 'Errore durante l\'azione')
+            toast.error((error as Error).message || 'Errore durante l\'azione')
         } finally {
             setActionLoading(null)
         }
@@ -298,7 +324,7 @@ export default function AdminRequests() {
                                                     Motivazione
                                                 </label>
                                                 <div className="bg-white/5 rounded-2xl p-4 border border-white/10 italic relative">
-                                                    <span className="absolute -top-2 left-4 text-3xl text-white/40 font-serif overflow-hidden">"</span>
+                                                    <span className="absolute -top-2 left-4 text-3xl text-white/40 font-serif overflow-hidden">&quot;</span>
                                                     <p className="text-sm text-white leading-relaxed pl-2 font-medium">
                                                         {req.reason}
                                                     </p>

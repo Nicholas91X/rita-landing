@@ -32,7 +32,10 @@ interface UserProfileData {
         email?: string
     }
     profile: Profile
-    activeSubscriptions: any[]
+    activeSubscriptions: Array<{
+        id: string;
+        status: string;
+    }>;
     badges: Badge[]
 }
 

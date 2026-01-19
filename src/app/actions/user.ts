@@ -61,8 +61,19 @@ export async function getUserSubscriptionInfo() {
         return []
     }
 
+    const typedSubs = (subs as unknown) as Array<{
+        id: string;
+        status: string;
+        current_period_end: string;
+        created_at: string;
+        stripe_customer_id: string | null;
+        stripe_subscription_id: string | null;
+        packages: unknown;
+        refund_requests: unknown;
+    }>;
+
     // Map and fetch receipts from Stripe
-    const subsWithDetailedInfo = await Promise.all(subs.map(async (sub) => {
+    const subsWithDetailedInfo = await Promise.all(typedSubs.map(async (sub) => {
         let documents: UserDocument[] = []
         let customerId = sub.stripe_customer_id
 
@@ -153,10 +164,15 @@ export async function getUserSubscriptionInfo() {
             }
         }
 
+        const pkg = (Array.isArray(sub.packages) ? sub.packages[0] : sub.packages) as { name: string; description: string; price: number; image_url: string | null } | null
+        const refunds = Array.isArray(sub.refund_requests) ? sub.refund_requests : (sub.refund_requests ? [sub.refund_requests] : [])
+
         return {
             ...sub,
+            packages: pkg,
+            refund_requests: refunds,
             next_invoice: sub.current_period_end,
-            amount: Number((sub.packages as unknown as { price: number })?.price || 0),
+            amount: Number(pkg?.price || 0),
             interval: 'mese',
             documents,
             receipt_url: documents.find(d => d.type === 'invoice')?.url // legacy support if needed

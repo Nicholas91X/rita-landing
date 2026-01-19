@@ -11,7 +11,7 @@ import {
     DialogHeader,
     DialogTitle,
 } from '@/components/ui/dialog'
-import { Loader2, CreditCard, RefreshCcw, ArrowRight, User, Calendar, CheckCircle2, Clock, XCircle, AlertTriangle, RotateCcw, Search, ExternalLink } from 'lucide-react'
+import { Loader2, CreditCard, RefreshCcw, ArrowRight, User, Calendar, CheckCircle2, Clock, AlertTriangle, RotateCcw, Search, ExternalLink } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { toast } from 'sonner'
@@ -67,7 +67,7 @@ export default function AdminStripe() {
         try {
             const result = await getStripeDashboardData()
             setData(result as StripeData)
-        } catch (error) {
+        } catch {
             toast.error('Errore nel caricamento dei dati Stripe')
         } finally {
             setLoading(false)
@@ -87,7 +87,7 @@ export default function AdminStripe() {
             toast.success('Abbonamento annullato con successo')
             setIsCancelDialogOpen(false)
             loadData()
-        } catch (error) {
+        } catch {
             toast.error('Errore durante l\'annullamento')
         } finally {
             setSubmitting(false)
@@ -107,7 +107,7 @@ export default function AdminStripe() {
             toast.success('Rimborso effettuato con successo')
             setIsRefundDialogOpen(false)
             loadData()
-        } catch (error) {
+        } catch {
             toast.error('Errore durante il rimborso')
         } finally {
             setSubmitting(false)
@@ -279,7 +279,7 @@ export default function AdminStripe() {
                         <div className="flex items-center gap-3">
                             <select
                                 value={paymentStatusFilter}
-                                onChange={(e) => setPaymentStatusFilter(e.target.value as any)}
+                                onChange={(e) => setPaymentStatusFilter(e.target.value as 'all' | 'succeeded' | 'refunded')}
                                 className="bg-neutral-800 border-white/10 text-neutral-300 text-[10px] font-black uppercase tracking-widest px-3 h-8 rounded-lg focus:outline-none focus:ring-1 focus:ring-emerald-500/50 cursor-pointer appearance-none min-w-[120px]"
                             >
                                 <option value="all">Tutti gli stati</option>
@@ -384,7 +384,7 @@ export default function AdminStripe() {
                         <div className="flex items-center gap-3">
                             <select
                                 value={subscriptionStatusFilter}
-                                onChange={(e) => setSubscriptionStatusFilter(e.target.value as any)}
+                                onChange={(e) => setSubscriptionStatusFilter(e.target.value as 'all' | 'active' | 'canceled' | 'trialing')}
                                 className="bg-neutral-800 border-white/10 text-neutral-300 text-[10px] font-black uppercase tracking-widest px-3 h-8 rounded-lg focus:outline-none focus:ring-1 focus:ring-emerald-500/50 cursor-pointer appearance-none min-w-[120px]"
                             >
                                 <option value="all">Tutti gli stati</option>
@@ -481,7 +481,7 @@ export default function AdminStripe() {
                                 {subscriptionToCancel?.email}
                             </div>
                             <p className="mt-4 text-xs leading-relaxed">
-                                Questa azione è immediata su Stripe. L'utente perderà l'accesso ai contenuti riservati al termine del periodo corrente o immediatamente a seconda della configurazione.
+                                Questa azione è immediata su Stripe. L&apos;utente perderà l&apos;accesso ai contenuti riservati al termine del periodo corrente o immediatamente a seconda della configurazione.
                             </p>
                         </DialogDescription>
                     </DialogHeader>

@@ -69,14 +69,28 @@ export async function getContentHierarchy() {
     }
 
     // 3. Mappatura per aggiungere la flag isPurchased
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const hierarchy = (data as any[] || []).map((level: any) => ({
+    const typedData = (data as unknown) as Array<{
+        id: string;
+        name: string;
+        courses: Array<{
+            id: string;
+            name: string;
+            packages: Array<{
+                id: string;
+                name: string;
+                description: string;
+                stripe_price_id: string;
+                price: number;
+                image_url: string | null;
+            }>;
+        }>;
+    }>;
+
+    const hierarchy = (typedData || []).map((level) => ({
         ...level,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        courses: (level.courses || []).map((course: any) => ({
+        courses: (level.courses || []).map((course) => ({
             ...course,
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            packages: (course.packages || []).map((pkg: any) => ({
+            packages: (course.packages || []).map((pkg) => ({
                 ...pkg,
                 isPurchased: purchasedIds.includes(pkg.id)
             }))
@@ -115,14 +129,28 @@ export async function getPublicContentHierarchy() {
     }
 
     // Mappatura per struttura coerente (isPurchased = false per default)
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const hierarchy = (data as any[] || []).map((level: any) => ({
+    const typedData = (data as unknown) as Array<{
+        id: string;
+        name: string;
+        courses: Array<{
+            id: string;
+            name: string;
+            packages: Array<{
+                id: string;
+                name: string;
+                description: string;
+                stripe_price_id: string;
+                price: number;
+                image_url: string | null;
+            }>;
+        }>;
+    }>;
+
+    const hierarchy = (typedData || []).map((level) => ({
         ...level,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        courses: (level.courses || []).map((course: any) => ({
+        courses: (level.courses || []).map((course) => ({
             ...course,
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            packages: (course.packages || []).map((pkg: any) => ({
+            packages: (course.packages || []).map((pkg) => ({
                 ...pkg,
                 isPurchased: false
             }))

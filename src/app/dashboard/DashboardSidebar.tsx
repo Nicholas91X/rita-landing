@@ -1,8 +1,7 @@
 'use client'
 
-import { LucideIcon, Home, BookOpen, Search, CreditCard, User, LogOut, Menu, X } from 'lucide-react'
+import { LucideIcon, Home, BookOpen, Search, CreditCard, User, LogOut } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { signOutUser } from '@/app/actions/user'
@@ -25,14 +24,36 @@ const NAV_ITEMS: NavItem[] = [
     { id: 'profile', label: 'Profilo', icon: User },
 ]
 
+interface DashboardProfile {
+    user: {
+        id: string;
+        email?: string;
+    };
+    profile: {
+        full_name: string | null;
+        avatar_url: string | null;
+        has_used_trial: boolean;
+    } | null;
+    activeSubscriptions: Array<{
+        id: string;
+        status: string;
+    }>;
+    badges: Array<{
+        id: string;
+        badge_type: string;
+        packages: {
+            name: string;
+        };
+    }>;
+}
+
 export interface DashboardSidebarProps {
     activeTab: TabType
     setActiveTab: (tab: TabType) => void
-    userProfile?: any
+    userProfile?: DashboardProfile | null
 }
 
 export default function DashboardSidebar({ activeTab, setActiveTab, userProfile }: DashboardSidebarProps) {
-    const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
 
     return (
         <>
@@ -126,12 +147,14 @@ export default function DashboardSidebar({ activeTab, setActiveTab, userProfile 
                 </Link>
                 <div className="flex items-center gap-4">
                     <NotificationBell />
-                    <div className="w-8 h-8 rounded-full bg-white flex items-center justify-center text-[10px] font-black text-[#001F3D] shadow-lg border border-brand/10 overflow-hidden">
+                    <div className="w-8 h-8 rounded-full bg-white flex items-center justify-center text-[10px] font-black text-[#001F3D] shadow-lg border border-brand/10 overflow-hidden relative">
                         {userProfile?.profile?.avatar_url ? (
-                            <img
+                            <Image
                                 src={userProfile.profile.avatar_url}
                                 alt="Profile"
-                                className="w-full h-full object-cover"
+                                fill
+                                className="object-cover"
+                                sizes="32px"
                             />
                         ) : (
                             <span>

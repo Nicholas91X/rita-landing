@@ -1,9 +1,9 @@
 'use client'
 
 import { Level } from '@/app/actions/content'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+
 import { Button } from '@/components/ui/button'
-import { PlayCircle, ArrowRight } from 'lucide-react'
+import { ArrowRight } from 'lucide-react'
 import Link from 'next/link'
 
 export default function HomeSection({ levels, onShowLibrary, userName }: { levels: Level[], onShowLibrary: () => void, userName?: string }) {

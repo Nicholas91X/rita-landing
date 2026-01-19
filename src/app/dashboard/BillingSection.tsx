@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { getUserSubscriptionInfo } from '@/app/actions/user'
+import Image from 'next/image'
 import { createClient } from '@/utils/supabase/client'
 import { cn } from '@/lib/utils'
 import { createPortalSession, cancelSubscription, requestRefund } from '@/app/actions/stripe'
@@ -12,8 +13,43 @@ import { toast } from 'sonner'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Textarea } from '@/components/ui/textarea'
 
+interface BillingDocument {
+    id: string;
+    type: 'invoice' | 'credit_note';
+    number: string;
+    date: number;
+    amount: number;
+    currency: string;
+    url: string | null;
+    status: string | null;
+}
+
+interface BillingSubscription {
+    id: string;
+    status: string;
+    current_period_end: string;
+    created_at: string;
+    next_invoice: string;
+    amount: number;
+    interval: string;
+    packages: {
+        name: string;
+        description: string;
+        image_url: string | null;
+        price: number;
+    } | null;
+    refund_requests: Array<{
+        status: string;
+        reason: string;
+        created_at: string;
+        processed_at: string | null;
+    }>;
+    documents: BillingDocument[];
+    receipt_url?: string | null;
+}
+
 export default function BillingSection() {
-    const [subscriptions, setSubscriptions] = useState<any[]>([])
+    const [subscriptions, setSubscriptions] = useState<BillingSubscription[]>([])
     const [loading, setLoading] = useState(true)
     const [portalLoading, setPortalLoading] = useState(false)
     const [actionLoading, setActionLoading] = useState<string | null>(null)
@@ -36,7 +72,7 @@ export default function BillingSection() {
         try {
             const data = await getUserSubscriptionInfo()
             setSubscriptions(data)
-        } catch (error) {
+        } catch (error: unknown) {
             console.error('Failed to fetch subscriptions', error)
             toast.error('Errore nel caricamento dei dati di fatturazione')
         } finally {
@@ -84,8 +120,9 @@ export default function BillingSection() {
             setPortalLoading(true)
             const url = await createPortalSession()
             window.location.href = url
-        } catch (error: any) {
-            toast.error(error.message || 'Errore durante l\'apertura del portale')
+        } catch (error: unknown) {
+            const message = error instanceof Error ? error.message : 'Errore'
+            toast.error(message)
         } finally {
             setPortalLoading(false)
         }
@@ -99,8 +136,9 @@ export default function BillingSection() {
             toast.success('Rinnovo annullato con successo')
             setCancelDialog({ open: false, subId: null })
             fetchSubs()
-        } catch (error: any) {
-            toast.error(error.message || 'Errore durante l\'annullamento')
+        } catch (error: unknown) {
+            const message = error instanceof Error ? error.message : 'Errore'
+            toast.error(message)
         } finally {
             setActionLoading(null)
         }
@@ -114,8 +152,9 @@ export default function BillingSection() {
             toast.success('Richiesta di rimborso inviata correttamente')
             setRefundDialog({ open: false, subId: null })
             setRefundReason('')
-        } catch (error: any) {
-            toast.error(error.message || 'Errore durante la richiesta')
+        } catch (error: unknown) {
+            const message = error instanceof Error ? error.message : 'Errore'
+            toast.error(message)
         } finally {
             setIsSubmittingRefund(false)
         }
@@ -180,7 +219,7 @@ export default function BillingSection() {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {filteredSubscriptions.length > 0 ? filteredSubscriptions.map((sub: any) => {
+                {filteredSubscriptions.length > 0 ? filteredSubscriptions.map((sub) => {
                     const createdAt = new Date(sub.created_at).getTime();
                     const now = new Date().getTime();
                     const diffDays = (now - createdAt) / (1000 * 60 * 60 * 24);
@@ -190,10 +229,12 @@ export default function BillingSection() {
                         <Card key={sub.id} className="bg-white/5 backdrop-blur-md border-white/5 shadow-2xl overflow-hidden group">
                             <div className="h-32 w-full relative overflow-hidden">
                                 {sub.packages?.image_url ? (
-                                    <img
+                                    <Image
                                         src={sub.packages.image_url}
                                         alt={sub.packages.name}
-                                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                                        fill
+                                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                                        className="object-cover group-hover:scale-110 transition-transform duration-500"
                                     />
                                 ) : (
                                     <div className="w-full h-full bg-neutral-800 flex items-center justify-center">
@@ -265,7 +306,7 @@ export default function BillingSection() {
                                             <span className="text-[10px] uppercase font-black tracking-widest text-white">Documentazione</span>
                                         </div>
                                         <div className="space-y-2 max-h-[160px] overflow-y-auto pr-2 custom-scrollbar">
-                                            {sub.documents.map((doc: any) => (
+                                            {sub.documents.map((doc) => (
                                                 <div key={doc.id} className="flex items-center justify-between p-2 rounded-xl bg-white/5 border border-white/5 hover:bg-white/10 transition-colors group/doc">
                                                     <div className="flex items-center gap-2 min-w-0">
                                                         {doc.type === 'invoice' ? (
@@ -286,7 +327,7 @@ export default function BillingSection() {
                                                         variant="ghost"
                                                         size="icon"
                                                         className="w-7 h-7 rounded-lg hover:bg-white/10"
-                                                        onClick={() => window.open(doc.url, '_blank')}
+                                                        onClick={() => window.open(doc.url || undefined, '_blank')}
                                                     >
                                                         <ExternalLink className="w-3.5 h-3.5 text-neutral-400 group-hover/doc:text-white" />
                                                     </Button>
@@ -302,7 +343,7 @@ export default function BillingSection() {
                                         <Button
                                             variant="link"
                                             className="p-0 h-auto text-[10px] text-brand hover:text-brand/80 flex items-center gap-1.5 self-start"
-                                            onClick={() => window.open(sub.receipt_url, '_blank')}
+                                            onClick={() => window.open(sub.receipt_url || undefined, '_blank')}
                                         >
                                             <Receipt className="w-3 h-3" />
                                             Visualizza ultima ricevuta
@@ -386,8 +427,8 @@ export default function BillingSection() {
                     <h4 className="font-bold text-white">Politica sui Rimborsi</h4>
                     <p className="text-sm text-neutral-400 mt-1 leading-relaxed">
                         Le richieste di rimborso vengono elaborate manualmente entro 48 ore lavorative.
-                        Assicurati di inserire una motivazione valida per facilitare l'operazione.
-                        Ricorda che puoi annullare il rinnovo in qualsiasi momento cliccando su "Annulla" o tramite il portale Stripe.
+                        Assicurati di inserire una motivazione valida per facilitare l&apos;operazione.
+                        Ricorda che puoi annullare il rinnovo in qualsiasi momento cliccando su &quot;Annulla&quot; o tramite il portale Stripe.
                     </p>
                 </div>
             </div>
@@ -456,7 +497,7 @@ export default function BillingSection() {
                                 Conferma Annullamento
                             </DialogTitle>
                             <DialogDescription className="text-neutral-400 text-sm">
-                                Sei sicuro di voler annullare il rinnovo automatico? Manterrai l'accesso fino alla scadenza del periodo attuale.
+                                Sei sicuro di voler annullare il rinnovo automatico? Manterrai l&apos;accesso fino alla scadenza del periodo attuale.
                             </DialogDescription>
                         </div>
 
