@@ -234,7 +234,7 @@ export default function ProfileSection({ onProfileUpdate }: { onProfileUpdate?: 
                                                     Modifica Email
                                                 </Button>
                                             </DialogTrigger>
-                                            <DialogContent className="bg-neutral-900 border-neutral-800">
+                                            <DialogContent className="bg-neutral-900 border-neutral-800 pointer-events-auto">
                                                 <DialogHeader>
                                                     <DialogTitle className="text-white">Modifica Email</DialogTitle>
                                                     <DialogDescription>
@@ -287,7 +287,7 @@ export default function ProfileSection({ onProfileUpdate }: { onProfileUpdate?: 
                                                     Cambia Password
                                                 </Button>
                                             </DialogTrigger>
-                                            <DialogContent className="bg-neutral-900 border-neutral-800">
+                                            <DialogContent className="bg-neutral-900 border-neutral-800 pointer-events-auto">
                                                 <DialogHeader>
                                                     <DialogTitle className="text-white">Cambia Password</DialogTitle>
                                                     <DialogDescription>
@@ -336,6 +336,67 @@ export default function ProfileSection({ onProfileUpdate }: { onProfileUpdate?: 
                         </CardContent>
                     </Card>
                 </div>
+            </div>
+
+            {/* Achievements Section */}
+            <div className="pt-10 border-t border-white/5">
+                <div className="flex items-center gap-3 mb-8">
+                    <div className="w-10 h-10 rounded-xl bg-[var(--brand)]/20 flex items-center justify-center text-[var(--brand)]">
+                        <Shield className="w-5 h-5 shadow-[0_0_15px_rgba(244,101,48,0.4)]" />
+                    </div>
+                    <div>
+                        <h3 className="text-2xl font-bold text-white tracking-tight">Le Mie Conquiste</h3>
+                        <p className="text-neutral-400 text-sm">I badge che hai guadagnato completando i percorsi.</p>
+                    </div>
+                </div>
+
+                {userData?.badges?.length > 0 ? (
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">
+                        {userData.badges.map((badge: any) => (
+                            <div key={badge.id} className="group relative">
+                                <Card className="bg-white/5 border-white/10 backdrop-blur-md rounded-3xl p-6 flex flex-col items-center justify-center text-center hover:border-[var(--brand)]/50 transition-all duration-500 hover:scale-105 hover:shadow-[0_20px_50px_rgba(244,101,48,0.15)] overflow-hidden">
+                                    <div className="absolute inset-0 bg-gradient-to-b from-[var(--brand)]/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+
+                                    <div className="w-16 h-16 rounded-2xl bg-[var(--brand)]/10 flex items-center justify-center text-4xl mb-4 relative z-10 shadow-inner">
+                                        {badge.badge_type === 'leo' && '🦁'}
+                                        {badge.badge_type === 'tiger' && '🐯'}
+                                        {badge.badge_type === 'giraffe' && '🦒'}
+                                        {badge.badge_type === 'elephant' && '🐘'}
+                                        {badge.badge_type === 'monkey' && '🐵'}
+                                        {badge.badge_type === 'wolf' && '🐺'}
+                                        {badge.badge_type === 'fox' && '🦊'}
+                                        {badge.badge_type === 'panda' && '🐼'}
+                                        {!['leo', 'tiger', 'giraffe', 'elephant', 'monkey', 'wolf', 'fox', 'panda'].includes(badge.badge_type) && '🏅'}
+                                    </div>
+
+                                    <div className="relative z-10">
+                                        <h4 className="text-white font-bold text-sm mb-1 capitalize">{badge.badge_type}</h4>
+                                        <p className="text-[10px] text-neutral-500 font-medium uppercase tracking-wider">{badge.packages?.name}</p>
+                                    </div>
+
+                                    <div className="mt-3 text-[9px] text-[var(--brand)] font-black uppercase tracking-[0.2em] opacity-0 group-hover:opacity-100 transition-all transform translate-y-2 group-hover:translate-y-0">
+                                        Sbloccato
+                                    </div>
+                                </Card>
+                            </div>
+                        ))}
+                    </div>
+                ) : (
+                    <Card className="bg-white/5 border-dashed border-white/10 p-12 flex flex-col items-center justify-center text-center rounded-[32px]">
+                        <div className="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center text-neutral-600 mb-4">
+                            <Shield className="w-8 h-8" />
+                        </div>
+                        <h4 className="text-white font-bold mb-2">Ancora nessuna conquista</h4>
+                        <p className="text-neutral-500 text-sm max-w-xs">Completando tutti i video di un pacchetto sbloccherai badge esclusivi da mostrare qui.</p>
+                        <Button
+                            variant="link"
+                            className="mt-4 text-[var(--brand)] font-bold decoration-[var(--brand)]"
+                            onClick={() => router.push('/dashboard?tab=library')}
+                        >
+                            Vai ai tuoi allenamenti
+                        </Button>
+                    </Card>
+                )}
             </div>
         </div>
     )

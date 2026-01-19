@@ -166,10 +166,16 @@ export async function getUserProfile() {
         .eq('user_id', user.id)
         .in('status', ['active', 'trialing'])
 
+    const { data: badges } = await supabase
+        .from('user_badges')
+        .select('*, packages(name)')
+        .eq('user_id', user.id)
+
     return {
         user,
         profile,
-        activeSubscriptions: activeSubs || []
+        activeSubscriptions: activeSubs || [],
+        badges: badges || []
     }
 }
 export async function signOutUser() {

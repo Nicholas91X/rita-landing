@@ -57,6 +57,7 @@ export async function createPackage(formData: FormData) {
     const description = formData.get('description') as string
     const priceAmount = parseFloat(formData.get('price') as string)
     const courseId = formData.get('course_id') as string
+    const badgeType = formData.get('badge_type') as string
     const imageFile = formData.get('image') as File
 
     // 1. Create Product in Stripe
@@ -104,6 +105,7 @@ export async function createPackage(formData: FormData) {
             course_id: courseId,
             stripe_product_id: product.id,
             stripe_price_id: price.id,
+            badge_type: badgeType,
             image_url: imageUrl
         })
 
@@ -119,6 +121,7 @@ export async function updatePackage(id: string, formData: FormData) {
     const description = formData.get('description') as string
     const priceAmount = parseFloat(formData.get('price') as string)
     const courseId = formData.get('course_id') as string
+    const badgeType = formData.get('badge_type') as string
     const imageFile = formData.get('image') as File
     const removeImage = formData.get('removeImage') === 'true'
 
@@ -196,6 +199,7 @@ export async function updatePackage(id: string, formData: FormData) {
             price: priceAmount,
             course_id: courseId,
             stripe_price_id: newStripePriceId,
+            badge_type: badgeType,
             image_url: newImageUrl
         })
         .eq('id', id)

@@ -7,19 +7,19 @@ import Footer from "@/components/Footer";
 
 export const metadata: Metadata = {
   title: "Rita Zanicchi · Personal Trainer",
-  description: "Allenamenti brevi ed efficaci per donne con poco tempo.",
-  metadataBase: new URL("https://ritapt.example"),
+  description: "Allenamenti brevi ed efficaci per donne over 50. Ritrova lucidità ed energia con il metodo Fit & Smile.",
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "https://ritazanicchi-pt.it"),
   openGraph: {
     type: "website",
     url: "/",
     locale: "it_IT",
     title: "Rita Zanicchi · Personal Trainer",
-    description: "Allenamenti brevi ed efficaci per donne con poco tempo.",
+    description: "Allenamenti brevi ed efficaci per donne over 50. Ritrova lucidità ed energia con il metodo Fit & Smile.",
   },
   twitter: {
     card: "summary_large_image",
     title: "Rita Zanicchi · Personal Trainer",
-    description: "Allenamenti brevi ed efficaci per donne con poco tempo.",
+    description: "Allenamenti brevi ed efficaci per donne over 50. Ritrova lucidità ed energia con il metodo Fit & Smile.",
   },
   icons: {
     icon: "/icon.png",

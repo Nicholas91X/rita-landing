@@ -21,7 +21,7 @@ export default async function AdminPage() {
     const libraryId = process.env.BUNNY_LIBRARY_ID
 
     return (
-        <main className="min-h-screen bg-[var(--bg)] pb-20">
+        <main className="min-h-screen bg-[#2A2E30] pb-20">
             <div className="bg-slate-900 border-b border-white/10 text-white sticky top-0 z-50 backdrop-blur-md bg-slate-900/90 shadow-lg">
                 <div className="container mx-auto px-4 md:px-8 py-2 flex items-start justify-between">
                     <div className="flex items-start gap-4">

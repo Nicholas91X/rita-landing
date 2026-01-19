@@ -64,7 +64,7 @@ export async function saveVideoProgress(videoId: string, progressSeconds: number
 
     const isCompleted = progressSeconds >= (durationSeconds * 0.95) // 95% is considered completed
 
-    const { error } = await supabase
+    const { error: upsertError } = await supabase
         .from('video_watch_progress')
         .upsert({
             user_id: user.id,
@@ -77,12 +77,84 @@ export async function saveVideoProgress(videoId: string, progressSeconds: number
             onConflict: 'user_id,video_id'
         })
 
-    if (error) {
-        console.error('Error saving video progress:', error)
-        throw new Error('Errore durante il salvataggio del progresso: ' + error.message)
+    if (upsertError) {
+        console.error('Error saving video progress:', upsertError)
+        throw new Error('Errore durante il salvataggio del progresso: ' + upsertError.message)
+    }
+
+    // If video was just completed, check for package completion
+    if (isCompleted) {
+        await checkAndAwardPackageBadge(user.id, videoId)
     }
 
     return { success: true }
+}
+
+async function checkAndAwardPackageBadge(userId: string, videoId: string) {
+    const supabase = await createClient()
+
+    // 1. Find the package this video belongs to
+    const { data: videoData } = await supabase
+        .from('videos')
+        .select('package_id')
+        .eq('id', videoId)
+        .single()
+
+    if (!videoData) return
+
+    const packageId = videoData.package_id
+
+    // 2. Get all videos in this package
+    const { data: pkgVideos } = await supabase
+        .from('videos')
+        .select('id')
+        .eq('package_id', packageId)
+
+    if (!pkgVideos || pkgVideos.length === 0) return
+
+    // 3. Get completed videos for this user in this package
+    const videoIds = pkgVideos.map(v => v.id)
+    const { data: completedProgress } = await supabase
+        .from('video_watch_progress')
+        .select('video_id')
+        .eq('user_id', userId)
+        .in('video_id', videoIds)
+        .eq('is_completed', true)
+
+    const completedCount = completedProgress?.length || 0
+
+    // 4. If all videos are completed, award badge
+    if (completedCount === pkgVideos.length) {
+        // Get package badge_type
+        const { data: pkg } = await supabase
+            .from('packages')
+            .select('name, badge_type')
+            .eq('id', packageId)
+            .single()
+
+        if (!pkg || !pkg.badge_type) return
+
+        // Insert badge (protected by unique constraint user_id, package_id)
+        const { error: badgeError } = await supabase
+            .from('user_badges')
+            .upsert({
+                user_id: userId,
+                package_id: packageId,
+                badge_type: pkg.badge_type
+            }, {
+                onConflict: 'user_id,package_id'
+            })
+
+        // 5. Send Notification if badge was newly earned
+        if (!badgeError) {
+            await supabase.from('user_notifications').insert({
+                user_id: userId,
+                title: '🎉 Nuovo Badge Sbloccato!',
+                message: `Complimenti! Hai completato tutti i video di "${pkg.name}" e hai ottenuto il badge ${pkg.badge_type.toUpperCase()}.`,
+                type: 'achievement'
+            })
+        }
+    }
 }
 
 export async function getVideoProgress(videoId: string) {

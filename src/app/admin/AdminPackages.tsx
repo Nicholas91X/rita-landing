@@ -26,6 +26,7 @@ type Package = {
     stripe_product_id: string | null
     stripe_price_id: string | null
     course_id: string | null
+    badge_type: string | null
     image_url: string | null
     courses?: { name: string }
 }
@@ -42,7 +43,7 @@ export default function AdminPackages() {
     const [loading, setLoading] = useState(true)
     const [isDialogOpen, setIsDialogOpen] = useState(false)
     const [editingPackage, setEditingPackage] = useState<Package | null>(null)
-    const [formData, setFormData] = useState({ name: '', description: '', price: 0, course_id: '' })
+    const [formData, setFormData] = useState({ name: '', description: '', price: 0, course_id: '', badge_type: '' })
     const [imageFile, setImageFile] = useState<File | null>(null)
     const [imagePreview, setImagePreview] = useState<string | null>(null)
     const [submitting, setSubmitting] = useState(false)
@@ -78,12 +79,13 @@ export default function AdminPackages() {
                 name: pkg.name,
                 description: pkg.description || '',
                 price: pkg.price,
-                course_id: pkg.course_id || ''
+                course_id: pkg.course_id || '',
+                badge_type: pkg.badge_type || ''
             })
             setImagePreview(pkg.image_url)
         } else {
             setEditingPackage(null)
-            setFormData({ name: '', description: '', price: 0, course_id: '' })
+            setFormData({ name: '', description: '', price: 0, course_id: '', badge_type: '' })
             setImagePreview(null)
         }
         setImageFile(null)
@@ -99,6 +101,7 @@ export default function AdminPackages() {
         data.append('description', formData.description)
         data.append('price', formData.price.toString())
         data.append('course_id', formData.course_id)
+        data.append('badge_type', formData.badge_type)
         if (imageFile) {
             data.append('image', imageFile)
         }
@@ -285,6 +288,25 @@ export default function AdminPackages() {
                                                 {course.name}
                                             </option>
                                         ))}
+                                    </select>
+                                </div>
+                                <div className="space-y-2 col-span-2">
+                                    <label className="text-sm font-bold text-white uppercase tracking-widest text-[10px]">Badge di Completamento</label>
+                                    <select
+                                        value={formData.badge_type}
+                                        onChange={(e) => setFormData({ ...formData, badge_type: e.target.value })}
+                                        className="w-full h-10 bg-neutral-800 border-neutral-700 rounded-md px-3 text-sm focus:ring-2 focus:ring-emerald-500 outline-none"
+                                        required
+                                    >
+                                        <option value="" disabled>Seleziona un badge...</option>
+                                        <option value="leo">🦁 Leone (Energia/Forza)</option>
+                                        <option value="tiger">🐯 Tigre (Coraggio/Poderosa)</option>
+                                        <option value="giraffe">🦒 Giraffa (Sguardo Alto/Prospettiva)</option>
+                                        <option value="elephant">🐘 Elefante (Saggezza/Stabilità)</option>
+                                        <option value="monkey">🐒 Scimmia (Gioia/Flessibilità)</option>
+                                        <option value="wolf">🐺 Lupo (Determinazione/Leadership)</option>
+                                        <option value="fox">🦊 Volpe (Intelligenza/Adattabilità)</option>
+                                        <option value="panda">🐼 Panda (Equilibrio/Gentilezza)</option>
                                     </select>
                                 </div>
                             </div>
