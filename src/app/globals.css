@@ -36,7 +36,7 @@
   --ring: #FBB80F;
 
   /* Shortcut semantici app */
-  --bg: var(--muted);
+  --bg: var(--background);
   --text: var(--foreground);
   --panel: rgba(255, 255, 255, .75); /* pannelli translucidi */
   --brand: #F46530;

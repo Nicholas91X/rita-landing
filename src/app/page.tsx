@@ -7,20 +7,20 @@ import Contact from "@/components/sections/Contact";
 import SideMarquees from "@/components/SideMarquees";
 
 const leftImgs = [
-"/side/left-1.jpg",
-"/side/left-2.jpg",
-"/side/left-3.jpg",
-"/side/left-4.jpg",
-"/side/left-5.jpg",
+  "/side/left-1.jpg",
+  "/side/left-2.jpg",
+  "/side/left-3.jpg",
+  "/side/left-4.jpg",
+  "/side/left-5.jpg",
 ];
 
 
 const rightImgs = [
-"/side/right-1.jpg",
-"/side/right-2.jpg",
-"/side/right-3.jpg",
-"/side/right-4.jpg",
-"/side/right-5.jpg",
+  "/side/right-1.jpg",
+  "/side/right-2.jpg",
+  "/side/right-3.jpg",
+  "/side/right-4.jpg",
+  "/side/right-5.jpg",
 ];
 
 export default function Page() {
@@ -34,14 +34,12 @@ export default function Page() {
         speedSec={22}
       />
 
-      <div className="max-w-6xl mx-auto px-8 md:px-10 lg:px-26 xl:px-26">
-        <Hero />
-        <Metodo />
-        <PerChi />
-        <Storia />
-        <Faq />
-        <Contact />
-      </div>
+      <Hero />
+      <Metodo />
+      <PerChi />
+      <Storia />
+      <Faq />
+      <Contact />
     </main>
   );
 }
