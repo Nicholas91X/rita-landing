@@ -5,5 +5,11 @@ const nextConfig = {
       { protocol: "https", hostname: "lh3.googleusercontent.com", pathname: "/**" },
     ],
   },
+  experimental: {
+    serverActions: {
+      bodySizeLimit: '10mb',
+    },
+  },
 };
+
 export default nextConfig;

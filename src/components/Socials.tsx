@@ -1,4 +1,5 @@
 "use client";
+import { cn } from "@/lib/utils";
 import * as Icons from "lucide-react";
 import { site } from "@/content/it";
 
@@ -40,7 +41,7 @@ export default function Socials({
   if (entries.length === 0) return null;
 
   return (
-    <div className={`flex items-center gap-2 ${className}`}>
+    <div className={cn("flex items-center gap-2", className)}>
       {entries.map(([key, url]) => {
         const Icon = ICONS[key.toLowerCase()];
         if (!Icon) return null;

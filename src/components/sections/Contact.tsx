@@ -1,61 +1,28 @@
 import Section from "../Section";
 import { Button } from "@/components/ui/button";
-import Socials from "../Socials";
 
 export default function Contact() {
   return (
     <Section id="contatti">
-      <div className="grid md:grid-cols-2 gap-8">
-        <div className="pr-2">
-          <h2 className="text-3xl md:text-4xl font-extrabold">Contatti</h2>
-          <div className="mt-4 space-y-2 text-[var(--foreground)]">
-            <p>
-              <strong>Email:</strong>
-              <a
-                className="underline text-[var(--muted-foreground)]"
-                href="mailto:ritazanicchi73@libero.it"
-              >
-                ritazanicchi73@libero.it
-              </a>
-            </p>
-            <p>
-              <strong>Telefono:</strong>
-              <a
-                className="underline text-[var(--muted-foreground)]"
-                href="tel:+393472292627"
-              >
-                +39 347 229 2627
-              </a>
-            </p>
-            <p>
-              <strong>Indirizzo:</strong>
-              <span className="text-[var(--muted-foreground)]">
-                Palestra Pegaso · Via Ameglia, 74 · Romito Magra (SP) 19021
-              </span>
-            </p>
-            <Button asChild className="mt-2">
-              <a
-                className="inline-flex items-center rounded-full px-5 py-3 text-sm font-medium
-               bg-[var(--primary)] text-[var(--primary-foreground)] hover:opacity-90 border-1 border-black"
-                href="https://wa.me/393472292627?text=Ciao%20Rita%21%20Vorrei%20una%20consulenza."
-              >
-                Scrivimi su WhatsApp
-              </a>
-            </Button>
+      <div className="max-w-2xl mx-auto text-center space-y-8">
+        <h2 className="text-3xl md:text-4xl font-extrabold text-[var(--foreground)]">Contatti</h2>
 
-            <div className="mt-4">
-              <Socials variant="dark" />
-            </div>
-          </div>
-        </div>
-        <div className="h-72 rounded-3xl border border-[var(--border)] bg-[var(--panel)] p-2">
-          <iframe
-            title="Mappa Palestra Pegaso"
-            className="w-full h-full rounded-2xl"
-            loading="lazy"
-            referrerPolicy="no-referrer-when-downgrade"
-            src="https://www.google.com/maps?q=Via%20Ameglia%2C%2074%2C%20Romito%20Magra%20(SP)&output=embed"
-          />
+        <p className="text-lg md:text-xl text-[var(--muted-foreground)] leading-relaxed">
+          Se hai dubbi o domande, scrivimi pure. <br />
+          Sarò lieta di risponderti ☺️
+        </p>
+
+        <div className="flex justify-center">
+          <Button asChild size="lg" className="rounded-full px-8 py-6 text-lg bg-[var(--brand)] hover:bg-[var(--brand-2)] text-white shadow-xl shadow-[var(--brand)]/20 transition-all hover:-translate-y-1">
+            <a
+              href="https://wa.me/393472292627?text=Ciao%20Rita%21%20Vorrei%20una%20consulenza."
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2"
+            >
+              Scrivimi su WhatsApp
+            </a>
+          </Button>
         </div>
       </div>
     </Section>

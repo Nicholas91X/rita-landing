@@ -4,9 +4,11 @@ import { useMemo, useState } from "react";
 function previewHtmlKeepStrong(html: string, maxWords: number) {
   const openTag = "__STRONG_OPEN__";
   const closeTag = "__STRONG_CLOSE__";
+  const brTag = "__BR__";
   const marked = html
     .replace(/<strong[^>]*>/gi, openTag)
     .replace(/<\/strong>/gi, closeTag)
+    .replace(/<br\s*\/?>/gi, brTag)
     .replace(/<[^>]*>/g, " "); // drop others
   const words = marked.replace(/\s+/g, " ").trim().split(" ");
   const sliced =
@@ -15,7 +17,8 @@ function previewHtmlKeepStrong(html: string, maxWords: number) {
       : words.join(" ");
   return sliced
     .replaceAll(openTag, '<strong style="color: var(--foreground)">')
-    .replaceAll(closeTag, "</strong>");
+    .replaceAll(closeTag, "</strong>")
+    .replaceAll(brTag, "<br />");
 }
 
 export default function CollapsibleHtml({
@@ -23,11 +26,13 @@ export default function CollapsibleHtml({
   maxWords = 90,
   moreLabel = "Leggi di più",
   lessLabel = "Leggi meno",
+  textColor = "text-[var(--muted-foreground)]",
 }: {
   html: string;
   maxWords?: number;
   moreLabel?: string;
   lessLabel?: string;
+  textColor?: string;
 }) {
   const [open, setOpen] = useState(false);
   const preview = useMemo(
@@ -37,7 +42,7 @@ export default function CollapsibleHtml({
 
   return (
     <div>
-      <div className="leading-relaxed text-[var(--muted-foreground)] richtext">
+      <div className={`leading-relaxed ${textColor} richtext`}>
         {open ? (
           <div dangerouslySetInnerHTML={{ __html: html }} />
         ) : (

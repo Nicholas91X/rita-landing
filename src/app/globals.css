@@ -5,8 +5,10 @@
    =========================== */
 :root {
   /* Base */
-  --background: #FFFCFC;   /* off-white */
-  --foreground: #2A2E30;   /* charcoal */
+  --background: #FFFCFC;
+  /* off-white */
+  --foreground: #2A2E30;
+  /* charcoal */
 
   /* Surfaces */
   --card: #FFFFFF;
@@ -15,19 +17,25 @@
   --popover-foreground: #2A2E30;
 
   /* Brand */
-  --primary: #F46530;              /* Orange A */
+  --primary: #F46530;
+  /* Orange A */
   --primary-foreground: #FFFFFF;
-  --secondary: #001F3D;            /* Navy */
+  --secondary: #001F3D;
+  /* Navy */
   --secondary-foreground: #FFFFFF;
 
   /* Muted / Accent */
-  --muted: #B4A697;                /* Taupe (bg soft) */
-  --muted-foreground: #ffffffda;     /* Testi attenuati */
-  --accent: #FBB80F;               /* Yellow */
+  --muted: #B4A697;
+  /* Taupe (bg soft) */
+  --muted-foreground: #64748b;
+  /* Testi attenuati */
+  --accent: #FBB80F;
+  /* Yellow */
   --accent-foreground: #001F3D;
 
   /* Stato */
-  --destructive: #EC732C;          /* Orange B */
+  --destructive: #EC732C;
+  /* Orange B */
   --destructive-foreground: #FFFFFF;
 
   /* Contorni / input / focus */
@@ -36,9 +44,10 @@
   --ring: #FBB80F;
 
   /* Shortcut semantici app */
-  --bg: var(--muted);
+  --bg: var(--background);
   --text: var(--foreground);
-  --panel: rgba(255, 255, 255, .75); /* pannelli translucidi */
+  --panel: rgba(255, 255, 255, .75);
+  /* pannelli translucidi */
   --brand: #F46530;
   --brand-2: #EC732C;
   --navy: #001F3D;
@@ -51,7 +60,9 @@
 /* ===========================
    BASE
    =========================== */
-html { scroll-behavior: smooth; }
+html {
+  scroll-behavior: smooth;
+}
 
 body {
   background: var(--bg);
@@ -60,7 +71,8 @@ body {
 
 /* Selection leggera sul primary */
 ::selection {
-  background: rgba(244, 101, 48, 0.2); /* #F46530 @20% */
+  background: rgba(244, 101, 48, 0.2);
+  /* #F46530 @20% */
 }
 
 /* ===========================
@@ -77,7 +89,9 @@ body {
   font-weight: 800;
 }
 
-.lead { color: var(--muted-foreground); }
+.lead {
+  color: var(--muted-foreground);
+}
 
 .panel {
   background: var(--panel);
@@ -85,8 +99,13 @@ body {
   border-radius: var(--radius);
 }
 
-.ts-white { text-shadow: 0 2px 8px rgba(255,255,255,.35); }
-.ts-black { text-shadow: 0 2px 8px rgba(0,0,0,.25); }
+.ts-white {
+  text-shadow: 0 2px 8px rgba(255, 255, 255, .35);
+}
+
+.ts-black {
+  text-shadow: 0 2px 8px rgba(0, 0, 0, .25);
+}
 
 /* Offset per header sticky */
 .section {
@@ -95,20 +114,29 @@ body {
 }
 
 /* Utility mini */
-.token-panel { background: var(--panel); border-color: var(--border); }
-.token-brand { color: var(--brand); }
+.token-panel {
+  background: var(--panel);
+  border-color: var(--border);
+}
+
+.token-brand {
+  color: var(--brand);
+}
 
 /* ===========================
    SIDE MARQUEE (colonne foto laterali)
    =========================== */
-.side-marquee { pointer-events: none; }
+.side-marquee {
+  pointer-events: none;
+}
+
 .side-marquee__mask {
   position: absolute;
   inset: 0;
   overflow: hidden;
   /* fade morbido su top/bottom */
   -webkit-mask-image: linear-gradient(to bottom, transparent 0%, #000 10%, #000 90%, transparent 100%);
-          mask-image: linear-gradient(to bottom, transparent 0%, #000 10%, #000 90%, transparent 100%);
+  mask-image: linear-gradient(to bottom, transparent 0%, #000 10%, #000 90%, transparent 100%);
 }
 
 /* Il container scorre metà altezza (track duplicato) */
@@ -120,15 +148,50 @@ body {
   gap: var(--marquee-gap, 12px);
   animation: marquee-up var(--marquee-duration, 22s) linear infinite;
 }
-.marquee--reverse { animation-name: marquee-down; }
 
-.scrollbar-none { -ms-overflow-style: none; scrollbar-width: none; }
-.scrollbar-none::-webkit-scrollbar { display: none; }
+.marquee--reverse {
+  animation-name: marquee-down;
+}
 
-.richtext strong { color: var(--foreground); }
+.scrollbar-none {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
 
-.tw-caret { animation: tw-blink 1s steps(1, end) infinite; }
-@keyframes tw-blink { 50% { opacity: 0; } }
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
+}
 
-@keyframes marquee-up   { from { transform: translateY(0);    } to { transform: translateY(-50%); } }
-@keyframes marquee-down { from { transform: translateY(-50%); } to { transform: translateY(0);    } }
+.richtext strong {
+  color: var(--foreground);
+}
+
+.tw-caret {
+  animation: tw-blink 1s steps(1, end) infinite;
+}
+
+@keyframes tw-blink {
+  50% {
+    opacity: 0;
+  }
+}
+
+@keyframes marquee-up {
+  from {
+    transform: translateY(0);
+  }
+
+  to {
+    transform: translateY(-50%);
+  }
+}
+
+@keyframes marquee-down {
+  from {
+    transform: translateY(-50%);
+  }
+
+  to {
+    transform: translateY(0);
+  }
+}
