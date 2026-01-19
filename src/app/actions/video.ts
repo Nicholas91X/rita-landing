@@ -300,3 +300,71 @@ export async function getLibraryProgress() {
 
     return libraryProgress
 }
+
+export async function reconcileUserBadges(userId: string) {
+    const supabase = await createClient()
+
+    // 1. Get all active packages for the user
+    const { data: subs } = await supabase
+        .from('user_subscriptions')
+        .select('package_id')
+        .eq('user_id', userId)
+        .in('status', ['active', 'trialing'])
+
+    if (!subs || subs.length === 0) return
+
+    const packageIds = subs.map(s => s.package_id)
+
+    // 2. Get already earned badges
+    const { data: existingBadges } = await supabase
+        .from('user_badges')
+        .select('package_id')
+        .eq('user_id', userId)
+
+    const earnedPackageIds = new Set(existingBadges?.map(b => b.package_id) || [])
+
+    // 3. Check unearned packages
+    const unearnedPackageIds = packageIds.filter(id => !earnedPackageIds.has(id))
+
+    for (const pkgId of unearnedPackageIds) {
+        // Find if all videos are completed
+        const { data: pkgVideos } = await supabase
+            .from('videos')
+            .select('id')
+            .eq('package_id', pkgId)
+
+        if (!pkgVideos || pkgVideos.length === 0) continue
+
+        const videoIds = pkgVideos.map(v => v.id)
+        const { data: completedProgress } = await supabase
+            .from('video_watch_progress')
+            .select('video_id')
+            .eq('user_id', userId)
+            .in('video_id', videoIds)
+            .eq('is_completed', true)
+
+        if (completedProgress?.length === pkgVideos.length) {
+            // Award badge (borrow logic from checkAndAwardPackageBadge)
+            const { data: pkg } = await supabase
+                .from('packages')
+                .select('name, badge_type')
+                .eq('id', pkgId)
+                .single()
+
+            if (pkg && pkg.badge_type) {
+                await supabase.from('user_badges').upsert({
+                    user_id: userId,
+                    package_id: pkgId,
+                    badge_type: pkg.badge_type
+                }, { onConflict: 'user_id,package_id' })
+
+                await supabase.from('user_notifications').insert({
+                    user_id: userId,
+                    title: '🎉 Nuovo Badge Sbloccato!',
+                    message: `Complimenti! Hai completato tutti i video di "${pkg.name}" e hai ottenuto il badge ${pkg.badge_type.toUpperCase()}.`,
+                    type: 'achievement'
+                })
+            }
+        }
+    }
+}

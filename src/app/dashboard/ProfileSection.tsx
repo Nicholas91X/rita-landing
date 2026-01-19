@@ -351,31 +351,36 @@ export default function ProfileSection({ onProfileUpdate }: { onProfileUpdate?: 
                 </div>
 
                 {userData?.badges?.length > 0 ? (
-                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 md:gap-6">
                         {userData.badges.map((badge: any) => (
-                            <div key={badge.id} className="group relative">
-                                <Card className="bg-white/5 border-white/10 backdrop-blur-md rounded-3xl p-6 flex flex-col items-center justify-center text-center hover:border-[var(--brand)]/50 transition-all duration-500 hover:scale-105 hover:shadow-[0_20px_50px_rgba(244,101,48,0.15)] overflow-hidden">
-                                    <div className="absolute inset-0 bg-gradient-to-b from-[var(--brand)]/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                            <div key={badge.id} className="group relative aspect-square">
+                                <Card className="w-full h-full bg-white/[0.03] border-white/5 backdrop-blur-xl rounded-full p-4 md:p-6 flex flex-col items-center justify-center text-center hover:border-[var(--brand)]/40 transition-all duration-700 hover:scale-[1.03] hover:shadow-[0_25px_60px_-15px_rgba(244,101,48,0.2)] overflow-hidden">
 
-                                    <div className="w-16 h-16 rounded-2xl bg-[var(--brand)]/10 flex items-center justify-center text-4xl mb-4 relative z-10 shadow-inner">
-                                        {badge.badge_type === 'leo' && '🦁'}
-                                        {badge.badge_type === 'tiger' && '🐯'}
-                                        {badge.badge_type === 'giraffe' && '🦒'}
-                                        {badge.badge_type === 'elephant' && '🐘'}
-                                        {badge.badge_type === 'monkey' && '🐵'}
-                                        {badge.badge_type === 'wolf' && '🐺'}
-                                        {badge.badge_type === 'fox' && '🦊'}
-                                        {badge.badge_type === 'panda' && '🐼'}
-                                        {!['leo', 'tiger', 'giraffe', 'elephant', 'monkey', 'wolf', 'fox', 'panda'].includes(badge.badge_type) && '🏅'}
+                                    {/* Animated Ring Decor */}
+                                    <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-700">
+                                        <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(circle_at_50%_0%,rgba(244,101,48,0.15),transparent_70%)]" />
                                     </div>
 
-                                    <div className="relative z-10">
-                                        <h4 className="text-white font-bold text-sm mb-1 capitalize">{badge.badge_type}</h4>
-                                        <p className="text-[10px] text-neutral-500 font-medium uppercase tracking-wider">{badge.packages?.name}</p>
+                                    <div className="relative z-10 w-12 h-12 md:w-16 md:h-16 rounded-full bg-gradient-to-br from-neutral-800 to-neutral-900 flex items-center justify-center text-2xl md:text-4xl mb-2 shadow-[0_10px_30px_-5px_rgba(0,0,0,0.5)] border border-white/10 group-hover:border-[var(--brand)]/30 transition-colors duration-500">
+                                        <div className="absolute inset-0 rounded-full bg-[var(--brand)]/5 group-hover:animate-pulse" />
+                                        <span className="relative drop-shadow-[0_0_10px_rgba(255,255,255,0.2)]">
+                                            {badge.badge_type === 'leo' && '🦁'}
+                                            {badge.badge_type === 'tiger' && '🐯'}
+                                            {badge.badge_type === 'giraffe' && '🦒'}
+                                            {badge.badge_type === 'elephant' && '🐘'}
+                                            {badge.badge_type === 'monkey' && '🐵'}
+                                            {badge.badge_type === 'wolf' && '🐺'}
+                                            {badge.badge_type === 'fox' && '🦊'}
+                                            {badge.badge_type === 'panda' && '🐼'}
+                                            {!['leo', 'tiger', 'giraffe', 'elephant', 'monkey', 'wolf', 'fox', 'panda'].includes(badge.badge_type) && '🏅'}
+                                        </span>
                                     </div>
 
-                                    <div className="mt-3 text-[9px] text-[var(--brand)] font-black uppercase tracking-[0.2em] opacity-0 group-hover:opacity-100 transition-all transform translate-y-2 group-hover:translate-y-0">
-                                        Sbloccato
+                                    <div className="relative z-10 space-y-0.5">
+                                        <h4 className="text-white font-black text-[10px] md:text-xs uppercase tracking-[0.1em] group-hover:text-[var(--brand)] transition-colors line-clamp-1">{badge.badge_type}</h4>
+                                        <p className="text-[7px] md:text-[8px] text-neutral-500 font-bold uppercase tracking-widest leading-tight line-clamp-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                            {badge.packages?.name}
+                                        </p>
                                     </div>
                                 </Card>
                             </div>

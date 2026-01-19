@@ -3,6 +3,7 @@
 import { createClient } from '@/utils/supabase/server'
 import { redirect } from 'next/navigation'
 import Stripe from 'stripe'
+import { reconcileUserBadges } from './video'
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', {
     apiVersion: '2025-12-15.clover',
@@ -153,6 +154,9 @@ export async function getUserProfile() {
     const { data: { user } } = await supabase.auth.getUser()
 
     if (!user) redirect('/login')
+
+    // Self-healing: Ensure badges are up to date with progress
+    await reconcileUserBadges(user.id)
 
     const { data: profile } = await supabase
         .from('profiles')

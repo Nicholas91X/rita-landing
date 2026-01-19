@@ -1,7 +1,8 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Bell, CheckCircle2, XCircle, Clock } from 'lucide-react'
+import { Bell, CheckCircle2, XCircle, Clock, Trophy } from 'lucide-react'
+import { useRouter } from 'next/navigation'
 import { getUserNotifications, markUserNotificationAsRead } from '@/app/actions/user'
 import {
     DropdownMenu,
@@ -16,11 +17,14 @@ import { cn } from '@/lib/utils'
 export function NotificationBell() {
     const [notifications, setNotifications] = useState<any[]>([])
     const [unreadCount, setUnreadCount] = useState(0)
+    const router = useRouter()
 
     const fetchNotifications = async () => {
         const data = await getUserNotifications()
-        setNotifications(data)
-        setUnreadCount(data.filter((n: any) => !n.is_read).length)
+        // Only show unread notifications
+        const unread = data.filter((n: any) => !n.is_read)
+        setNotifications(unread)
+        setUnreadCount(unread.length)
     }
 
     useEffect(() => {
@@ -33,10 +37,15 @@ export function NotificationBell() {
     const handleMarkAsRead = async (id: string, e: React.MouseEvent) => {
         e.preventDefault()
         e.stopPropagation()
+
+        // Optimistic update
+        setNotifications(prev => prev.filter(n => n.id !== id))
+        setUnreadCount(prev => Math.max(0, prev - 1))
+
         const { success } = await markUserNotificationAsRead(id)
-        if (success) {
-            setNotifications(prev => prev.map(n => n.id === id ? { ...n, is_read: true } : n))
-            setUnreadCount(prev => Math.max(0, prev - 1))
+        if (!success) {
+            // Revert if failed
+            fetchNotifications()
         }
     }
 
@@ -59,41 +68,46 @@ export function NotificationBell() {
                 </div>
                 <div className="max-h-96 overflow-y-auto space-y-1">
                     {notifications.length === 0 ? (
-                        <div className="px-3 py-8 text-center">
+                        <div className="px-3 py-8 text-center text-white/50">
                             <Clock className="w-8 h-8 text-neutral-600 mx-auto mb-2 opacity-20" />
-                            <p className="text-xs text-neutral-500 font-medium">Nessuna notifica</p>
+                            <p className="text-xs font-medium">Nessuna nuova notifica</p>
                         </div>
                     ) : (
                         notifications.map((n) => (
                             <DropdownMenuItem
                                 key={n.id}
-                                className={cn(
-                                    "flex flex-col items-start gap-1 p-3 rounded-xl transition-all cursor-default focus:bg-white/5",
-                                    !n.is_read && "bg-white/5 border-l-2 border-brand"
-                                )}
+                                onSelect={async () => {
+                                    // Mark as read and then redirect
+                                    await markUserNotificationAsRead(n.id)
+                                    router.push('/dashboard?tab=profile')
+                                    fetchNotifications() // Update locally
+                                }}
+                                className="flex flex-col items-start gap-1 p-3 rounded-xl transition-all cursor-pointer focus:bg-white/10 bg-white/5 border-l-2 border-brand"
                             >
-                                <div className="flex w-full items-start justify-between gap-2">
-                                    <div className="flex items-start gap-2">
-                                        {n.type === 'refund_approved' ? (
-                                            <CheckCircle2 className="w-4 h-4 text-green-500 mt-0.5 shrink-0" />
-                                        ) : (
-                                            <XCircle className="w-4 h-4 text-red-500 mt-0.5 shrink-0" />
-                                        )}
-                                        <div className="flex flex-col gap-0.5">
-                                            <span className="text-[11px] font-black uppercase text-white leading-tight">{n.title}</span>
+                                <div className="flex w-full items-start justify-between gap-3">
+                                    <div className="flex items-start gap-3 flex-1 min-w-0">
+                                        <div className="mt-1 shrink-0">
+                                            {n.type === 'achievement' ? (
+                                                <Trophy className="w-4 h-4 text-yellow-500" />
+                                            ) : n.type === 'refund_approved' ? (
+                                                <CheckCircle2 className="w-4 h-4 text-green-500" />
+                                            ) : (
+                                                <XCircle className="w-4 h-4 text-red-500" />
+                                            )}
+                                        </div>
+                                        <div className="flex flex-col gap-0.5 min-w-0 flex-1">
+                                            <span className="text-[11px] font-black uppercase text-white leading-tight break-words">{n.title}</span>
                                             <p className="text-[11px] text-neutral-300 leading-snug line-clamp-3">
                                                 {n.message}
                                             </p>
                                         </div>
                                     </div>
-                                    {!n.is_read && (
-                                        <button
-                                            onClick={(e) => handleMarkAsRead(n.id, e)}
-                                            className="text-[9px] font-black uppercase text-brand hover:text-white transition-colors underline underline-offset-2 shrink-0"
-                                        >
-                                            Letta
-                                        </button>
-                                    )}
+                                    <button
+                                        onClick={(e) => handleMarkAsRead(n.id, e)}
+                                        className="text-[9px] font-black uppercase text-white hover:text-white transition-all bg-white/5 hover:bg-brand/20 px-2 py-1 rounded-md border border-brand/20 shrink-0 self-start"
+                                    >
+                                        Letta
+                                    </button>
                                 </div>
                                 <span className="text-[9px] text-neutral-500 font-bold mt-1 uppercase">
                                     {new Date(n.created_at).toLocaleDateString('it-IT')}
