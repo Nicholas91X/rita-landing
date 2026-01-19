@@ -47,7 +47,7 @@ export function CheckoutConfirmationModal({
                             Conferma Abbonamento
                         </DialogTitle>
                         <DialogDescription className="text-neutral-400 text-base leading-relaxed">
-                            Stai per sbloccare il pacchetto <span className="text-white font-bold">"{packageName}"</span>.
+                            Stai per sbloccare il pacchetto <span className="text-white font-bold">&quot;{packageName}&quot;</span>.
                         </DialogDescription>
                     </DialogHeader>
 

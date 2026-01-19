@@ -30,20 +30,36 @@ import {
 } from "@/components/ui/dialog"
 import { Badge } from '@/components/ui/badge'
 
+interface AdminUser {
+    id: string
+    email: string
+    full_name: string
+    avatar_url?: string | null
+    total_operations: number
+}
+
+interface HistoryOperation {
+    type: 'subscription' | 'refund_request' | 'purchase'
+    title: string
+    date: string
+    status: string
+    amount: number
+}
+
 export default function AdminUsers() {
-    const [users, setUsers] = useState<any[]>([])
+    const [users, setUsers] = useState<AdminUser[]>([])
     const [loading, setLoading] = useState(true)
     const [searchTerm, setSearchTerm] = useState('')
-    const [selectedUser, setSelectedUser] = useState<any>(null)
-    const [history, setHistory] = useState<any[]>([])
+    const [selectedUser, setSelectedUser] = useState<AdminUser | null>(null)
+    const [history, setHistory] = useState<HistoryOperation[]>([])
     const [loadingHistory, setLoadingHistory] = useState(false)
 
     // Pagination constants
     const ITEMS_PER_PAGE = 10
 
     // Pagination state
-    const [currentPage, setCurrentPage] = useState(1)
-    const [historyPage, setHistoryPage] = useState(1)
+    const [currentPage, setCurrentPage] = useState<number>(1)
+    const [historyPage, setHistoryPage] = useState<number>(1)
 
     useEffect(() => {
         loadUsers()
@@ -63,7 +79,7 @@ export default function AdminUsers() {
         setLoading(true)
         try {
             const data = await getAdminUsers()
-            setUsers(data || [])
+            setUsers((data as AdminUser[]) || [])
         } catch (error) {
             console.error('Failed to load users:', error)
         } finally {
@@ -71,12 +87,12 @@ export default function AdminUsers() {
         }
     }
 
-    async function viewHistory(user: any) {
+    async function viewHistory(user: AdminUser) {
         setSelectedUser(user)
         setLoadingHistory(true)
         try {
             const data = await getUserHistory(user.id)
-            setHistory(data || [])
+            setHistory((data as HistoryOperation[]) || [])
         } catch (error) {
             console.error('Failed to load history:', error)
         } finally {

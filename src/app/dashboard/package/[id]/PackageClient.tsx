@@ -2,9 +2,9 @@
 
 import { useState, useRef, useEffect, useCallback } from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 import { ChevronLeft, PlayCircle, CheckCircle2, Clock, Loader2 } from 'lucide-react'
 import VideoPlayer from '@/components/video/VideoPlayer'
-import Section from '@/components/Section'
 import { getAllPackageProgress } from '@/app/actions/video'
 
 type Video = {
@@ -37,7 +37,7 @@ export default function PackageClient({ pkg, videos }: { pkg: Package, videos: V
         try {
             const data = await getAllPackageProgress(pkg.id)
             const map: Record<string, WatchProgress> = {}
-            data.forEach((item: any) => {
+            data.forEach((item: WatchProgress) => {
                 map[item.video_id] = item
             })
             setProgressData(map)
@@ -229,21 +229,15 @@ export default function PackageClient({ pkg, videos }: { pkg: Package, videos: V
                                                     <div className="flex items-start gap-4">
                                                         {/* Thumbnail or Status Icon */}
                                                         <div className="relative shrink-0">
-                                                            <div className={`h-16 w-24 rounded-lg overflow-hidden border border-white/5 relative ${isActive ? 'ring-2 ring-[var(--brand)]' : 'group-hover:ring-1 group-hover:ring-white/20'}`}>
+                                                            <div className={`relative h-16 w-24 rounded-lg overflow-hidden border border-white/5 ${isActive ? 'ring-2 ring-[var(--brand)]' : 'group-hover:ring-1 group-hover:ring-white/20'}`}>
                                                                 <div className="absolute inset-0 bg-neutral-800" />
-                                                                <img
+                                                                <Image
                                                                     src={`https://${process.env.NEXT_PUBLIC_BUNNY_CDN_HOSTNAME}/${v.bunny_video_id}/preview.webp`}
                                                                     alt={v.title}
                                                                     className={`w-full h-full object-cover transition-opacity duration-300 ${isDone ? 'opacity-50' : 'opacity-100'}`}
-                                                                    onError={(e) => {
-                                                                        const target = e.currentTarget;
-                                                                        if (target.src.includes('preview.webp')) {
-                                                                            target.src = target.src.replace('preview.webp', 'thumbnail.jpg');
-                                                                        } else {
-                                                                            target.style.display = 'none';
-                                                                            target.parentElement?.classList.add('fallback-icon-container');
-                                                                        }
-                                                                    }}
+                                                                    loading="lazy"
+                                                                    fill
+                                                                    sizes="96px"
                                                                 />
                                                                 <div className="absolute inset-0 flex items-center justify-center">
                                                                     {isDone ? (

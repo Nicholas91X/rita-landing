@@ -1,5 +1,7 @@
 ﻿import type { Metadata } from "next";
 import Section from "@/components/Section";
+import { Button } from "@/components/ui/button"
+import Image from "next/image";
 import {
   Card,
   CardContent,
@@ -135,11 +137,14 @@ export default async function PackagesPage() {
               >
                 <div className="h-40 w-full relative overflow-hidden">
                   {pkg.image_url ? (
-                    <img
-                      src={pkg.image_url}
-                      alt={pkg.name}
-                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                    />
+                    <div className="relative w-full aspect-video">
+                      <Image
+                        src={pkg.image_url || "https://images.unsplash.com/photo-1518611012118-696072aa579a?q=80&w=2070&auto=format&fit=crop"}
+                        alt={pkg.name}
+                        fill
+                        className="object-cover group-hover:scale-110 transition-transform duration-700"
+                      />
+                    </div>
                   ) : (
                     <div className="w-full h-full bg-neutral-900/50 flex items-center justify-center">
                       <Dumbbell className="w-10 h-10 text-white/5" />

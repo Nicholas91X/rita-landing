@@ -111,7 +111,7 @@ export default function VideoPlayer({ videoId, initialTime = 0, onProgressUpdate
                 if (typeof data === 'string' && (data.includes('{') || data.includes('player.js'))) {
                     try {
                         data = JSON.parse(data)
-                    } catch (_e) {
+                    } catch {
                         return
                     }
                 }
@@ -179,12 +179,12 @@ export default function VideoPlayer({ videoId, initialTime = 0, onProgressUpdate
                             await saveVideoProgress(videoId, finalDuration, finalDuration)
                             setStatus('connected')
                             onProgressUpdateRef.current?.()
-                        } catch (_err) {
+                        } catch {
                             setStatus('error')
                         }
                     }
                 }
-            } catch (_e) {
+            } catch {
                 // Silent
             }
         }
