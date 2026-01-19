@@ -12,17 +12,24 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { cn } from '@/lib/utils'
+interface UserNotification {
+    id: string
+    type: 'achievement' | 'refund_approved' | 'refund_rejected' | string
+    title: string
+    message: string
+    is_read: boolean
+    created_at: string
+}
 
 export function NotificationBell() {
-    const [notifications, setNotifications] = useState<any[]>([])
+    const [notifications, setNotifications] = useState<UserNotification[]>([])
     const [unreadCount, setUnreadCount] = useState(0)
     const router = useRouter()
 
     const fetchNotifications = async () => {
         const data = await getUserNotifications()
         // Only show unread notifications
-        const unread = data.filter((n: any) => !n.is_read)
+        const unread = data.filter((n: UserNotification) => !n.is_read)
         setNotifications(unread)
         setUnreadCount(unread.length)
     }

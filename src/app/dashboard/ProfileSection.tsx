@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import Image from 'next/image'
 import { getUserProfile, updateProfile, updateEmail, updatePassword } from '@/app/actions/user'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -11,8 +12,32 @@ import { createClient } from '@/utils/supabase/client'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
 
+interface Profile {
+    id: string
+    full_name: string | null
+    avatar_url: string | null
+    has_used_trial: boolean
+}
+
+interface Badge {
+    id: string
+    badge_type: string
+    packages: {
+        name: string
+    }
+}
+
+interface UserProfileData {
+    user: {
+        email?: string
+    }
+    profile: Profile
+    activeSubscriptions: any[]
+    badges: Badge[]
+}
+
 export default function ProfileSection({ onProfileUpdate }: { onProfileUpdate?: () => void }) {
-    const [userData, setUserData] = useState<any>(null)
+    const [userData, setUserData] = useState<UserProfileData | null>(null)
     const [loading, setLoading] = useState(true)
     const [isEditing, setIsEditing] = useState(false)
     const [saving, setSaving] = useState(false)
@@ -93,8 +118,9 @@ export default function ProfileSection({ onProfileUpdate }: { onProfileUpdate?: 
             toast.success('Email aggiornata! Controlla la tua casella di posta per confermare.')
             setIsEmailDialogOpen(false)
             setEmailForm({ email: '' })
-        } catch (error: any) {
-            toast.error(error.message || 'Errore durante l\'aggiornamento dell\'email')
+        } catch (error: unknown) {
+            const message = error instanceof Error ? error.message : 'Errore durante l\'aggiornamento dell\'email'
+            toast.error(message)
         } finally {
             setSaving(false)
         }
@@ -115,8 +141,9 @@ export default function ProfileSection({ onProfileUpdate }: { onProfileUpdate?: 
             toast.success('Password aggiornata con successo')
             setIsPasswordDialogOpen(false)
             setPasswordForm({ password: '', confirmPassword: '' })
-        } catch (error: any) {
-            toast.error(error.message || 'Errore durante l\'aggiornamento della password')
+        } catch (error: unknown) {
+            const message = error instanceof Error ? error.message : 'Errore durante l\'aggiornamento della password'
+            toast.error(message)
         } finally {
             setSaving(false)
         }
@@ -160,10 +187,12 @@ export default function ProfileSection({ onProfileUpdate }: { onProfileUpdate?: 
                         <div className="relative group cursor-pointer" onClick={() => isEditing && document.getElementById('avatar-upload')?.click()}>
                             {userData?.profile?.avatar_url || formData.avatar ? (
                                 <div className="w-32 h-32 rounded-full border-4 border-[var(--brand)]/20 overflow-hidden mb-6 shadow-2xl">
-                                    <img
-                                        src={formData.avatar ? URL.createObjectURL(formData.avatar) : userData?.profile?.avatar_url}
+                                    <Image
+                                        src={formData.avatar ? URL.createObjectURL(formData.avatar) : (userData?.profile?.avatar_url || '')}
                                         alt="Profile"
                                         className="w-full h-full object-cover"
+                                        fill
+                                        sizes="128px"
                                     />
                                 </div>
                             ) : (
@@ -208,7 +237,7 @@ export default function ProfileSection({ onProfileUpdate }: { onProfileUpdate?: 
                                 variant="destructive"
                                 className="w-full h-12 rounded-2xl bg-rose-500/10 hover:bg-rose-500 text-rose-500 hover:text-white border border-rose-500/20 transition-all font-bold flex items-center gap-2"
                             >
-                                <LogOut className="w-4 h-4" /> Esci dall'Area Riservata
+                                <LogOut className="w-4 h-4" /> Esci dall&apos;Area Riservata
                             </Button>
                         </div>
                     </Card>
@@ -328,7 +357,7 @@ export default function ProfileSection({ onProfileUpdate }: { onProfileUpdate?: 
                                     <div>
                                         <h4 className="text-white font-bold text-sm">Sicurezza Account</h4>
                                         <p className="text-white/60 text-xs mt-1 leading-relaxed">
-                                            Ti consigliamo di utilizzare una password sicura e unica. Se cambi l'email, dovrai verificarla nuovamente per accedere.
+                                            Ti consigliamo di utilizzare una password sicura e unica. Se cambi l&apos;email, dovrai verificarla nuovamente per accedere.
                                         </p>
                                     </div>
                                 </div>
@@ -350,9 +379,9 @@ export default function ProfileSection({ onProfileUpdate }: { onProfileUpdate?: 
                     </div>
                 </div>
 
-                {userData?.badges?.length > 0 ? (
+                {userData && userData.badges && userData.badges.length > 0 ? (
                     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 md:gap-6">
-                        {userData.badges.map((badge: any) => (
+                        {userData.badges.map((badge) => (
                             <div key={badge.id} className="group relative aspect-square">
                                 <Card className="w-full h-full bg-white/[0.03] border-white/5 backdrop-blur-xl rounded-full p-4 md:p-6 flex flex-col items-center justify-center text-center hover:border-[var(--brand)]/40 transition-all duration-700 hover:scale-[1.03] hover:shadow-[0_25px_60px_-15px_rgba(244,101,48,0.2)] overflow-hidden">
 

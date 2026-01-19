@@ -1,6 +1,6 @@
 ﻿import type { Metadata } from "next";
 import Section from "@/components/Section";
-import { Button } from "@/components/ui/button"
+
 import Image from "next/image";
 import {
   Card,

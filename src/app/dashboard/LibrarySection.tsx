@@ -1,7 +1,7 @@
 'use client'
 
 import { Level } from '@/app/actions/content'
-import { Card, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
 import Image from 'next/image'
@@ -110,10 +110,12 @@ export default function LibrarySection({
                                                 <Card key={pkg.id} className="bg-white/10 border-white/10 backdrop-blur-md shadow-2xl overflow-hidden group hover:border-[var(--brand)]/40 transition-all duration-300 rounded-[32px] flex flex-col">
                                                     <div className="h-40 w-full relative overflow-hidden">
                                                         {pkg.image_url ? (
-                                                            <img
+                                                            <Image
                                                                 src={pkg.image_url}
                                                                 alt={pkg.name}
                                                                 className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                                                                fill
+                                                                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                                                             />
                                                         ) : (
                                                             <div className="w-full h-full bg-neutral-800 flex items-center justify-center opacity-80">
