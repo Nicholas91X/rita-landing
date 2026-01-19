@@ -6,7 +6,7 @@ import { redirect } from 'next/navigation'
 import { headers } from 'next/headers'
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || 'sk_test_placeholder', {
-    apiVersion: '2025-12-15.clover',
+    apiVersion: '2025-12-15.clover' as unknown as Stripe.LatestApiVersion,
 })
 
 export async function createCheckoutSession(packageId: string) {
