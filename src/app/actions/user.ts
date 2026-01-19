@@ -9,6 +9,23 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', {
     apiVersion: '2025-12-15.clover',
 })
 
+interface UserDocument {
+    id: string
+    type: 'invoice' | 'credit_note'
+    number: string
+    date: number
+    amount: number
+    currency: string
+    url: string | null
+    status: string | null
+}
+
+interface ProfileUpdates {
+    updated_at: string
+    full_name?: string
+    avatar_url?: string
+}
+
 export async function getUserSubscriptionInfo() {
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
@@ -46,7 +63,7 @@ export async function getUserSubscriptionInfo() {
 
     // Map and fetch receipts from Stripe
     const subsWithDetailedInfo = await Promise.all(subs.map(async (sub) => {
-        let documents: any[] = []
+        let documents: UserDocument[] = []
         let customerId = sub.stripe_customer_id
 
         // Fallback: If customer_id is missing but subscription_id exists, fetch it from Stripe
@@ -82,7 +99,7 @@ export async function getUserSubscriptionInfo() {
         if (customerId) {
             try {
                 // Fetch invoices for this specific subscription if available
-                const invoiceFetchOptions: any = {
+                const invoiceFetchOptions: Stripe.InvoiceListParams = {
                     customer: customerId,
                     limit: 20,
                 }
@@ -102,24 +119,24 @@ export async function getUserSubscriptionInfo() {
                 const invoiceIds = invoices.data.map(i => i.id)
 
                 // Map invoices to documents
-                const invoiceDocs = invoices.data.map((inv: any) => ({
+                const invoiceDocs: UserDocument[] = invoices.data.map((inv) => ({
                     id: inv.id,
-                    type: 'invoice',
-                    number: inv.number,
+                    type: 'invoice' as const,
+                    number: inv.number || '',
                     date: inv.created,
                     amount: inv.total / 100,
                     currency: inv.currency,
-                    url: inv.receipt_url || inv.hosted_invoice_url,
+                    url: inv.hosted_invoice_url || inv.invoice_pdf || null,
                     status: inv.status
                 }))
 
                 // Map credit notes to documents, filtering those that belong to the relevant invoices
                 // or have the same subscription metadata if applicable (usually CNs are tied to invoices)
-                const creditNoteDocs = creditNotes.data
+                const creditNoteDocs: UserDocument[] = creditNotes.data
                     .filter(cn => cn.invoice && invoiceIds.includes(cn.invoice as string))
                     .map(cn => ({
                         id: cn.id,
-                        type: 'credit_note',
+                        type: 'credit_note' as const,
                         number: cn.number,
                         date: cn.created,
                         amount: cn.amount / 100,
@@ -139,7 +156,7 @@ export async function getUserSubscriptionInfo() {
         return {
             ...sub,
             next_invoice: sub.current_period_end,
-            amount: Number((sub.packages as any)?.price || 0),
+            amount: Number((sub.packages as unknown as { price: number })?.price || 0),
             interval: 'mese',
             documents,
             receipt_url: documents.find(d => d.type === 'invoice')?.url // legacy support if needed
@@ -236,7 +253,7 @@ export async function updateProfile(formData: FormData) {
     const fullName = formData.get('fullName') as string
     const avatarFile = formData.get('avatar') as File
 
-    const updates: any = {
+    const updates: ProfileUpdates = {
         updated_at: new Date().toISOString(),
     }
 
