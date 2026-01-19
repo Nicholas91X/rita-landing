@@ -37,9 +37,11 @@ export default function Metodo() {
             Scarica la guida gratuita per muovere i tuoi primi passi verso il benessere.
           </p>
           <div className="mt-auto">
-            <Button className="w-full rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white transition-all gap-2 group/btn text-xs">
-              <Download className="w-4 h-4 transition-transform group-hover/btn:-translate-y-1" />
-              Scarica Guida PDF
+            <Button asChild className="w-full rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white transition-all gap-2 group/btn text-xs">
+              <a href="/metodo/Il tuo primo passo verso il benessere 🌿_compressed (1).pdf" download="Il tuo primo passo verso il benessere.pdf">
+                <Download className="w-4 h-4 transition-transform group-hover/btn:-translate-y-1" />
+                Scarica Guida PDF
+              </a>
             </Button>
           </div>
         </div>
@@ -81,7 +83,7 @@ export default function Metodo() {
           </p>
           <div className="mt-auto">
             <Button asChild variant="secondary" className="w-full rounded-xl bg-blue-50 hover:bg-blue-100 text-blue-900 font-bold border-none transition-all gap-2 text-xs">
-              <Link href="/faq" className="flex items-center gap-2">
+              <Link href="#faq" className="flex items-center gap-2">
                 <HelpCircle className="w-4 h-4" />
                 Vedi tutte le FAQ
               </Link>
