@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import Section from "../Section";
@@ -8,6 +9,7 @@ import { Download, Sparkles, HelpCircle, Play } from "lucide-react";
 import confetti from "canvas-confetti";
 
 export default function Metodo() {
+  const [hasPromised, setHasPromised] = useState(false);
 
   return (
     <Section id="metodo" className="bg-[var(--steel)] text-white">
@@ -44,11 +46,11 @@ export default function Metodo() {
 
         <div className="bg-white border border-slate-100 p-8 rounded-3xl shadow-sm hover:shadow-md transition-all duration-300 flex flex-col">
           <div className="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center mb-6">
-            <span className="text-blue-400 text-lg">🤞</span>
+            <span className="text-blue-400 text-lg">🤝</span>
           </div>
-          <h4 className="text-lg font-bold text-[var(--foreground)] mb-2">Il Patto dei 10 Minuti</h4>
+          <h4 className="text-lg font-bold text-[var(--foreground)] mb-2">Il Patto con te stessa</h4>
           <p className="text-sm text-slate-500 font-light leading-relaxed mb-6">
-            Non servono ore, bastano 10 minuti di qualità per te stessa ogni giorno.
+            Prometto di dedicare del tempo a me stessa, senza giudicarmi
           </p>
           <div className="mt-auto">
             <Button
@@ -59,11 +61,12 @@ export default function Metodo() {
                   origin: { y: 0.6 },
                   colors: ['#fb923c', '#60a5fa', '#a855f7']
                 });
+                setHasPromised(true);
               }}
               className="w-full rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white transition-all active:scale-95 gap-2 text-xs"
             >
-              <Sparkles className="w-4 h-4" />
-              Sì, mi dedico 10 min
+              {!hasPromised && <Sparkles className="w-4 h-4" />}
+              {hasPromised ? "✨ Promessa Registrata! Brava ✨" : "Sì, oggi scelgo me"}
             </Button>
           </div>
         </div>

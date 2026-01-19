@@ -86,11 +86,7 @@ export default function Hero() {
             </a>
           </CtaRow>
 
-          <footer className="pt-8 border-t border-slate-100">
-            <p className="text-[10px] font-medium text-slate-400 uppercase tracking-widest leading-loose">
-              {site.address.placeLabel}
-            </p>
-          </footer>
+
         </div>
 
         {/* Right Column: Imagery */}

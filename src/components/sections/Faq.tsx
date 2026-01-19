@@ -9,59 +9,56 @@ import {
 
 const faqs = [
   {
-    q: "Come funziona il mio metodo?",
+    q: "Che tipo di esercizi sono inclusi nei corsi di Fit & Smile?",
+    a: "Il programma combina esercizi di Pilates e allenamento total body studiati per migliorare mobilità, circolazione, tonificazione ed energia. Inoltre, il ballo ispirato alle danze caraibiche viene integrato insieme agli altri esercizi per migliorare coordinazione, ritmo e resistenza.",
+  },
+  {
+    q: "Sono adatti a chi non ha mai frequentato una palestra tradizionale?",
     a: (
       <>
-        <p>
-          <strong className="text-black">In 3 step</strong> semplici e concreti:
+        <p className="mb-2">
+          Assolutamente sì. <strong className="text-black">Fit & Smile</strong> è
+          stato creato per donne che non si sono mai allenate, o hanno iniziato da
+          poco ma non amano le palestre e cercano un programma adatto a loro.
         </p>
-        <ol className="mt-2 space-y-2 list-decimal pl-5">
-          <li>
-            <strong className="text-black">Consulenza gratuita (30–40’)</strong> – poche domande per
-            conoscerti e chiarire i tuoi <strong>obiettivi</strong>, più piccoli
-            test fisici per valutare la tua condizione di partenza.
-          </li>
-          <li>
-            <strong className="text-black">Protocollo personalizzato</strong> – un allenamento su
-            misura con <strong>2 o 3 sedute a settimana da 30’</strong>, pensate
-            per darti il massimo risultato nel tempo che hai davvero.
-          </li>
-          <li>
-            <strong className="text-black">Compiti a casa</strong> – micro-abitudini quotidiane, facili
-            e sostenibili, per eliminare le cattive abitudini e consolidare i
-            progressi.
-          </li>
-        </ol>
+        <p>
+          Tutte le sessioni sono strutturate con spiegazioni dettagliate e un
+          approccio graduale che rende l’esperienza accessibile anche a chi è alle
+          prime armi.
+        </p>
       </>
     ),
   },
   {
-    q: "Quanto dura una seduta?",
-    a: "Circa 30 minuti: allenamenti brevi, mirati ed efficaci.",
-  },
-  {
-    q: "Quando vedo i primi risultati?",
-    a: "In circa 6 settimane seguendo il protocollo (2 o 3 sedute personalizzate da 30’ ciascuna).",
-  },
-  {
-    q: "Devo essere già allenata?",
-    a: "No. Il percorso è costruito sul tuo livello attuale e cresce insieme a te.",
-  },
-  {
-    q: "Dove si svolgono le lezioni?",
+    q: "Quali benefici posso aspettarmi partecipando a Fit & Smile?",
     a: (
       <>
-        <p>
-          <strong className="text-black">Online (consigliato se hai poco tempo):</strong> sessioni in
-          videochiamata e programma personalizzato con feedback continui —
-          massima flessibilità, zero spostamenti.
-        </p>
-        <p className="mt-2">
-          <strong className="text-black">In presenza:</strong> presso <em>Palestra Pegaso</em> (Via
-          Ameglia, 74 – Romito Magra, SP) con ampio parcheggio.
-        </p>
+        <p className="mb-2">Partecipando al programma potrai:</p>
+        <ul className="list-disc pl-5 space-y-1">
+          <li>
+            Migliorare mobilità, circolazione, tonificazione e livelli di energia
+            grazie a esercizi studiati appositamente per le esigenze delle donne
+            over 45.
+          </li>
+          <li>
+            Sperimentare l’integrazione del ballo, che aggiunge divertimento,
+            coordinazione e ritmo all’allenamento.
+          </li>
+          <li>
+            Godere di un ambiente sicuro e di supporto, dove ogni sessione diventa
+            un appuntamento di benessere e rigenerazione fisica e psicologica.
+          </li>
+        </ul>
       </>
     ),
+  },
+  {
+    q: "Quanto dura una lezione?",
+    a: "Ogni sessione dura massimo 30 minuti e puoi fermarla e riprendere quando vuoi.",
+  },
+  {
+    q: "Posso disdire quando voglio?",
+    a: "Certamente! Puoi disdire quando vuoi e avrai accesso al tuo abbonamento sino alla fine del mese acquistato.",
   },
 ];
 
