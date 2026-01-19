@@ -36,8 +36,8 @@ export async function POST(req: Request) {
 
         if (userId && packageId) {
             const supabaseAdmin = createClient(
-                process.env.NEXT_PUBLIC_SUPABASE_URL!,
-                process.env.SUPABASE_SERVICE_ROLE_KEY!
+                process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co',
+                process.env.SUPABASE_SERVICE_ROLE_KEY || 'placeholder'
             )
 
             try {
@@ -125,8 +125,8 @@ export async function POST(req: Request) {
         const subscription = event.data.object as Stripe.Subscription
 
         const supabaseAdmin = createClient(
-            process.env.NEXT_PUBLIC_SUPABASE_URL!,
-            process.env.SUPABASE_SERVICE_ROLE_KEY!
+            process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co',
+            process.env.SUPABASE_SERVICE_ROLE_KEY || 'placeholder'
         )
 
         const { error } = await supabaseAdmin
