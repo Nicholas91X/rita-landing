@@ -454,13 +454,13 @@ export async function getStripeDashboardData() {
                     last4: c.payment_method_details.card.last4
                 } : null
             })),
-            subscriptions: subscriptions.data.map(s => ({
+            subscriptions: (subscriptions.data as Stripe.Subscription[]).map(s => ({
                 id: s.id,
                 status: s.status,
                 amount: s.items.data[0]?.price.unit_amount ? s.items.data[0].price.unit_amount / 100 : 0,
                 interval: s.items.data[0]?.price.recurring?.interval || 'month',
                 email: (s.customer as Stripe.Customer)?.email || '',
-                next_invoice: (s as any).current_period_end || s.ended_at || s.created
+                next_invoice: (s as unknown as { current_period_end: number }).current_period_end || s.ended_at || s.created
             }))
         }
     } catch (error) {
@@ -586,7 +586,9 @@ export async function handleRefundRequest(requestId: string, status: 'approved' 
                 limit: 1
             })
 
-            const chargeId = (invoices.data[0] as any)?.charge as string
+            const invoice = invoices.data[0] as unknown as { charge: string | Stripe.Charge | null }
+            const charge = invoice.charge
+            const chargeId = typeof charge === 'string' ? charge : (charge as Stripe.Charge)?.id
             if (chargeId) {
                 await stripe.refunds.create({ charge: chargeId })
             }
@@ -678,15 +680,29 @@ export async function getUserHistory(userId: string) {
         supabase.from('refund_requests').select('*, packages:user_subscriptions(packages(name))').eq('user_id', userId).order('created_at', { ascending: false })
     ])
 
+    interface SubscriptionWithPackage {
+        id: string
+        status: string
+        created_at: string
+        packages: { name: string; price: number } | null
+    }
+
+    interface RefundWithPackage {
+        id: string
+        status: string
+        created_at: string
+        packages: { packages: { name: string } | null } | null
+    }
+
     // Combine and label operations
     const history = [
-        ...(subscriptions || []).map(s => ({
+        ...(subscriptions as unknown as SubscriptionWithPackage[] || []).map(s => ({
             id: s.id,
             type: 'subscription',
             title: `Abbonamento: ${s.packages?.name || 'N/A'}`,
             status: s.status,
             date: s.created_at,
-            amount: s.status === 'trialing' ? 0 : (s.packages as any)?.price || 0
+            amount: s.status === 'trialing' ? 0 : s.packages?.price || 0
         })),
         ...(purchases || []).map(p => ({
             id: p.id,
@@ -696,10 +712,10 @@ export async function getUserHistory(userId: string) {
             date: p.created_at,
             amount: 0 // We don't store price in one_time_purchases yet, but we could add it if needed
         })),
-        ...(refunds || []).map(r => ({
+        ...(refunds as unknown as RefundWithPackage[] || []).map(r => ({
             id: r.id,
             type: 'refund_request',
-            title: `Richiesta Rimborso: ${(r as any).packages?.packages?.name || 'Percorso'}`,
+            title: `Richiesta Rimborso: ${r.packages?.packages?.name || 'Percorso'}`,
             status: r.status,
             date: r.created_at,
             amount: 0

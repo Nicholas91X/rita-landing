@@ -176,7 +176,7 @@ export async function requestRefund(subscriptionId: string, reason: string) {
         type: 'refund_request',
         user_id: user.id,
         data: {
-            packageName: (subData?.packages as any)?.name || 'Pacchetto',
+            packageName: (subData?.packages as unknown as { name: string })?.name || 'Pacchetto',
             reason: reason,
             subscriptionId: subscriptionId
         }
@@ -224,7 +224,7 @@ export async function cancelSubscription(subscriptionId: string) {
         type: 'cancellation',
         user_id: user.id,
         data: {
-            packageName: (sub.packages as any)?.name || 'Pacchetto',
+            packageName: (sub.packages as unknown as { name: string })?.name || 'Pacchetto',
             subscriptionId: subscriptionId,
             wasHeadless: !sub.stripe_subscription_id
         }
