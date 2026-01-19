@@ -61,14 +61,14 @@ export function CheckoutConfirmationModal({
                                 <p className="text-sm text-neutral-400 leading-relaxed">
                                     {isTrial ? (
                                         <>
-                                            I primi <span className="text-emerald-400 font-bold">7 giorni sono gratis</span>. Successivamente, l'abbonamento rinnoverà {price ? `a €${price}` : ''} al mese.
+                                            I primi <span className="text-emerald-400 font-bold">7 giorni sono gratis</span>. Successivamente, l&apos;abbonamento rinnoverà {price ? `a €${price}` : ''} al mese.
                                         </>
                                     ) : isDiscounted ? (
                                         <>
                                             Grazie alla tua fedeltà, pagherai <span className="text-[var(--brand)] font-bold">€{discountedPrice}</span> invece di <span className="line-through">€{price}</span> al mese.
                                         </>
                                     ) : (
-                                        <>L'acquisto sottoscrive un <span className="text-white font-semibold">abbonamento mensile</span> {price ? `da €${price}` : ''}.</>
+                                        <>L&apos;acquisto sottoscrive un <span className="text-white font-semibold">abbonamento mensile</span> {price ? `da €${price}` : ''}.</>
                                     )}
                                 </p>
                             </div>
@@ -81,7 +81,7 @@ export function CheckoutConfirmationModal({
                             <div className="space-y-1">
                                 <p className="text-sm font-bold text-white uppercase tracking-wide">Annullamento</p>
                                 <p className="text-sm text-neutral-400 leading-relaxed">
-                                    Puoi annullare l'abbonamento in qualsiasi momento dalla sezione <span className="text-white font-semibold italic">Profilo &gt; Billing &gt; Gestisci Abbonamento</span>.
+                                    Puoi annullare l&apos;abbonamento in qualsiasi momento dalla sezione <span className="text-white font-semibold italic">Profilo &gt; Billing &gt; Gestisci Abbonamento</span>.
                                 </p>
                             </div>
                         </div>

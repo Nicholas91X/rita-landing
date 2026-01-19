@@ -1,6 +1,5 @@
 import Section from "../Section";
 import { Button } from "@/components/ui/button";
-import Socials from "../Socials";
 
 export default function Contact() {
   return (

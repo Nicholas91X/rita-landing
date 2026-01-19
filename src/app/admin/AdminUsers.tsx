@@ -121,7 +121,7 @@ export default function AdminUsers() {
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                 <div>
                     <h2 className="text-2xl font-bold text-white">Gestione Utenti</h2>
-                    <p className="text-xs text-neutral-200 mt-1">Visualizza e monitora l'attività dei tuoi iscritti</p>
+                    <p className="text-xs text-neutral-200 mt-1">Visualizza e monitora l&apos;attività dei tuoi iscritti</p>
                 </div>
                 <div className="flex items-center gap-3 w-full sm:w-auto">
                     <div className="relative w-full sm:w-64">
@@ -335,7 +335,7 @@ export default function AdminUsers() {
                                             <Clock className="h-6 w-6 text-neutral-600" />
                                         </div>
                                         <p className="text-white font-black uppercase italic tracking-tighter">Nessuna operazione registrata</p>
-                                        <p className="text-neutral-400 text-xs font-bold mt-1">L'utente non ha ancora effettuato acquisti o abbonamenti</p>
+                                        <p className="text-neutral-400 text-xs font-bold mt-1">L&apos;utente non ha ancora effettuato acquisti o abbonamenti</p>
                                     </div>
                                 )}
                             </div>

@@ -476,7 +476,7 @@ export default function AdminStripe() {
                             <DialogTitle className="text-xl">Conferma Annullamento</DialogTitle>
                         </div>
                         <DialogDescription className="text-neutral-400 pt-2">
-                            Stai per annullare l'abbonamento attivo per l'utente:
+                            Stai per annullare l&apos;abbonamento attivo per l&apos;utente:
                             <div className="mt-3 p-3 bg-neutral-800/50 rounded-lg border border-neutral-800 text-neutral-200 font-medium font-mono text-xs">
                                 {subscriptionToCancel?.email}
                             </div>

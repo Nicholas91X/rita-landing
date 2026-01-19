@@ -5,7 +5,6 @@ import { Card } from "@/components/ui/card";
 import { storia } from "@/content/it";
 import CollapsibleHtml from "@/components/CollapsibleHtml";
 import GalleryScroller from "@/components/GalleryScroller";
-import { ClipboardList, Dumbbell, House } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 export default function Storia() {
@@ -86,7 +85,7 @@ export default function Storia() {
               <h4 className="text-lg font-bold text-[var(--secondary)] mb-3">Muoversi col Sorriso</h4>
               <p className="text-sm text-slate-500 leading-relaxed">
                 Il benessere passa dal cervello.<br /><br />
-                Integro lezioni base di <strong>Salsa e Bachata</strong> per migliorare la coordinazione, l'umore e farti dimenticare che ti stai &ldquo;allenando&rdquo;.
+                Integro lezioni base di <strong>Salsa e Bachata</strong> per migliorare la coordinazione, l&apos;umore e farti dimenticare che ti stai &ldquo;allenando&rdquo;.
               </p>
             </div>
           </div>
@@ -124,7 +123,7 @@ export default function Storia() {
             <div className="space-y-4 mb-8 flex-grow">
               <div className="flex gap-3">
                 <span className="text-emerald-500 font-bold">✅</span>
-                <p className="text-sm text-slate-600"><strong className="text-slate-900">Accesso Illimitato:</strong> Accesso completo all'abbonamento per 30 giorni.</p>
+                <p className="text-sm text-slate-600"><strong className="text-slate-900">Accesso Illimitato:</strong> Accesso completo all&apos;abbonamento per 30 giorni.</p>
               </div>
               <div className="flex gap-3">
                 <span className="text-emerald-500 font-bold">✅</span>

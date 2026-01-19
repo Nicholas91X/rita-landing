@@ -15,7 +15,6 @@ export default function VideoPlayer({ videoId, initialTime = 0, onProgressUpdate
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState<string | null>(null)
     const [iframeLoaded, setIframeLoaded] = useState(false)
-    const [durationState, setDurationState] = useState<number>(0)
     const [status, setStatus] = useState<'idle' | 'connected' | 'saving' | 'error'>('idle')
     const durationRef = useRef<number>(0)
     const lastSavedTime = useRef<number>(0)
@@ -47,9 +46,9 @@ export default function VideoPlayer({ videoId, initialTime = 0, onProgressUpdate
                     setUrl(signedUrl)
                     lastLoadedVideoId.current = videoId
                 }
-            } catch (err) {
+            } catch (_err) {
                 if (mounted) {
-                    console.error('Failed to get signed URL:', err)
+                    console.error('Failed to get signed URL:', _err)
                     setError('Errore di caricamento video.')
                 }
             } finally {
@@ -62,7 +61,6 @@ export default function VideoPlayer({ videoId, initialTime = 0, onProgressUpdate
         fetchUrl()
         lastSavedTime.current = initialTime // Start from where we loaded
         durationRef.current = 0
-        setDurationState(0)
 
         return () => {
             mounted = false
@@ -77,7 +75,7 @@ export default function VideoPlayer({ videoId, initialTime = 0, onProgressUpdate
     // Listen to messages from Bunny.net player
     useEffect(() => {
         let subscriptionCount = 0
-        let isConnected = false
+        const isConnected = false
 
         const subscribeToEvents = () => {
             if (!iframeRef.current?.contentWindow || isConnected || subscriptionCount > 10) return
@@ -113,7 +111,7 @@ export default function VideoPlayer({ videoId, initialTime = 0, onProgressUpdate
                 if (typeof data === 'string' && (data.includes('{') || data.includes('player.js'))) {
                     try {
                         data = JSON.parse(data)
-                    } catch (e) {
+                    } catch (_e) {
                         return
                     }
                 }
@@ -136,7 +134,6 @@ export default function VideoPlayer({ videoId, initialTime = 0, onProgressUpdate
 
                 if (msgDuration > 0 && !durationRef.current) {
                     durationRef.current = Math.floor(msgDuration)
-                    setDurationState(Math.floor(msgDuration))
                 }
 
                 // Progress tracking
@@ -161,8 +158,8 @@ export default function VideoPlayer({ videoId, initialTime = 0, onProgressUpdate
                                 await saveVideoProgress(videoId, currentTime, currentDuration)
                                 setStatus('connected')
                                 onProgressUpdateRef.current?.()
-                            } catch (err) {
-                                console.error('Save failed:', err)
+                            } catch (saveErr) {
+                                console.error('Save failed:', saveErr)
                                 setStatus('error')
                             }
                         }
@@ -182,12 +179,12 @@ export default function VideoPlayer({ videoId, initialTime = 0, onProgressUpdate
                             await saveVideoProgress(videoId, finalDuration, finalDuration)
                             setStatus('connected')
                             onProgressUpdateRef.current?.()
-                        } catch (err) {
+                        } catch (_err) {
                             setStatus('error')
                         }
                     }
                 }
-            } catch (e) {
+            } catch (_e) {
                 // Silent
             }
         }
@@ -215,7 +212,7 @@ export default function VideoPlayer({ videoId, initialTime = 0, onProgressUpdate
                 iframe.removeEventListener('load', subscribeToEvents)
             }
         }
-    }, [videoId])
+    }, [videoId, status])
 
     if (error) {
         return (
