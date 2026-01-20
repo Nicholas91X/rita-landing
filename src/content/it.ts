@@ -34,7 +34,7 @@ export const perChi = [
 
 export const storia = {
   title: "La mia storia",
-  body: `Lo so: da quando è iniziata la menopausa ti senti stanca, confusa, senza energie.<br /><br />
+  body: `Lo so:<br /><br />Da quando è iniziata la menopausa ti senti stanca, confusa, senza energie.<br /><br />
 Ti capisco bene. Io sono Rita, ho 50 anni, e due anni fa la mia prima vampata mi ha letteralmente stravolta.<br /><br />
 Il mio corpo era diverso: notti insonni, sudori improvvisi, improvvisi dolori articolari… e la mattina mi svegliavo distrutta.<br /><br />
 Un problema enorme, visto che lavoro nel fitness.<br /><br />
@@ -45,6 +45,6 @@ Da qui è nata Fit & Smile: un aiuto concreto per tornare a vivere, non a soprav
   facts: [
     "🎓   Laurea in Scienze Motorie",
     "🕒   ~30 anni di esperienza",
-    "📍   Romito Magra (SP)",
+
   ],
 };
