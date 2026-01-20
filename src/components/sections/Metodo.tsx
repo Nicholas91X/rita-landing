@@ -103,7 +103,7 @@ export default function Metodo() {
               <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-400">Prova Subito</span>
             </div>
             <h3 className="text-3xl md:text-4xl font-bold tracking-tight text-white mb-4">
-              Il Risveglio del Respiro <span className="text-emerald-400">(5 Min)</span>
+              Il Risveglio del Respiro <span className="text-emerald-400">(2 Min)</span>
             </h3>
             <p className="text-slate-200 text-xl font-normal leading-relaxed mb-8 italic">
               Fallo ora, anche in pigiama. Premi play e sciogliamo insieme le tensioni del collo.
@@ -123,7 +123,7 @@ export default function Metodo() {
               </div>
             </div>
             <div className="absolute bottom-4 left-4 right-4 flex justify-between items-center text-[10px] font-bold uppercase tracking-widest text-white/50">
-              <span>Durata: 5:00</span>
+              <span>Durata: 2:00</span>
               <span className="flex items-center gap-1">
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
                 HD Quality

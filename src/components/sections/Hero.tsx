@@ -44,7 +44,7 @@ export default function Hero() {
               </div>
               <p className="mt-4 text-[11px] font-bold uppercase tracking-[0.2em] text-slate-400 text-center">
                 Guarda questo video prima di fare qualsiasi altra cosa <br className="md:hidden" />
-                <span className="text-[var(--brand)] ml-1">(Dura solo 3 minuti)</span>
+                <span className="text-[var(--brand)] ml-1">(Dura solo 1 minuto)</span>
               </p>
             </div>
 
