@@ -10,14 +10,21 @@ export default function Hero() {
     <Section id="top" className="py-12 md:py-32 overflow-hidden">
       <div className="grid lg:grid-cols-12 gap-12 lg:gap-16 items-center">
         {/* Left Column: Text Content (5/12 on Desktop) */}
-        <div className="lg:col-span-5 space-y-8 text-center lg:text-left order-2 lg:order-1">
-          <header className="space-y-4">
-            <div className="inline-flex items-center justify-center lg:justify-start space-x-2 text-[var(--brand)] font-semibold tracking-widest uppercase text-xs">
-              <span className="w-6 h-px bg-[var(--brand)]"></span>
-              <span>{site.brand}</span>
+        <div className="lg:col-span-5 space-y-10 text-center lg:text-left order-2 lg:order-1">
+          <header className="space-y-6">
+            <div className="space-y-2">
+              <div className="inline-flex items-center justify-center lg:justify-start space-x-2 text-[var(--brand)] font-semibold tracking-widest uppercase text-[10px]">
+                <span className="w-6 h-px bg-[var(--brand)]"></span>
+                <span>{site.brand}</span>
+              </div>
+              <h2 className="text-4xl sm:text-5xl md:text-7xl xl:text-8xl font-black tracking-tighter text-[var(--foreground)] leading-none flex items-center justify-center lg:justify-start gap-2 sm:gap-4 italic whitespace-nowrap">
+                <span>FIT</span>
+                <span className="text-[var(--brand)] font-light not-italic">&</span>
+                <span>SMILE</span>
+              </h2>
             </div>
 
-            <h1 className="flex flex-col lg:flex-row items-center justify-center lg:justify-start gap-3 text-5xl md:text-7xl xl:text-8xl font-black tracking-tight text-[var(--foreground)] leading-[1.1]">
+            <h1 className="flex flex-col lg:flex-row items-center justify-center lg:justify-start gap-3 text-3xl md:text-4xl font-bold tracking-tight text-[var(--secondary)] leading-[1.1]">
               <Typewriter text="Benvenuta" speed={80} startDelay={100} />
               <span className="text-[var(--brand)]">🧡</span>
             </h1>
