@@ -67,7 +67,7 @@ function Column({
   return (
     <aside
       className={[
-        "side-marquee hidden 2xl:block fixed inset-y-0 z-40",
+        "side-marquee hidden 2xl:block fixed top-[96px] bottom-0 z-40",
         side === "left" ? "left-2" : "right-2",
       ].join(" ")}
       style={style}
