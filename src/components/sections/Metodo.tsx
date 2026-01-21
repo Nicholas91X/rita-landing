@@ -1,11 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import Image from "next/image";
 import Link from "next/link";
 import Section from "../Section";
 import { Button } from "@/components/ui/button";
-import { Download, Sparkles, HelpCircle, Play } from "lucide-react";
+import { Download, Sparkles, HelpCircle } from "lucide-react";
 import confetti from "canvas-confetti";
 
 export default function Metodo() {
