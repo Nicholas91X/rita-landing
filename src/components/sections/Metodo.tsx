@@ -110,25 +110,14 @@ export default function Metodo() {
             </p>
           </div>
 
-          <div className="relative aspect-video w-full rounded-2xl overflow-hidden bg-slate-900 border border-white/10 group/video cursor-pointer">
-            <Image
-              src="/metodo/video-thumbnail.jpg" // Placeholder for thumbnail
-              alt="Esercizio Risveglio del Respiro"
-              fill
-              className="object-cover opacity-60 transition-transform duration-700 group-hover/video:scale-105"
+          <div className="relative aspect-video w-full rounded-2xl overflow-hidden bg-slate-900 border border-white/10 group/video shadow-2xl">
+            <video
+              src="https://hel1.your-objectstorage.com/nicholas-bucket/rita-zanicchi/videos/video_respirazione_landing.mp4"
+              controls
+              playsInline
+              className="w-full h-full object-cover"
+              poster="https://hel1.your-objectstorage.com/nicholas-bucket/rita-zanicchi/metodo/step-1.png"
             />
-            <div className="absolute inset-0 flex items-center justify-center">
-              <div className="w-16 h-16 md:w-20 md:h-20 flex items-center justify-center rounded-full bg-white text-[var(--steel)] shadow-2xl transition-all duration-300 group-hover/video:scale-110 group-hover/video:bg-emerald-400 group-hover/video:text-white">
-                <Play className="w-6 h-6 md:w-8 md:h-8 fill-current ml-1" />
-              </div>
-            </div>
-            <div className="absolute bottom-4 left-4 right-4 flex justify-between items-center text-[10px] font-bold uppercase tracking-widest text-white/50">
-              <span>Durata: 2:00</span>
-              <span className="flex items-center gap-1">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
-                HD Quality
-              </span>
-            </div>
           </div>
         </div>
       </div>
