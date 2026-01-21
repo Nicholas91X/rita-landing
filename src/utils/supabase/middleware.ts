@@ -2,6 +2,17 @@ import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
 export async function updateSession(request: NextRequest) {
+    // 0. MAINTENANCE MODE
+    const isMaintenanceMode = process.env.NEXT_PUBLIC_MAINTENANCE_MODE === 'true'
+    const isMaintenancePath = request.nextUrl.pathname === '/maintenance'
+    const isAsset = request.nextUrl.pathname.startsWith('/_next') ||
+        request.nextUrl.pathname.startsWith('/api') ||
+        request.nextUrl.pathname.includes('.')
+
+    if (isMaintenanceMode && !isMaintenancePath && !isAsset) {
+        return NextResponse.redirect(new URL('/maintenance', request.url))
+    }
+
     let supabaseResponse = NextResponse.next({
         request,
     })
