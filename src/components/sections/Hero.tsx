@@ -34,16 +34,22 @@ export default function Hero() {
               Iniziamo insieme, un passo alla volta.
             </p>
 
-            {/* Video Placeholder */}
+            {/* Video Production */}
             <div className="mt-10">
-              <div className="relative aspect-video w-full rounded-3xl overflow-hidden bg-slate-50 border border-slate-100 group flex items-center justify-center shadow-inner cursor-pointer">
-                <div className="absolute inset-0 bg-gradient-to-tr from-[var(--brand)]/5 to-transparent"></div>
-                <div className="relative z-10 w-20 h-20 flex items-center justify-center rounded-full bg-white shadow-2xl text-[var(--brand)] group-hover:scale-110 transition-all duration-300">
-                  <div className="ml-1 w-0 h-0 border-t-[10px] border-t-transparent border-l-[18px] border-l-current border-b-[10px] border-b-transparent"></div>
-                </div>
+              <div className="relative aspect-video w-full rounded-3xl overflow-hidden bg-slate-900 border border-slate-100/10 group shadow-2xl">
+                <video
+                  src="https://hel1.your-objectstorage.com/nicholas-bucket/rita-zanicchi/videos/video_hero.mp4"
+                  autoPlay
+                  muted
+                  loop
+                  playsInline
+                  className="w-full h-full object-cover"
+                />
+                {/* Minimal Overlay for luxury look */}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent pointer-events-none"></div>
               </div>
               <p className="mt-4 text-[11px] font-bold uppercase tracking-[0.2em] text-slate-400 text-center">
-                Guarda questo video prima di fare qualsiasi altra cosa <br className="md:hidden" />
+                Guarda come possiamo lavorare insieme <br className="md:hidden" />
                 <span className="text-[var(--brand)] ml-1">(Dura solo 1 minuto)</span>
               </p>
             </div>

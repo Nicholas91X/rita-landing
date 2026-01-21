@@ -9,11 +9,9 @@ import { Button } from "@/components/ui/button";
 
 export default function Storia() {
   const gallery = [
-    "/storia/gal-1.jpg",
-    "/storia/gal-2.jpg",
-    "/storia/gal-3.jpg",
-    "/storia/gal-4.jpg",
-    "/storia/gal-5.jpg",
+    "https://hel1.your-objectstorage.com/nicholas-bucket/rita-zanicchi/metodo/step-1.png",
+    "https://hel1.your-objectstorage.com/nicholas-bucket/rita-zanicchi/metodo/step-2.png",
+    "https://hel1.your-objectstorage.com/nicholas-bucket/rita-zanicchi/metodo/step-3.png",
   ];
 
   return (
