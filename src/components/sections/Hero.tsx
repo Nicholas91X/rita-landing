@@ -43,6 +43,7 @@ export default function Hero() {
                   muted
                   loop
                   playsInline
+                  controls
                   className="w-full h-full object-cover"
                 />
                 {/* Minimal Overlay for luxury look */}
