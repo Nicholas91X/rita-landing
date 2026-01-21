@@ -31,8 +31,12 @@ export default function LoginPage() {
                     password,
                 })
                 if (error) throw error
-                router.push('/dashboard')
-                router.refresh()
+
+                console.log('Login successful, redirecting...')
+                // Use window.location.href for a hard redirect in production
+                // This ensures cookies are correctly flushed and picked up by middleware
+                window.location.href = '/dashboard'
+                return;
             } else {
                 const { error, data } = await supabase.auth.signUp({
                     email,
