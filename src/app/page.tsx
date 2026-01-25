@@ -7,20 +7,17 @@ import Contact from "@/components/sections/Contact";
 import SideMarquees from "@/components/SideMarquees";
 
 const leftImgs = [
-  "/side/left-1.jpg",
-  "/side/left-2.jpg",
-  "/side/left-3.jpg",
-  "/side/left-4.jpg",
-  "/side/left-5.jpg",
+  "https://hel1.your-objectstorage.com/nicholas-bucket/rita-zanicchi/side/left-1.png",
+  "https://hel1.your-objectstorage.com/nicholas-bucket/rita-zanicchi/side/left-2.png",
+  "https://hel1.your-objectstorage.com/nicholas-bucket/rita-zanicchi/side/left-3.png",
+  "https://hel1.your-objectstorage.com/nicholas-bucket/rita-zanicchi/side/left-4.png",
 ];
 
 
 const rightImgs = [
-  "/side/right-1.jpg",
-  "/side/right-2.jpg",
-  "/side/right-3.jpg",
-  "/side/right-4.jpg",
-  "/side/right-5.jpg",
+  "https://hel1.your-objectstorage.com/nicholas-bucket/rita-zanicchi/side/right-1.png",
+  "https://hel1.your-objectstorage.com/nicholas-bucket/rita-zanicchi/side/right-2.png",
+  "https://hel1.your-objectstorage.com/nicholas-bucket/rita-zanicchi/side/right-3.png",
 ];
 
 export default function Page() {

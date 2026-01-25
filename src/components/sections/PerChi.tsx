@@ -54,7 +54,7 @@ export default function PerChi() {
         {/* Immagine con parallax + pannellino info */}
         <div className="relative h-64 md:h-96 rounded-3xl overflow-hidden border border-[var(--border)]">
           <Image
-            src="/perchi/perchi-1.jpg"
+            src="https://hel1.your-objectstorage.com/nicholas-bucket/rita-zanicchi/per-chi/per-chi.png"
             alt="Donne che si allenano: il target del metodo"
             fill
             className="object-cover"
