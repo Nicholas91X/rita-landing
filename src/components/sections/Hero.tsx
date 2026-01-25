@@ -1,4 +1,5 @@
 "use client";
+import Image from "next/image";
 import { CtaRow, CtaWhatsApp } from "../Cta";
 import Section from "../Section";
 import { site } from "@/content/it";
@@ -9,8 +10,8 @@ export default function Hero() {
     <Section id="top" className="py-12 md:py-24 overflow-hidden">
       <div className="max-w-4xl mx-auto text-center space-y-12 md:space-y-16">
         {/* Header content */}
-        <header className="space-y-6">
-          <div className="space-y-2">
+        <header className="space-y-8">
+          <div className="space-y-3">
             <div className="inline-flex items-center justify-center space-x-2 text-[var(--brand)] font-semibold tracking-widest uppercase text-[10px]">
               <span className="w-6 h-px bg-[var(--brand)]"></span>
               <span>{site.brand}</span>
