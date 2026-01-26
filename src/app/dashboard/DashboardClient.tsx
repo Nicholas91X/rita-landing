@@ -105,9 +105,8 @@ export default function DashboardClient({ levels }: { levels: Level[] }) {
     }
 
     return (
-        <div className="flex min-h-screen bg-[var(--secondary)] text-white selection:bg-brand/30 relative">
-            {/* Sfondo con gradiente radiale per profondità */}
-            <div className="fixed inset-0 bg-[radial-gradient(circle_at_30%_30%,#002b54_0%,#001F3D_100%)] pointer-events-none" />
+        <div className="flex min-h-screen bg-[#f1ebe7] text-[var(--secondary)] selection:bg-brand/30 relative">
+            {/* Sfondo chiaro, rimuovo il gradiente scuro */}
 
             {/* Navigation */}
             <DashboardSidebar activeTab={activeTab} setActiveTab={setActiveTab} userProfile={userProfile} />
@@ -115,15 +114,15 @@ export default function DashboardClient({ levels }: { levels: Level[] }) {
             {/* Main Content Area */}
             <main className="flex-1 lg:ml-72 pb-24 lg:pb-0 relative">
                 {/* Content Header (Visible only on Desktop for Profile name or breadcrumbs if needed) */}
-                <header className="hidden lg:flex h-20 items-center justify-between px-12 border-b border-white/5 sticky top-0 bg-white/5 backdrop-blur-xl z-20 transition-all">
+                <header className="hidden lg:flex h-14 items-center justify-between px-12 border-b border-white/10 sticky top-0 bg-gradient-to-r from-[#654540] to-[#503530] backdrop-blur-xl z-20 transition-all shadow-md">
                     <div>
                         {/* Empty spacing for alignment with desktop layout if needed */}
                     </div>
                     <div className="flex items-center gap-6">
                         <NotificationBell />
-                        <div className="flex items-center gap-4 border-l border-white/10 pl-6">
+                        <div className="flex items-center gap-4 border-l border-white/20 pl-6">
                             <div className="text-right">
-                                <p className="text-[10px] text-[var(--brand)] uppercase tracking-widest font-black">Rita Workout</p>
+                                <p className="text-[10px] text-white uppercase tracking-widest font-black">Rita Workout</p>
                             </div>
                             <div className="w-10 h-10 rounded-2xl bg-white flex items-center justify-center text-xs font-black text-[#001F3D] shadow-xl border border-white/20 overflow-hidden relative">
                                 {userProfile?.profile?.avatar_url ? (
@@ -148,13 +147,13 @@ export default function DashboardClient({ levels }: { levels: Level[] }) {
                 </header>
 
                 {/* Header Sezione */}
-                <div className="relative pt-0 pb-6 md:pt-8 md:pb-16 px-6 md:px-12 bg-white/5 backdrop-blur-sm border-b border-white/5">
+                <div className="relative pt-0 pb-6 md:pt-32 md:pb-16 px-6 md:px-12 bg-[#ffffff] backdrop-blur-sm border-b border-[var(--secondary)]/10">
                     <div className="max-w-7xl mx-auto pt-20 md:pt-0">
-                        <h1 className="text-4xl md:text-5xl font-black text-white mb-2 tracking-tight italic uppercase">
-                            Area <span className="text-[var(--brand)]">Riservata</span>
+                        <h1 className="text-4xl md:text-5xl font-black text-[#593e25] mb-2 tracking-tight italic uppercase">
+                            Area <span className="text-[#593e25]">Riservata</span>
                         </h1>
-                        <p className="text-neutral-400 text-lg md:text-xl font-medium max-w-2xl">
-                            Benvenuta nel tuo spazio di allenamento. Qui trovi i tuoi programmi, i progressi e i nuovi contenuti.
+                        <p className="text-[#2a2e30] text-lg md:text-xl font-medium max-w-2xl">
+                            Benvenuta nel tuo spazio di allenamento.<br />Qui trovi i tuoi programmi, i progressi e i nuovi contenuti.
                         </p>
                     </div>
                 </div>

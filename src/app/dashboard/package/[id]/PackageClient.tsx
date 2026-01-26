@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
-import { ChevronLeft, PlayCircle, CheckCircle2, Clock, Loader2 } from 'lucide-react'
+import { ChevronLeft, PlayCircle, CheckCircle2, Clock, Loader2, Footprints, Plane, Stamp } from 'lucide-react'
 import VideoPlayer from '@/components/video/VideoPlayer'
 import { getAllPackageProgress } from '@/app/actions/video'
 
@@ -75,9 +75,9 @@ export default function PackageClient({ pkg, videos }: { pkg: Package, videos: V
     })() : 0
 
     return (
-        <main className="h-[100dvh] flex flex-col bg-[var(--bg)] text-[var(--foreground)] selection:bg-[var(--brand)]/10">
+        <main className="h-[100dvh] flex flex-col bg-[var(--bg)] text-[var(--foreground)] selection:bg-[var(--brand)]/10 overflow-x-hidden w-full max-w-full">
             {/* Header / Navigation - Part of the flex flow */}
-            <header className="flex-none relative z-[100] bg-[#B4A697] border-b border-white/10 shadow-xl pt-[safe-area-inset-top]">
+            <header className="flex-none relative z-[100] bg-[#7f554f] border-b border-white/10 shadow-xl pt-[safe-area-inset-top]">
                 <div className="max-w-[1400px] mx-auto px-4 lg:px-8 py-3 md:py-4 flex items-center justify-between">
                     <div className="flex items-center gap-4">
                         <Link
@@ -91,16 +91,13 @@ export default function PackageClient({ pkg, videos }: { pkg: Package, videos: V
 
                         <div className="flex flex-col">
                             <h2 className="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--brand)] mb-0.5 leading-none">Corso in corso</h2>
-                            <h1 className="text-sm md:text-base font-bold text-white/90 truncate max-w-[150px] sm:max-w-[200px] lg:max-w-md">{pkg.name}</h1>
+                            <h1 className="text-sm md:text-base font-bold text-white/90 truncate max-w-[150px] sm:max-w-[200px] lg:max-w-md">
+                                {pkg.name.toLowerCase().includes('pilates') && pkg.name.toLowerCase().includes('principiante') ? 'Destinazione Bali' : pkg.name}
+                            </h1>
                         </div>
                     </div>
 
-                    <div className="bg-white/10 border border-white/10 px-3 py-1.5 md:px-4 md:py-2 rounded-full flex items-center gap-3">
-                        <div className="h-1.5 w-16 md:w-24 bg-black/20 rounded-full overflow-hidden hidden sm:block">
-                            <div className="h-full bg-[var(--brand)] transition-all duration-1000 ease-out" style={{ width: `${preciseCompletionRate}%` }} />
-                        </div>
-                        <span className="text-[9px] md:text-[10px] font-black text-white/80">{Math.round(preciseCompletionRate)}% <span className="hidden xs:inline">completato</span></span>
-                    </div>
+
                 </div>
             </header>
 
@@ -110,6 +107,10 @@ export default function PackageClient({ pkg, videos }: { pkg: Package, videos: V
                     <div className="flex-none flex flex-col">
                         <div className="w-full max-w-6xl mx-auto px-4 lg:px-10 flex flex-col">
                             {/* Immersive Video Container */}
+                            <h2 className="text-xl md:text-2xl font-black uppercase tracking-tight mb-10">
+                                <span className="text-[#846047]">MESE 1: </span>
+                                <span className="text-[#2a2e30]">BALI</span> <span className="font-black text-gray-500">(Equilibrio & Drenaggio)</span> 🌿
+                            </h2>
                             <div className="relative group flex-none">
                                 <div className="absolute -inset-4 bg-[var(--brand)]/20 blur-3xl rounded-full opacity-40 group-hover:opacity-60 transition-opacity duration-1000 hidden md:block" />
                                 <div className="relative z-10 shadow-[0_20px_100px_rgba(0,0,0,0.6)] overflow-hidden rounded-2xl bg-black aspect-video w-full border border-white/5">
@@ -131,7 +132,7 @@ export default function PackageClient({ pkg, videos }: { pkg: Package, videos: V
                             <div className="mt-8 lg:mt-12 animate-in fade-in slide-in-from-bottom-4 duration-700">
                                 <div className="flex flex-col gap-4">
                                     <div className="flex flex-wrap items-center gap-3">
-                                        <span className="px-4 py-1.5 rounded-lg bg-[var(--brand)] text-white text-[11px] font-black uppercase tracking-[0.1em] shadow-lg shadow-[var(--brand)]/20">
+                                        <span className="px-4 py-1.5 rounded-lg bg-[#7f554f] text-white text-[11px] font-black uppercase tracking-[0.1em] shadow-lg shadow-[#7f554f]/20">
                                             In riproduzione
                                         </span>
                                         {progressData[activeVideo.id]?.is_completed && (
@@ -140,8 +141,11 @@ export default function PackageClient({ pkg, videos }: { pkg: Package, videos: V
                                             </span>
                                         )}
                                     </div>
-                                    <h1 className="text-3xl lg:text-5xl font-black text-[var(--foreground)] tracking-tight ts-white">
-                                        {activeVideo.title}
+                                    <h1 className="text-3xl lg:text-5xl font-black text-[var(--foreground)] tracking-tight ts-white flex items-center gap-3 flex-wrap">
+                                        <Footprints className="w-8 h-8 lg:w-12 lg:h-12 shrink-0" />
+                                        <span className="break-words">
+                                            Tappa {activeVideo.order_index ?? (videos.indexOf(activeVideo) + 1)}
+                                        </span>
                                     </h1>
                                     <div className="flex items-center gap-6 text-sm text-[var(--foreground)]/60 font-medium">
                                         <div className="flex items-center gap-2">
@@ -154,7 +158,7 @@ export default function PackageClient({ pkg, videos }: { pkg: Package, videos: V
                                         </div>
                                     </div>
                                     <p className="text-lg text-[var(--foreground)]/70 max-w-3xl leading-relaxed mt-4">
-                                        {pkg.description}
+                                        {pkg.name.toLowerCase().includes('pilates') && pkg.name.toLowerCase().includes('principiante') ? '🌸 Mese 1: Destinazione Bali (Equilibrio)' : pkg.description}
                                     </p>
                                 </div>
                             </div>
@@ -168,11 +172,31 @@ export default function PackageClient({ pkg, videos }: { pkg: Package, videos: V
                     <div className="p-6 lg:p-8 border-b border-[var(--brand)]/20">
                         <div className="flex items-center justify-between">
                             <h2 className="text-xs font-black uppercase tracking-[0.3em] text-[var(--foreground)]/50">
-                                Playlist Corso
+                                IL TUO ITINERARIO
                             </h2>
-                            <span className="text-[10px] font-bold bg-white/10 px-2.5 py-1 rounded-full text-[var(--foreground)]">
-                                {videos.filter(v => progressData[v.id]?.is_completed).length}/{videos.length} <span className="text-[var(--foreground)]/40 ml-1">Lezioni</span>
-                            </span>
+                            <div className="bg-white/40 border border-[var(--brand)]/10 px-4 py-2 rounded-2xl flex items-center gap-2 md:gap-4 shrink-0 shadow-sm">
+                                <span className="text-[10px] font-black uppercase text-[var(--foreground)]/40 hidden xl:block">Partenza</span>
+
+                                <div className="h-0.5 w-24 xl:w-32 bg-[var(--brand)]/10 relative">
+                                    {/* Dotted path */}
+                                    <div className="absolute inset-x-0 top-0 bottom-0 border-t-2 border-dashed border-[var(--brand)]/30" />
+
+                                    {/* Progress Line (Solid) */}
+                                    <div className="absolute top-0 left-0 h-full border-t-2 border-[var(--brand)] transition-all duration-1000 ease-out" style={{ width: `${preciseCompletionRate}%` }} />
+
+                                    {/* Airplane Icon moving */}
+                                    <div className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 transition-all duration-1000 ease-out" style={{ left: `${preciseCompletionRate}%` }}>
+                                        <Plane className="w-4 h-4 text-[var(--brand)] fill-[var(--brand)] rotate-90 transform" />
+                                    </div>
+                                </div>
+
+                                <div className="flex items-center gap-2">
+                                    <span className="text-[10px] font-black uppercase text-[var(--foreground)]/40 hidden xl:block">Arrivo</span>
+                                    <div className={`p-1 rounded-full border border-[var(--brand)]/20 ${preciseCompletionRate >= 100 ? 'bg-emerald-500 text-white border-emerald-400' : 'bg-transparent text-[var(--brand)]/40'}`}>
+                                        <Stamp className="w-3 h-3" />
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
@@ -192,12 +216,17 @@ export default function PackageClient({ pkg, videos }: { pkg: Package, videos: V
 
                             return (
                                 <div key={`week-${weekNum}`} className="space-y-4">
-                                    <div className="flex items-center gap-3 px-2">
-                                        <div className="h-px flex-1 bg-[var(--brand)]/20" />
-                                        <h3 className="text-[10px] font-black uppercase tracking-[0.4em] text-[var(--brand)] whitespace-nowrap">
-                                            Settimana {weekNum}
-                                        </h3>
-                                        <div className="h-px flex-1 bg-[var(--brand)]/20" />
+                                    <div className="flex flex-col gap-2">
+                                        <div className="flex items-center gap-3 px-2">
+                                            <div className="h-px flex-1 bg-[var(--brand)]/20" />
+                                            <h3 className="text-[10px] font-black uppercase tracking-[0.4em] text-[var(--brand)] whitespace-nowrap">
+                                                Settimana {weekNum}
+                                            </h3>
+                                            <div className="h-px flex-1 bg-[var(--brand)]/20" />
+                                        </div>
+                                        {weekNum === 1 && (
+                                            <p className="text-center text-sm font-bold text-[#846047] italic">L&apos;Atterraggio 🛬</p>
+                                        )}
                                     </div>
 
                                     <div className="space-y-3">
@@ -247,8 +276,9 @@ export default function PackageClient({ pkg, videos }: { pkg: Package, videos: V
                                                                             <PlayCircle className="h-4 w-4 text-white fill-white" />
                                                                         </div>
                                                                     ) : (
-                                                                        <span className="text-[10px] font-bold text-white/50 bg-black/40 px-1.5 rounded backdrop-blur-sm">
-                                                                            {String(globalIndex + 1).padStart(2, '0')}
+                                                                        <span className="text-[10px] font-bold text-white/50 bg-black/40 px-1.5 py-0.5 rounded backdrop-blur-sm flex items-center gap-1">
+                                                                            <Footprints className="w-3 h-3" />
+                                                                            Tappa {String(globalIndex + 1).padStart(2, '0')}
                                                                         </span>
                                                                     )}
                                                                 </div>
@@ -281,6 +311,6 @@ export default function PackageClient({ pkg, videos }: { pkg: Package, videos: V
                     </div>
                 </aside>
             </div>
-        </main>
+        </main >
     )
 }

@@ -96,7 +96,7 @@ export default function LibrarySection({
                                     <div className="flex items-center gap-4">
                                         <div className="h-8 w-1.5 bg-[var(--brand)] rounded-full" />
                                         <h3 className="text-2xl md:text-3xl font-bold text-white tracking-tight">
-                                            {course.name}
+                                            {course.name.toLowerCase().includes('pilates') && course.name.toLowerCase().includes('principiante') ? 'Destinazione Bali (Equilibrio)' : course.name}
                                         </h3>
                                     </div>
 
@@ -128,7 +128,7 @@ export default function LibrarySection({
 
                                                     <CardHeader className="pb-4 pt-6 px-8 flex-1">
                                                         <CardTitle className="text-xl font-black text-white line-clamp-2 min-h-[3.5rem] italic uppercase tracking-tighter group-hover:text-[var(--brand)] transition-colors">
-                                                            {pkg.name}
+                                                            {pkg.name.toLowerCase().includes('pilates') && pkg.name.toLowerCase().includes('principiante') ? 'Destinazione Bali (Equilibrio)' : pkg.name}
                                                         </CardTitle>
 
                                                         {pkgProgress && (

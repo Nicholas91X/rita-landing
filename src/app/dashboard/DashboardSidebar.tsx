@@ -115,7 +115,7 @@ export default function DashboardSidebar({ activeTab, setActiveTab, userProfile 
             </aside>
 
             {/* Mobile Bottom Bar */}
-            <nav className="lg:hidden fixed bottom-0 left-0 right-0 h-20 bg-[var(--brand)] shadow-[0_-8px_30px_rgba(244,101,48,0.4)] border-t border-white/10 px-2 flex items-center justify-around z-50 rounded-t-[32px]">
+            <nav className="lg:hidden fixed bottom-0 left-0 right-0 h-20 bg-gradient-to-r from-[#7f554f] to-[#5f3f3a] shadow-[0_-8px_30px_rgba(127,85,79,0.4)] border-t border-white/10 px-2 flex items-center justify-around z-50 rounded-t-[32px]">
                 {NAV_ITEMS.map((item) => (
                     <button
                         key={item.id}
@@ -132,14 +132,14 @@ export default function DashboardSidebar({ activeTab, setActiveTab, userProfile 
             </nav>
 
             {/* Mobile Header */}
-            <header className="lg:hidden fixed top-0 left-0 right-0 h-16 bg-[var(--brand)] border-b border-white/10 px-6 flex items-center justify-between z-40 shadow-lg">
+            <header className="lg:hidden fixed top-0 left-0 right-0 h-14 bg-gradient-to-r from-[#654540] to-[#503530] border-b border-white/10 px-6 flex items-center justify-between z-40 shadow-lg">
                 <Link href="/" className="flex items-center gap-2">
                     <Image
                         src="/logo/logo.png"
                         alt="Fitandsmile Logo"
                         width={32}
                         height={32}
-                        className="object-contain"
+                        className="object-contain border-[0.5px] border-white rounded-full p-[1px]"
                     />
                     <h1 className="text-xl font-black text-white italic tracking-tighter uppercase">
                         Rita <span className="not-italic font-bold text-sm tracking-widest opacity-80">Workout</span>
