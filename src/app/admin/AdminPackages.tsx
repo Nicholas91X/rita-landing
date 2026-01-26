@@ -22,6 +22,7 @@ import { toast } from 'sonner'
 type Package = {
     id: string
     name: string
+    title: string | null
     description: string
     price: number
     stripe_product_id: string | null
@@ -44,7 +45,7 @@ export default function AdminPackages() {
     const [loading, setLoading] = useState(true)
     const [isDialogOpen, setIsDialogOpen] = useState(false)
     const [editingPackage, setEditingPackage] = useState<Package | null>(null)
-    const [formData, setFormData] = useState({ name: '', description: '', price: 0, course_id: '', badge_type: '' })
+    const [formData, setFormData] = useState({ name: '', title: '', description: '', price: 0, course_id: '', badge_type: '' })
     const [imageFile, setImageFile] = useState<File | null>(null)
     const [imagePreview, setImagePreview] = useState<string | null>(null)
     const [submitting, setSubmitting] = useState(false)
@@ -78,6 +79,7 @@ export default function AdminPackages() {
             setEditingPackage(pkg)
             setFormData({
                 name: pkg.name,
+                title: pkg.title || '',
                 description: pkg.description || '',
                 price: pkg.price,
                 course_id: pkg.course_id || '',
@@ -86,7 +88,7 @@ export default function AdminPackages() {
             setImagePreview(pkg.image_url)
         } else {
             setEditingPackage(null)
-            setFormData({ name: '', description: '', price: 0, course_id: '', badge_type: '' })
+            setFormData({ name: '', title: '', description: '', price: 0, course_id: '', badge_type: '' })
             setImagePreview(null)
         }
         setImageFile(null)
@@ -99,6 +101,7 @@ export default function AdminPackages() {
 
         const data = new FormData()
         data.append('name', formData.name)
+        data.append('title', formData.title)
         data.append('description', formData.description)
         data.append('price', formData.price.toString())
         data.append('course_id', formData.course_id)
@@ -262,8 +265,16 @@ export default function AdminPackages() {
                                         required
                                     />
                                 </div>
+                                <div className="space-y-2 col-span-2">
+                                    <label className="text-sm font-bold text-white uppercase tracking-widest text-[10px]">Titolo (Opzionale)</label>
+                                    <Input
+                                        value={formData.title}
+                                        onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                                        className="bg-neutral-800 border-neutral-700"
+                                        placeholder="Es. Percorso Rinascita Guidata"
+                                    />
+                                </div>
                             </div>
-
                             <div className="space-y-2">
                                 <label className="text-sm font-bold text-white uppercase tracking-widest text-[10px]">Descrizione</label>
                                 <Textarea
