@@ -105,7 +105,7 @@ export default function DashboardClient({ levels }: { levels: Level[] }) {
     }
 
     return (
-        <div className="flex min-h-screen bg-[#f1ebe7] text-[var(--secondary)] selection:bg-brand/30 relative">
+        <div className="flex min-h-screen bg-[#f3efec] text-[var(--secondary)] selection:bg-brand/30 relative">
             {/* Sfondo chiaro, rimuovo il gradiente scuro */}
 
             {/* Navigation */}
@@ -114,7 +114,7 @@ export default function DashboardClient({ levels }: { levels: Level[] }) {
             {/* Main Content Area */}
             <main className="flex-1 lg:ml-72 pb-24 lg:pb-0 relative">
                 {/* Content Header (Visible only on Desktop for Profile name or breadcrumbs if needed) */}
-                <header className="hidden lg:flex h-14 items-center justify-between px-12 border-b border-white/10 sticky top-0 bg-gradient-to-r from-[#654540] to-[#503530] backdrop-blur-xl z-20 transition-all shadow-md">
+                <header className="hidden lg:flex h-14 items-center justify-between px-12 border-b border-[#f3efec] sticky top-0 bg-gradient-to-r from-[#654540] to-[#503530] backdrop-blur-xl z-20 transition-all shadow-md">
                     <div>
                         {/* Empty spacing for alignment with desktop layout if needed */}
                     </div>

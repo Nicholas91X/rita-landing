@@ -128,7 +128,7 @@ export default function LibrarySection({
 
                                                     <CardHeader className="pb-4 pt-6 px-8 flex-1">
                                                         <CardTitle className="text-xl font-black text-white line-clamp-2 min-h-[3.5rem] italic uppercase tracking-tighter group-hover:text-[var(--brand)] transition-colors">
-                                                            {pkg.name.toLowerCase().includes('pilates') && pkg.name.toLowerCase().includes('principiante') ? 'Destinazione Bali (Equilibrio)' : pkg.name}
+                                                            {pkg.name.toLowerCase().includes('pilates') && pkg.name.toLowerCase().includes('principiante') ? 'Destinazione Bali (equilibrio)' : pkg.name}
                                                         </CardTitle>
 
                                                         {pkgProgress && (

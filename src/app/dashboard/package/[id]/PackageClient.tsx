@@ -109,7 +109,7 @@ export default function PackageClient({ pkg, videos }: { pkg: Package, videos: V
                             {/* Immersive Video Container */}
                             <h2 className="text-xl md:text-2xl font-black uppercase tracking-tight mb-10">
                                 <span className="text-[#846047]">MESE 1: </span>
-                                <span className="text-[#2a2e30]">BALI</span> <span className="font-black text-gray-500">(Equilibrio & Drenaggio)</span> 🌿
+                                <span className="text-[#2a2e30]">BALI</span> <span className="font-black text-gray-500">(equilibrio & drenaggio)</span> 🌿
                             </h2>
                             <div className="relative group flex-none">
                                 <div className="absolute -inset-4 bg-[var(--brand)]/20 blur-3xl rounded-full opacity-40 group-hover:opacity-60 transition-opacity duration-1000 hidden md:block" />
