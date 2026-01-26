@@ -7,6 +7,7 @@ import { redirect } from 'next/navigation'
 export type Package = {
     id: string
     name: string
+    title?: string | null
     description: string
     course_id: string
     stripe_price_id: string
@@ -54,7 +55,8 @@ export async function getContentHierarchy() {
                 name,
                 packages ( 
                     id, 
-                    name, 
+                    name,
+                    title, 
                     description, 
                     stripe_price_id,
                     price,
@@ -78,6 +80,7 @@ export async function getContentHierarchy() {
             packages: Array<{
                 id: string;
                 name: string;
+                title: string | null;
                 description: string;
                 stripe_price_id: string;
                 price: number;
@@ -114,7 +117,8 @@ export async function getPublicContentHierarchy() {
                 name,
                 packages ( 
                     id, 
-                    name, 
+                    name,
+                    title, 
                     description, 
                     stripe_price_id,
                     price,
@@ -138,6 +142,7 @@ export async function getPublicContentHierarchy() {
             packages: Array<{
                 id: string;
                 name: string;
+                title: string | null;
                 description: string;
                 stripe_price_id: string;
                 price: number;

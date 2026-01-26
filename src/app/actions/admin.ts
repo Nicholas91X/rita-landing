@@ -19,6 +19,7 @@ export async function getAdminPackages() {
         .from('packages')
         .select(`
             *,
+            title,
             courses (
                 name
             )
@@ -100,6 +101,7 @@ export async function createPackage(formData: FormData) {
         .from('packages')
         .insert({
             name: name,
+            title: title || null,
             description: description,
             price: priceAmount,
             course_id: courseId,
@@ -195,6 +197,7 @@ export async function updatePackage(id: string, formData: FormData) {
         .from('packages')
         .update({
             name: name,
+            title: title || null,
             description: description,
             price: priceAmount,
             course_id: courseId,
