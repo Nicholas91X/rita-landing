@@ -108,14 +108,14 @@ export default function DashboardClient({ levels }: { levels: Level[] }) {
     }
 
     return (
-        <div className="flex min-h-screen bg-[#f3efec] text-[var(--secondary)] selection:bg-brand/30 relative">
+        <div className="flex min-h-screen bg-[#f3efec] text-[var(--secondary)] selection:bg-brand/30 relative overflow-x-hidden">
             {/* Sfondo chiaro, rimuovo il gradiente scuro */}
 
             {/* Navigation */}
             <DashboardSidebar activeTab={activeTab} setActiveTab={setActiveTab} userProfile={userProfile} />
 
             {/* Main Content Area */}
-            <main className="flex-1 lg:ml-72 pb-24 lg:pb-0 relative">
+            <main className="flex-1 lg:ml-72 pb-24 lg:pb-0 relative overflow-x-hidden">
                 {/* Content Header (Visible only on Desktop for Profile name or breadcrumbs if needed) */}
                 <header className="hidden lg:flex h-14 items-center justify-between px-12 border-b border-[#f3efec] sticky top-0 bg-gradient-to-r from-[#654540] to-[#503530] backdrop-blur-xl z-20 transition-all shadow-md">
                     <div>
