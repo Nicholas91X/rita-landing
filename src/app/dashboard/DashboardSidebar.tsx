@@ -1,6 +1,6 @@
 'use client'
 
-import { LucideIcon, Home, BookOpen, Search, CreditCard, User, LogOut } from 'lucide-react'
+import { LucideIcon, Home, BookOpen, Search, CreditCard, User, LogOut, Sparkles } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import Link from 'next/link'
 import Image from 'next/image'
@@ -8,7 +8,7 @@ import { signOutUser } from '@/app/actions/user'
 import { toast } from 'sonner'
 import { NotificationBell } from './NotificationBell'
 
-export type TabType = 'home' | 'training' | 'billing' | 'profile'
+export type TabType = 'home' | 'training' | 'billing' | 'profile' | '1to1'
 
 interface NavItem {
     id: TabType
@@ -19,6 +19,7 @@ interface NavItem {
 const NAV_ITEMS: NavItem[] = [
     { id: 'home', label: 'Home', icon: Home },
     { id: 'training', label: 'Allenamento', icon: BookOpen },
+    { id: '1to1' as TabType, label: '1 to 1', icon: Sparkles },
     { id: 'billing', label: 'Billing', icon: CreditCard },
     { id: 'profile', label: 'Profilo', icon: User },
 ]

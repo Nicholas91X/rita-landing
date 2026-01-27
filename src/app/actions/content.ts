@@ -13,6 +13,7 @@ export type Package = {
     stripe_price_id: string
     price: number;
     image_url: string | null;
+    payment_mode?: 'subscription' | 'payment';
     isPurchased?: boolean
 }
 

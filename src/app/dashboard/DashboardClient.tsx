@@ -8,6 +8,7 @@ import HomeSection from './HomeSection'
 import TrainingSection from './TrainingSection'
 import BillingSection from './BillingSection'
 import ProfileSection from './ProfileSection'
+import OneToOneSection from './OneToOneSection'
 import { getLibraryProgress, LibraryProgress } from '@/app/actions/video'
 import { getUserProfile } from '@/app/actions/user'
 import { Loader2 } from 'lucide-react'
@@ -67,7 +68,7 @@ export default function DashboardClient({ levels }: { levels: Level[] }) {
         const success = searchParams.get('success')
         const tab = searchParams.get('tab') as TabType
 
-        if (tab && ['home', 'training', 'billing', 'profile'].includes(tab)) {
+        if (tab && ['home', 'training', 'billing', 'profile', '1to1'].includes(tab)) {
             setActiveTab(tab)
         } else if (success === 'true') {
             setActiveTab('training')
@@ -95,6 +96,8 @@ export default function DashboardClient({ levels }: { levels: Level[] }) {
                     userProfile={userProfile}
                     userName={firstName}
                 />
+            case '1to1':
+                return <OneToOneSection />
             case 'billing':
                 return <BillingSection />
             case 'profile':

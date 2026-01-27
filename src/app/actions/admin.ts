@@ -20,6 +20,7 @@ export async function getAdminPackages() {
         .select(`
             *,
             title,
+            payment_mode,
             courses (
                 name
             )
@@ -60,6 +61,7 @@ export async function createPackage(formData: FormData) {
     const priceAmount = parseFloat(formData.get('price') as string)
     const courseId = formData.get('course_id') as string
     const badgeType = formData.get('badge_type') as string
+    const paymentMode = formData.get('payment_mode') as 'subscription' | 'payment' || 'subscription'
     const imageFile = formData.get('image') as File
 
     // 1. Create Product in Stripe
@@ -73,9 +75,9 @@ export async function createPackage(formData: FormData) {
         product: product.id,
         unit_amount: Math.round(priceAmount * 100), // Convert to cents
         currency: 'eur',
-        recurring: {
+        recurring: paymentMode === 'subscription' ? {
             interval: 'month',
-        },
+        } : undefined,
     })
 
     const supabase = await createClient()
@@ -109,6 +111,7 @@ export async function createPackage(formData: FormData) {
             stripe_product_id: product.id,
             stripe_price_id: price.id,
             badge_type: badgeType,
+            payment_mode: paymentMode,
             image_url: imageUrl
         })
 
@@ -126,6 +129,7 @@ export async function updatePackage(id: string, formData: FormData) {
     const priceAmount = parseFloat(formData.get('price') as string)
     const courseId = formData.get('course_id') as string
     const badgeType = formData.get('badge_type') as string
+    const paymentMode = formData.get('payment_mode') as 'subscription' | 'payment' || 'subscription'
     const imageFile = formData.get('image') as File
     const removeImage = formData.get('removeImage') === 'true'
 
@@ -157,9 +161,9 @@ export async function updatePackage(id: string, formData: FormData) {
             product: currentPkg.stripe_product_id,
             unit_amount: Math.round(priceAmount * 100),
             currency: 'eur',
-            recurring: {
+            recurring: paymentMode === 'subscription' ? {
                 interval: 'month',
-            },
+            } : undefined,
         })
         newStripePriceId = price.id
         await stripe.products.update(currentPkg.stripe_product_id, {
@@ -205,6 +209,7 @@ export async function updatePackage(id: string, formData: FormData) {
             course_id: courseId,
             stripe_price_id: newStripePriceId,
             badge_type: badgeType,
+            payment_mode: paymentMode,
             image_url: newImageUrl
         })
         .eq('id', id)

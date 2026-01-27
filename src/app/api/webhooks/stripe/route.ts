@@ -42,10 +42,25 @@ export async function POST(req: Request) {
 
             try {
                 // Fetch actual subscription to get status and period end
+                const mode = session.mode
                 let subscriptionStatus = 'active'
                 let periodEnd = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
+                let stripeSubscriptionId = session.subscription as string
 
-                if (session.subscription) {
+                if (mode === 'payment') {
+                    // One-Time Purchase Logic
+                    subscriptionStatus = 'active' // Always active for lifetime
+                    periodEnd = null as unknown as string // Infinite access
+                    stripeSubscriptionId = null as unknown as string // No recurring sub ID
+
+                    // Log purchase
+                    await supabaseAdmin.from('one_time_purchases').insert({
+                        user_id: userId,
+                        item_type: 'package',
+                        stripe_payment_intent_id: session.payment_intent as string
+                    })
+                } else if (session.subscription) {
+                    // Subscription Logic
                     const stripeSub = await stripe.subscriptions.retrieve(session.subscription as string)
                     subscriptionStatus = stripeSub.status
                     periodEnd = new Date((stripeSub as unknown as { current_period_end: number }).current_period_end * 1000).toISOString()
@@ -59,7 +74,7 @@ export async function POST(req: Request) {
                         package_id: packageId,
                         status: subscriptionStatus,
                         stripe_customer_id: session.customer as string,
-                        stripe_subscription_id: session.subscription as string,
+                        stripe_subscription_id: stripeSubscriptionId,
                         current_period_end: periodEnd,
                     }, {
                         onConflict: 'user_id, package_id'
