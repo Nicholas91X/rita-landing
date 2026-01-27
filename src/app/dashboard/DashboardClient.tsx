@@ -12,6 +12,7 @@ import OneToOneSection from './OneToOneSection'
 import { getLibraryProgress, LibraryProgress } from '@/app/actions/video'
 import { getUserProfile } from '@/app/actions/user'
 import { Loader2 } from 'lucide-react'
+import { cn } from '@/lib/utils'
 import Image from 'next/image'
 
 import { NotificationBell } from './NotificationBell'
@@ -41,6 +42,7 @@ interface DashboardProfile {
 
 export default function DashboardClient({ levels }: { levels: Level[] }) {
     const [activeTab, setActiveTab] = useState<TabType>('home')
+    const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false)
     const [libraryProgress, setLibraryProgress] = useState<LibraryProgress[]>([])
     const [userProfile, setUserProfile] = useState<DashboardProfile | null>(null)
     const searchParams = useSearchParams()
@@ -112,10 +114,19 @@ export default function DashboardClient({ levels }: { levels: Level[] }) {
             {/* Sfondo chiaro, rimuovo il gradiente scuro */}
 
             {/* Navigation */}
-            <DashboardSidebar activeTab={activeTab} setActiveTab={setActiveTab} userProfile={userProfile} />
+            <DashboardSidebar
+                activeTab={activeTab}
+                setActiveTab={setActiveTab}
+                userProfile={userProfile}
+                isCollapsed={isSidebarCollapsed}
+                setIsCollapsed={setIsSidebarCollapsed}
+            />
 
             {/* Main Content Area */}
-            <main className="flex-1 lg:ml-72 pb-24 lg:pb-0 relative overflow-x-hidden">
+            <main className={cn(
+                "flex-1 pb-24 lg:pb-0 relative overflow-x-hidden transition-all duration-300",
+                isSidebarCollapsed ? "lg:ml-20" : "lg:ml-72"
+            )}>
                 {/* Content Header (Visible only on Desktop for Profile name or breadcrumbs if needed) */}
                 <header className="hidden lg:flex h-14 items-center justify-between px-12 border-b border-[#f3efec] sticky top-0 bg-gradient-to-r from-[#654540] to-[#503530] backdrop-blur-xl z-20 transition-all shadow-md">
                     <div>

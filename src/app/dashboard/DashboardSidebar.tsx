@@ -1,6 +1,6 @@
 'use client'
 
-import { LucideIcon, Home, BookOpen, Search, CreditCard, User, LogOut, Sparkles } from 'lucide-react'
+import { LucideIcon, Home, BookOpen, Search, CreditCard, User, LogOut, Sparkles, ChevronLeft, ChevronRight } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import Link from 'next/link'
 import Image from 'next/image'
@@ -51,16 +51,31 @@ export interface DashboardSidebarProps {
     activeTab: TabType
     setActiveTab: (tab: TabType) => void
     userProfile?: DashboardProfile | null
+    isCollapsed: boolean
+    setIsCollapsed: (collapsed: boolean) => void
 }
 
-export default function DashboardSidebar({ activeTab, setActiveTab, userProfile }: DashboardSidebarProps) {
+export default function DashboardSidebar({ activeTab, setActiveTab, userProfile, isCollapsed, setIsCollapsed }: DashboardSidebarProps) {
 
     return (
         <>
             {/* Desktop Sidebar */}
-            <aside className="hidden lg:flex flex-col w-72 h-screen fixed left-0 top-0 bg-[var(--brand)] border-r border-white/10 p-6 z-20 shadow-[4px_0_24px_rgba(244,101,48,0.2)]">
-                <Link href="/" className="mb-10 px-2 flex items-center gap-3 group transition-transform hover:scale-[1.02]">
-                    <div className="relative w-12 h-12 flex items-center justify-center">
+            <aside className={cn(
+                "hidden lg:flex flex-col h-screen fixed left-0 top-0 bg-[var(--brand)] border-r border-white/10 p-6 z-20 shadow-[4px_0_24px_rgba(244,101,48,0.2)] transition-all duration-300",
+                isCollapsed ? "w-20" : "w-72"
+            )}>
+                <button
+                    onClick={() => setIsCollapsed(!isCollapsed)}
+                    className="absolute -right-3 top-1/2 -translate-y-1/2 w-6 h-6 bg-[var(--brand)] border border-white/20 rounded-full flex items-center justify-center text-white shadow-lg hover:scale-110 transition-all z-30"
+                >
+                    {isCollapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
+                </button>
+
+                <Link href="/" className={cn(
+                    "mb-10 flex items-center gap-3 group transition-all duration-300",
+                    isCollapsed ? "px-0 justify-center" : "px-2"
+                )}>
+                    <div className="relative w-12 h-12 flex-shrink-0 flex items-center justify-center">
                         <Image
                             src="/logo/logo.png"
                             alt="Fitandsmile Logo"
@@ -69,11 +84,13 @@ export default function DashboardSidebar({ activeTab, setActiveTab, userProfile 
                             className="object-contain"
                         />
                     </div>
-                    <div className="flex flex-col">
-                        <span className="text-xl font-black text-white italic tracking-tighter uppercase leading-none">
-                            Rita <span className="block text-secondary text-sm not-italic font-bold tracking-widest mt-0.5 opacity-90">Workout</span>
-                        </span>
-                    </div>
+                    {!isCollapsed && (
+                        <div className="flex flex-col overflow-hidden whitespace-nowrap">
+                            <span className="text-xl font-black text-white italic tracking-tighter uppercase leading-none">
+                                Rita <span className="block text-secondary text-sm not-italic font-bold tracking-widest mt-0.5 opacity-90">Workout</span>
+                            </span>
+                        </div>
+                    )}
                 </Link>
 
                 <nav className="flex-1 space-y-2">
@@ -82,17 +99,19 @@ export default function DashboardSidebar({ activeTab, setActiveTab, userProfile 
                             key={item.id}
                             onClick={() => setActiveTab(item.id)}
                             className={cn(
-                                "w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-sm font-semibold transition-all duration-300 group relative overflow-hidden",
+                                "w-full flex items-center gap-3 rounded-2xl text-sm font-semibold transition-all duration-300 group relative overflow-hidden",
+                                isCollapsed ? "px-0 justify-center h-12" : "px-4 py-3",
                                 activeTab === item.id
                                     ? "text-[#001F3D] bg-white shadow-[0_8px_30px_rgba(0,0,0,0.12)] scale-[1.02]"
                                     : "text-white/80 hover:text-white hover:bg-white/10"
                             )}
+                            title={isCollapsed ? item.label : undefined}
                         >
                             <item.icon className={cn(
-                                "w-5 h-5 transition-transform duration-300",
+                                "w-5 h-5 flex-shrink-0 transition-transform duration-300",
                                 activeTab === item.id ? "scale-110 text-[#001F3D]" : "group-hover:scale-110"
                             )} />
-                            {item.label}
+                            {!isCollapsed && <span className="whitespace-nowrap overflow-hidden text-ellipsis">{item.label}</span>}
                         </button>
                     ))}
                 </nav>
@@ -106,10 +125,14 @@ export default function DashboardSidebar({ activeTab, setActiveTab, userProfile 
                                 toast.error('Errore durante il logout')
                             }
                         }}
-                        className="w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-sm font-semibold text-white/90 hover:bg-white/10 transition-all duration-300 group"
+                        className={cn(
+                            "w-full flex items-center gap-3 rounded-2xl text-sm font-semibold text-white/90 hover:bg-white/10 transition-all duration-300 group",
+                            isCollapsed ? "px-0 justify-center h-12" : "px-4 py-3"
+                        )}
+                        title={isCollapsed ? "Esci" : undefined}
                     >
-                        <LogOut className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
-                        Esci
+                        <LogOut className="w-5 h-5 flex-shrink-0 group-hover:-translate-x-1 transition-transform" />
+                        {!isCollapsed && <span className="whitespace-nowrap overflow-hidden text-ellipsis">Esci</span>}
                     </button>
                 </div>
             </aside>
