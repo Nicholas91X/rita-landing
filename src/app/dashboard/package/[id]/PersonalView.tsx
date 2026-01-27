@@ -2,7 +2,7 @@
 
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
-import { Calendar, Download, FileText, MessageCircle, Sparkles, Clock, AlertCircle } from 'lucide-react'
+import { Calendar, Download, FileText, MessageCircle, Sparkles, AlertCircle } from 'lucide-react'
 import Link from 'next/link'
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
@@ -12,16 +12,40 @@ import Image from 'next/image'
 
 type PurchaseStatus = 'paid' | 'pending_appointment' | 'processing_plan' | 'delivered'
 
+interface DashboardProfile {
+    user: {
+        id: string;
+        email?: string;
+    };
+    profile: {
+        full_name: string | null;
+        avatar_url: string | null;
+        has_used_trial: boolean;
+    } | null;
+    activeSubscriptions: Array<{
+        id: string;
+        status: string;
+    }>;
+    badges: Array<{
+        id: string;
+        badge_type: string;
+        packages: {
+            name: string;
+        };
+    }>;
+}
+
 interface PersonalViewProps {
     status: PurchaseStatus
     documentUrl?: string | null
     packageName: string
     userName?: string
-    userProfile: any
+    userProfile: DashboardProfile | null
 }
 
 export default function PersonalView({ status, documentUrl, packageName, userName, userProfile }: PersonalViewProps) {
     const router = useRouter()
+    const [isCollapsed, setIsCollapsed] = useState(false)
 
     const handleTabChange = (tab: TabType) => {
         if (tab === '1to1') return
@@ -63,7 +87,7 @@ export default function PersonalView({ status, documentUrl, packageName, userNam
                                     </Link>
                                 </Button>
                                 <p className="text-center text-xs text-neutral-400 font-medium">
-                                    Ti risponderò al più presto per fissare l'orario.
+                                    Ti risponderò al più presto per fissare l&apos;orario.
                                 </p>
                             </div>
 
@@ -181,6 +205,8 @@ export default function PersonalView({ status, documentUrl, packageName, userNam
                 activeTab="1to1"
                 setActiveTab={handleTabChange}
                 userProfile={userProfile}
+                isCollapsed={isCollapsed}
+                setIsCollapsed={setIsCollapsed}
             />
 
             <main className="flex-1 lg:ml-72 relative min-h-screen flex flex-col overflow-x-hidden">

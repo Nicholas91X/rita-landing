@@ -1,5 +1,4 @@
 "use client";
-import Image from "next/image";
 import { CtaRow, CtaWhatsApp } from "../Cta";
 import Section from "../Section";
 import { site } from "@/content/it";

@@ -64,7 +64,7 @@ export default async function PackagePage(props: { params: Promise<{ id: string 
     if (pkg?.payment_mode === 'payment' && oneTimePurchase) {
         return (
             <PersonalView
-                status={(oneTimePurchase.status as any) || 'pending_appointment'}
+                status={(oneTimePurchase.status as 'paid' | 'pending_appointment' | 'processing_plan' | 'delivered') || 'pending_appointment'}
                 documentUrl={oneTimePurchase.document_url}
                 packageName={pkg.name}
                 userName={firstName}

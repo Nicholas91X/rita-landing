@@ -1,12 +1,12 @@
 'use client'
 
 import { useState } from 'react'
-import { Level } from '@/app/actions/content'
-import { Card, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
+import { Level, Package } from '@/app/actions/content'
+import { Card, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
 import { Dialog, DialogContent } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import BuyButton from '@/components/BuyButton'
-import { Compass, Eye, Map, Check, Star, Calendar, Clock, Trophy, Leaf, Contact, MessageCircle, ArrowRight } from 'lucide-react'
+import { Compass, Map, Check, Star, Calendar, Clock, Trophy, Contact, MessageCircle, ArrowRight } from 'lucide-react'
 import Image from 'next/image'
 
 interface DashboardProfile {
@@ -39,7 +39,7 @@ export default function DiscoverSection({
     levels: Level[],
     userProfile?: DashboardProfile | null
 }) {
-    const [selectedPkg, setSelectedPkg] = useState<any>(null)
+    const [selectedPkg, setSelectedPkg] = useState<Package | null>(null)
 
     // Eligibility Logic
     const hasUsedTrial = userProfile?.profile?.has_used_trial || false

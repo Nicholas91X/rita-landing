@@ -2,7 +2,6 @@
 
 import { useState } from 'react'
 import { createClient } from '@/utils/supabase/client'
-import { useRouter } from 'next/navigation'
 import Logo from '@/components/Logo'
 import { Button } from '@/components/ui/button'
 import { Loader2, Mail, Lock, User, ArrowLeft, Eye, EyeOff } from 'lucide-react'
@@ -11,7 +10,6 @@ import { recoverPassword, findEmail } from '@/app/actions/user'
 type AuthMode = 'login' | 'signup' | 'forgot-password' | 'forgot-email'
 
 export default function LoginPage() {
-    const router = useRouter()
     const [mode, setMode] = useState<AuthMode>('login')
     const [loading, setLoading] = useState(false)
     const [email, setEmail] = useState('')
@@ -201,7 +199,7 @@ export default function LoginPage() {
                                     onClick={() => setMode('forgot-email')}
                                     className="text-xs text-[var(--foreground)]/40 hover:text-[var(--brand)] transition-colors"
                                 >
-                                    Hai dimenticato l'email?
+                                    Hai dimenticato l&apos;email?
                                 </button>
                             </div>
                         )}

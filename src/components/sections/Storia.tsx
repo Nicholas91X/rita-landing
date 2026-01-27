@@ -8,7 +8,7 @@ import CollapsibleHtml from "@/components/CollapsibleHtml";
 import GalleryScroller from "@/components/GalleryScroller";
 import { Button } from "@/components/ui/button";
 import { createClient } from "@/utils/supabase/client";
-import { Calendar, Users, ArrowRight, Clock, Dumbbell, Sparkles, CheckCircle2 } from "lucide-react";
+import { Calendar, Users, Clock, Dumbbell, Sparkles, CheckCircle2 } from "lucide-react";
 import Image from "next/image";
 
 export default function Storia({
@@ -221,7 +221,7 @@ export default function Storia({
                 <div className="mb-4 p-3 bg-amber-50 rounded-xl border border-amber-100 flex items-start gap-2">
                   <span className="text-amber-500 mt-0.5">ℹ️</span>
                   <p className="text-[10px] text-amber-700 font-medium leading-tight">
-                    Hai già usufruito del tuo periodo di prova gratuito. L'abbonamento si attiverà immediatamente al costo indicato.
+                    Hai già usufruito del tuo periodo di prova gratuito. L&apos;abbonamento si attiverà immediatamente al costo indicato.
                   </p>
                 </div>
               )}
