@@ -55,6 +55,7 @@ export async function createPackage(formData: FormData) {
     if (!isSuperAdmin) throw new Error('Unauthorized')
 
     const name = formData.get('name') as string
+    const title = formData.get('title') as string
     const description = formData.get('description') as string
     const priceAmount = parseFloat(formData.get('price') as string)
     const courseId = formData.get('course_id') as string
@@ -120,6 +121,7 @@ export async function updatePackage(id: string, formData: FormData) {
     if (!isSuperAdmin) throw new Error('Unauthorized')
 
     const name = formData.get('name') as string
+    const title = formData.get('title') as string
     const description = formData.get('description') as string
     const priceAmount = parseFloat(formData.get('price') as string)
     const courseId = formData.get('course_id') as string
