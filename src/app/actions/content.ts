@@ -71,7 +71,8 @@ export async function getContentHierarchy() {
                     description, 
                     stripe_price_id,
                     price,
-                    image_url
+                    image_url,
+                    payment_mode
                 )
             )
         `)
@@ -96,6 +97,7 @@ export async function getContentHierarchy() {
                 stripe_price_id: string;
                 price: number;
                 image_url: string | null;
+                payment_mode: 'subscription' | 'payment';
             }>;
         }>;
     }>;
@@ -133,7 +135,8 @@ export async function getPublicContentHierarchy() {
                     description, 
                     stripe_price_id,
                     price,
-                    image_url
+                    image_url,
+                    payment_mode
                 )
             )
         `)
@@ -158,6 +161,7 @@ export async function getPublicContentHierarchy() {
                 stripe_price_id: string;
                 price: number;
                 image_url: string | null;
+                payment_mode: 'subscription' | 'payment';
             }>;
         }>;
     }>;

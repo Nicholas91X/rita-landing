@@ -107,7 +107,7 @@ export default function HomeSection({ levels, onShowLibrary, userName }: { level
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     {levels.map((level) => {
                         const purchasedCount = level.courses.reduce((acc, course) => {
-                            return acc + course.packages.filter(p => p.isPurchased).length
+                            return acc + course.packages.filter(p => p.isPurchased && p.payment_mode === 'subscription').length
                         }, 0)
 
                         if (purchasedCount === 0) return null
