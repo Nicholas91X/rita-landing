@@ -57,7 +57,7 @@ export default function Nav() {
               <Logo variant="circle" height={60} showText={false} />
               <div className="flex flex-col justify-center">
                 <Link
-                  href="#top"
+                  href="/"
                   className="inline-block text-xl md:text-2xl font-semibold tracking-tight leading-tight"
                   onClick={closeMenu}
                 >
@@ -71,10 +71,10 @@ export default function Nav() {
 
             {/* Desktop Nav (Visible lg+) */}
             <nav className="hidden lg:flex items-center gap-8 text-lg">
-              <a href="#metodo" className="hover:text-[var(--brand)] transition-colors">Metodo</a>
+              <Link href="/#metodo" className="hover:text-[var(--brand)] transition-colors">Metodo</Link>
               <Link href="/pacchetti" className="hover:text-[var(--brand)] transition-colors">Pacchetti</Link>
-              <a href="#faq" className="hover:text-[var(--brand)] transition-colors">FAQ</a>
-              <a href="#contatti" className="hover:text-[var(--brand)] transition-colors">Contatti</a>
+              <Link href="/#faq" className="hover:text-[var(--brand)] transition-colors">FAQ</Link>
+              <Link href="/#contatti" className="hover:text-[var(--brand)] transition-colors">Contatti</Link>
               <Link href="/dashboard" className="font-medium text-[var(--brand)] hover:text-white transition-colors">
                 {isLoggedIn ? "Area Riservata" : "Accedi"}
               </Link>
@@ -136,10 +136,10 @@ export default function Nav() {
         {/* Drawer Content */}
         <div className="flex-1 overflow-y-auto py-8 px-6 flex flex-col gap-6">
           <nav className="flex flex-col gap-6 text-xl font-medium">
-            <a href="#metodo" onClick={closeMenu} className="hover:text-[var(--brand)] transition-colors">Metodo</a>
+            <Link href="/#metodo" onClick={closeMenu} className="hover:text-[var(--brand)] transition-colors">Metodo</Link>
             <Link href="/pacchetti" onClick={closeMenu} className="hover:text-[var(--brand)] transition-colors">Pacchetti</Link>
-            <a href="#faq" onClick={closeMenu} className="hover:text-[var(--brand)] transition-colors">FAQ</a>
-            <a href="#contatti" onClick={closeMenu} className="hover:text-[var(--brand)] transition-colors">Contatti</a>
+            <Link href="/#faq" onClick={closeMenu} className="hover:text-[var(--brand)] transition-colors">FAQ</Link>
+            <Link href="/#contatti" onClick={closeMenu} className="hover:text-[var(--brand)] transition-colors">Contatti</Link>
           </nav>
 
           <div className="mt-8 pt-8 border-t border-white/10 space-y-6">

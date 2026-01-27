@@ -67,7 +67,7 @@ export default async function PackagesPage() {
         gap={12}
         speedSec={22}
       />
-      <div className="max-w-7xl mx-auto px-6 md:px-10 py-12 md:py-20 text-[var(--secondary)]">
+      <div className="max-w-7xl mx-auto py-12 md:py-20 text-[var(--secondary)]">
         <Section className="section">
           <div className="grid gap-10 md:grid-cols-[minmax(0,0.75fr)_minmax(0,1fr)] items-center">
             <div className="space-y-4">
