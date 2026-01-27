@@ -9,14 +9,34 @@ import GalleryScroller from "@/components/GalleryScroller";
 import { Button } from "@/components/ui/button";
 import { createClient } from "@/utils/supabase/client";
 
-export default function Storia() {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+export default function Storia({
+  isLoggedIn: initialIsLoggedIn = false,
+  hasUsedTrial: initialHasUsedTrial = false
+}: {
+  isLoggedIn?: boolean,
+  hasUsedTrial?: boolean
+}) {
+  const [isLoggedIn, setIsLoggedIn] = useState(initialIsLoggedIn);
+  const [hasUsedTrial, setHasUsedTrial] = useState(initialHasUsedTrial);
 
   useEffect(() => {
     const checkUser = async () => {
       const supabase = createClient();
       const { data: { session } } = await supabase.auth.getSession();
-      setIsLoggedIn(!!session?.user);
+      const user = session?.user;
+      setIsLoggedIn(!!user);
+
+      if (user) {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('has_used_trial')
+          .eq('id', user.id)
+          .single();
+
+        if (profile) {
+          setHasUsedTrial(profile.has_used_trial);
+        }
+      }
     };
     checkUser();
   }, []);
@@ -161,8 +181,17 @@ export default function Storia() {
                 <span className="text-slate-500 text-sm">/ mese</span>
               </div>
 
+              {isLoggedIn && hasUsedTrial && (
+                <div className="mb-4 p-3 bg-amber-50 rounded-xl border border-amber-100 flex items-start gap-2">
+                  <span className="text-amber-500 mt-0.5">ℹ️</span>
+                  <p className="text-[10px] text-amber-700 font-medium leading-tight">
+                    Hai già usufruito del tuo periodo di prova gratuito. L'abbonamento si attiverà immediatamente al costo indicato.
+                  </p>
+                </div>
+              )}
+
               <Button asChild className="w-full bg-[var(--steel)] hover:bg-[var(--steel)]/90 text-[var(--accent)] rounded-2xl py-6 h-auto text-lg font-bold shadow-lg shadow-blue-900/10 transition-transform active:scale-95">
-                <Link href="/login" className="cursor-pointer">
+                <Link href={isLoggedIn ? "/dashboard?tab=training&packageId=trial" : "/login"} className="cursor-pointer">
                   Inizia la Prova Gratuita
                 </Link>
               </Button>

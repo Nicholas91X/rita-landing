@@ -6,6 +6,8 @@ import Faq from "@/components/sections/Faq";
 import Contact from "@/components/sections/Contact";
 import SideMarquees from "@/components/SideMarquees";
 
+import { createClient } from "@/utils/supabase/server";
+
 const leftImgs = [
   "https://hel1.your-objectstorage.com/nicholas-bucket/rita-zanicchi/side/left-1.png",
   "https://hel1.your-objectstorage.com/nicholas-bucket/rita-zanicchi/side/left-2.png",
@@ -20,7 +22,23 @@ const rightImgs = [
   "https://hel1.your-objectstorage.com/nicholas-bucket/rita-zanicchi/side/right-3.png",
 ];
 
-export default function Page() {
+export default async function Page() {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+
+  let hasUsedTrial = false;
+  if (user) {
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('has_used_trial')
+      .eq('id', user.id)
+      .single();
+
+    if (profile) {
+      hasUsedTrial = profile.has_used_trial;
+    }
+  }
+
   return (
     <main className="relative">
       <SideMarquees
@@ -34,7 +52,7 @@ export default function Page() {
       <Hero />
       <Metodo />
       <PerChi />
-      <Storia />
+      <Storia isLoggedIn={!!user} hasUsedTrial={hasUsedTrial} />
       <Faq />
       <Contact />
     </main>
