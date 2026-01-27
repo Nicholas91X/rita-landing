@@ -5,7 +5,7 @@ import { createClient } from '@/utils/supabase/client'
 import { useRouter } from 'next/navigation'
 import Logo from '@/components/Logo'
 import { Button } from '@/components/ui/button'
-import { Loader2, Mail, Lock, User, ArrowLeft } from 'lucide-react'
+import { Loader2, Mail, Lock, User, ArrowLeft, Eye, EyeOff } from 'lucide-react'
 import { recoverPassword, findEmail } from '@/app/actions/user'
 
 type AuthMode = 'login' | 'signup' | 'forgot-password' | 'forgot-email'
@@ -16,6 +16,7 @@ export default function LoginPage() {
     const [loading, setLoading] = useState(false)
     const [email, setEmail] = useState('')
     const [password, setPassword] = useState('')
+    const [showPassword, setShowPassword] = useState(false)
     const [fullName, setFullName] = useState('')
     const [error, setError] = useState<string | null>(null)
     const [message, setMessage] = useState<string | null>(null)
@@ -127,14 +128,25 @@ export default function LoginPage() {
                                 <div className="relative">
                                     <Lock className="absolute left-3 top-3 h-5 w-5 text-[var(--foreground)]/40" />
                                     <input
-                                        type="password"
+                                        type={showPassword ? "text" : "password"}
                                         placeholder="Password"
                                         value={password}
                                         onChange={(e) => setPassword(e.target.value)}
                                         required
                                         minLength={6}
-                                        className="w-full pl-10 pr-4 py-3 bg-[var(--bg)] border border-[var(--foreground)]/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-[var(--brand)]/50 transition-all"
+                                        className="w-full pl-10 pr-12 py-3 bg-[var(--bg)] border border-[var(--foreground)]/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-[var(--brand)]/50 transition-all"
                                     />
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowPassword(!showPassword)}
+                                        className="absolute right-3 top-3 text-[var(--foreground)]/40 hover:text-[var(--brand)] transition-colors"
+                                    >
+                                        {showPassword ? (
+                                            <EyeOff className="h-5 w-5" />
+                                        ) : (
+                                            <Eye className="h-5 w-5" />
+                                        )}
+                                    </button>
                                 </div>
                             )}
                         </div>
