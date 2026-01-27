@@ -178,7 +178,7 @@ export default function HomeSection({ levels, onShowLibrary, userName }: { level
                                             </div>
                                         </div>
                                         <div className="p-6 flex justify-between items-center">
-                                            <span className="text-xs font-bold text-[#846047] uppercase tracking-widest">Accesso Illimitato</span>
+                                            <span className="text-xs font-bold text-[#846047] uppercase tracking-widest">Vai al percorso</span>
                                             <div className="w-8 h-8 rounded-full bg-[#f3efec] flex items-center justify-center group-hover:bg-[#846047] group-hover:text-white transition-colors">
                                                 <ArrowRight className="w-4 h-4" />
                                             </div>
@@ -237,7 +237,7 @@ export default function HomeSection({ levels, onShowLibrary, userName }: { level
                                             </div>
                                         </div>
                                         <div className="p-6 flex justify-between items-center">
-                                            <span className="text-xs font-bold text-[#846047] uppercase tracking-widest">Accesso Illimitato</span>
+                                            <span className="text-xs font-bold text-[#846047] uppercase tracking-widest">Vai al percorso</span>
                                             <div className="w-8 h-8 rounded-full bg-[#f3efec] flex items-center justify-center group-hover:bg-[#846047] group-hover:text-white transition-colors">
                                                 <ArrowRight className="w-4 h-4" />
                                             </div>
