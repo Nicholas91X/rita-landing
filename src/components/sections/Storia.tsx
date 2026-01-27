@@ -1,4 +1,5 @@
 "use client";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import Section from "../Section";
 import { Card } from "@/components/ui/card";
@@ -6,8 +7,20 @@ import { storia } from "@/content/it";
 import CollapsibleHtml from "@/components/CollapsibleHtml";
 import GalleryScroller from "@/components/GalleryScroller";
 import { Button } from "@/components/ui/button";
+import { createClient } from "@/utils/supabase/client";
 
 export default function Storia() {
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+  useEffect(() => {
+    const checkUser = async () => {
+      const supabase = createClient();
+      const { data: { session } } = await supabase.auth.getSession();
+      setIsLoggedIn(!!session?.user);
+    };
+    checkUser();
+  }, []);
+
   const gallery = [
     "https://hel1.your-objectstorage.com/nicholas-bucket/rita-zanicchi/metodo/step-1.png",
     "https://hel1.your-objectstorage.com/nicholas-bucket/rita-zanicchi/metodo/step-2.png",
@@ -189,7 +202,7 @@ export default function Storia() {
               </div>
 
               <Button asChild className="w-full bg-[var(--accent)] hover:bg-[var(--accent)]/90 text-white rounded-2xl py-6 h-auto text-lg font-bold shadow-lg shadow-amber-900/10 transition-transform active:scale-95">
-                <Link href="/login" className="cursor-pointer">
+                <Link href={isLoggedIn ? "/dashboard?tab=1to1" : "/login"} className="cursor-pointer">
                   Sì, voglio essere guidata
                 </Link>
               </Button>
