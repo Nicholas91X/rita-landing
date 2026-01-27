@@ -16,7 +16,6 @@ import { cn } from '@/lib/utils'
 import Image from 'next/image'
 
 import { NotificationBell } from './NotificationBell'
-import { cn } from '@/lib/utils'
 
 interface DashboardProfile {
     user: {
