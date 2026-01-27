@@ -7,6 +7,7 @@ import AdminPackages from './AdminPackages'
 import AdminStripe from './AdminStripe'
 import AdminRequests from './AdminRequests'
 import AdminUsers from './AdminUsers'
+import OneToOneClients from './OneToOneClients'
 import { Button } from '@/components/ui/button'
 import { Loader2, UploadCloud, CheckCircle, AlertCircle, Trash2, Edit2, Save, X, PlayCircle, Video, Package as PackageIcon, CreditCard, Bell, Users, Home } from 'lucide-react'
 import Link from 'next/link'
@@ -46,7 +47,7 @@ type AdminStatsData = {
 };
 
 export default function AdminDashboardClient({ packages, libraryId, stats }: { packages: Package[], libraryId?: string, stats?: AdminStatsData }) {
-    const [activeTab, setActiveTab] = useState<'content' | 'packages' | 'payments' | 'requests' | 'users'>('content')
+    const [activeTab, setActiveTab] = useState<'content' | 'packages' | 'payments' | 'requests' | 'users' | 'one-to-one'>('content')
 
     // Video State
     const [title, setTitle] = useState('')
@@ -209,6 +210,17 @@ export default function AdminDashboardClient({ packages, libraryId, stats }: { p
                 </button>
 
                 <button
+                    onClick={() => setActiveTab('one-to-one')}
+                    className={`relative z-10 flex flex-col items-center justify-center py-6 transition-all duration-300 group ${activeTab === 'one-to-one' ? 'text-white' : 'text-neutral-400 hover:text-white'}`}
+                >
+                    {activeTab === 'one-to-one' && (
+                        <div className="absolute inset-2 bg-white/10 rounded-3xl z-[-1] animate-in fade-in zoom-in-95 duration-300" />
+                    )}
+                    <Users className={`w-5 h-5 mb-2 transition-all duration-500 ${activeTab === 'one-to-one' ? 'text-white scale-110 shadow-[0_0_15px_rgba(255,255,255,0.3)]' : 'group-hover:scale-110'}`} />
+                    <span className="text-[10px] font-black uppercase tracking-widest text-center">Clienti 1:1</span>
+                </button>
+
+                <button
                     onClick={() => setActiveTab('users')}
                     className={`relative z-10 flex flex-col items-center justify-center py-6 transition-all duration-300 group ${activeTab === 'users' ? 'text-white' : 'text-neutral-400 hover:text-white'}`}
                 >
@@ -243,6 +255,10 @@ export default function AdminDashboardClient({ packages, libraryId, stats }: { p
             ) : activeTab === 'users' ? (
                 <div className="animate-in slide-in-from-bottom-4 duration-500">
                     <AdminUsers />
+                </div>
+            ) : activeTab === 'one-to-one' ? (
+                <div className="animate-in slide-in-from-bottom-4 duration-500">
+                    <OneToOneClients />
                 </div>
             ) : (
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start animate-in slide-in-from-bottom-4 duration-500">

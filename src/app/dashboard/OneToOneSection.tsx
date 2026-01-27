@@ -18,6 +18,7 @@ type OneTimePackage = {
     price: number
     image_url: string | null
     isPurchased: boolean
+    status?: string
 }
 
 export default function OneToOneSection() {
@@ -45,7 +46,7 @@ export default function OneToOneSection() {
 
                 const { data: purchases } = await supabase
                     .from('one_time_purchases')
-                    .select('package_id')
+                    .select('package_id, status')
                     .eq('user_id', user.id)
 
                 const { data: subs } = await supabase
@@ -53,14 +54,15 @@ export default function OneToOneSection() {
                     .select('package_id, status')
                     .eq('user_id', user.id)
 
-                const purchasedIds = new Set([
-                    ...(purchases?.map(p => p.package_id) || []),
-                    ...(subs?.map(s => s.package_id) || [])
-                ])
+                // Map of package_id -> status
+                const purchaseStatusMap = new Map<string, string>();
+                purchases?.forEach(p => purchaseStatusMap.set(p.package_id, p.status || 'purchased'));
+                subs?.forEach(s => purchaseStatusMap.set(s.package_id, s.status));
 
                 const mappedPackages = (pkgs || []).map(p => ({
                     ...p,
-                    isPurchased: purchasedIds.has(p.id)
+                    isPurchased: purchaseStatusMap.has(p.id),
+                    status: purchaseStatusMap.get(p.id)
                 }))
 
                 setPackages(mappedPackages)
@@ -145,7 +147,21 @@ export default function OneToOneSection() {
                                 </p>
                             </CardContent>
 
-                            <CardFooter className="p-8 pt-0 mt-auto">
+                            <CardFooter className="p-8 pt-0 mt-auto flex flex-col gap-3">
+                                {pkg.isPurchased && pkg.status && (
+                                    <div className="w-full text-center">
+                                        <span className={`
+                                            inline-block px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border
+                                            ${pkg.status === 'delivered' ? 'bg-emerald-50 text-emerald-600 border-emerald-200' :
+                                                pkg.status === 'processing_plan' ? 'bg-amber-50 text-amber-600 border-amber-200' :
+                                                    'bg-blue-50 text-blue-600 border-blue-200'}
+                                       `}>
+                                            {pkg.status === 'delivered' ? 'Pronto' :
+                                                pkg.status === 'processing_plan' ? 'In Lavorazione' :
+                                                    pkg.status === 'pending_appointment' ? 'Da Prenotare' : 'Attivo'}
+                                        </span>
+                                    </div>
+                                )}
                                 {pkg.isPurchased ? (
                                     <Button className="w-full bg-emerald-100 text-emerald-700 hover:bg-emerald-200 border border-emerald-200 font-bold" disabled>
                                         <Check className="w-5 h-5 mr-2" />
