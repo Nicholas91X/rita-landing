@@ -56,6 +56,7 @@ export async function POST(req: Request) {
                     // Log purchase
                     await supabaseAdmin.from('one_time_purchases').insert({
                         user_id: userId,
+                        package_id: packageId,
                         item_type: 'package',
                         stripe_payment_intent_id: session.payment_intent as string
                     })

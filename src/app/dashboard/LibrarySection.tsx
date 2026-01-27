@@ -25,16 +25,32 @@ export default function LibrarySection({
     onShowDiscover: () => void,
     userName?: string
 }) {
-    // Filter only purchased packages
+    // 1. Extract Personalized Packages first
+    const personalizedPackages: any[] = []
+
+    // 2. Filter standard levels (excluding personalized)
     const purchasedLevels = levels.map(level => {
         const coursesWithPurchased = level.courses.map(course => {
+            // Check if this is a "Personalizzato" course
+            const isPersonalized = course.name.toLowerCase().includes('personalizzato')
+
             const purchasedPackages = course.packages.filter(pkg => pkg.isPurchased)
+
+            if (isPersonalized) {
+                // Add to personalized list and exclude from main list
+                if (purchasedPackages.length > 0) {
+                    // Add extra info for display if needed
+                    purchasedPackages.forEach(p => personalizedPackages.push(p))
+                }
+                return { ...course, packages: [] }
+            }
+
             return { ...course, packages: purchasedPackages }
         }).filter(course => course.packages.length > 0)
         return { ...level, courses: coursesWithPurchased }
     }).filter(level => level.courses.length > 0)
 
-    if (purchasedLevels.length === 0) {
+    if (purchasedLevels.length === 0 && personalizedPackages.length === 0) {
         return (
             <div className="text-center py-24 border-2 border-dashed border-white/5 rounded-3xl bg-neutral-900/50 animate-in fade-in duration-700">
                 <div className="max-w-md mx-auto space-y-6">
@@ -58,6 +74,49 @@ export default function LibrarySection({
 
     return (
         <div className="space-y-20 animate-in fade-in slide-in-from-bottom-4 duration-500">
+            {/* Personalized Section */}
+            {personalizedPackages.length > 0 && (
+                <div className="space-y-8">
+                    <div className="flex items-center gap-3">
+                        <div className="h-8 w-1.5 bg-[var(--brand)] rounded-full" />
+                        <h2 className="text-3xl md:text-4xl font-black text-[#593e25] tracking-tight italic uppercase">
+                            Il tuo percorso personalizzato
+                        </h2>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                        {personalizedPackages.map((pkg) => (
+                            <Card key={pkg.id} className="bg-white border-[#846047]/20 shadow-xl overflow-hidden group hover:shadow-2xl hover:border-[var(--brand)]/40 transition-all duration-300 rounded-[32px] flex flex-col">
+                                <div className="h-48 w-full relative overflow-hidden">
+                                    {pkg.image_url ? (
+                                        <Image
+                                            src={pkg.image_url}
+                                            alt={pkg.name}
+                                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+                                            fill
+                                        />
+                                    ) : (
+                                        <div className="w-full h-full bg-[#f3efec] flex items-center justify-center">
+                                            <span className="text-4xl">✨</span>
+                                        </div>
+                                    )}
+                                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+                                    <div className="absolute bottom-4 left-6">
+                                        <h3 className="text-white text-xl font-black italic uppercase tracking-tight leading-none">{pkg.name}</h3>
+                                    </div>
+                                </div>
+                                <CardFooter className="p-6 mt-auto">
+                                    <Button asChild className="w-full h-12 bg-[#593e25] hover:bg-[#4a331f] text-white rounded-xl font-bold uppercase tracking-widest shadow-lg">
+                                        <Link href={`/dashboard/package/${pkg.id}`} className="flex items-center gap-2 justify-center">
+                                            Vai al Percorso
+                                        </Link>
+                                    </Button>
+                                </CardFooter>
+                            </Card>
+                        ))}
+                    </div>
+                </div>
+            )}
+
             {purchasedLevels.map((level) => {
                 const imageKey = Object.keys(LEVEL_IMAGES).find(k =>
                     level.name.toLowerCase().includes(k.toLowerCase()) ||

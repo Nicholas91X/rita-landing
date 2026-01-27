@@ -45,19 +45,18 @@ export default function OneToOneSection() {
 
                 const { data: purchases } = await supabase
                     .from('one_time_purchases')
-                    .select('stripe_payment_intent_id') // We just need existence check, but can't filter by package_id easily if not stored? 
-                // Wait, one_time_purchases doesn't link to package_id directly in my previous schema? 
-                // Let's check schema. I inserted: user_id, item_type='package', stripe_payment_intent_id.
-                // Ah, I missed storing package_id in one_time_purchases? 
-                // Let's check user_subscriptions status. 
-                // user_subscriptions IS the source of truth for access.
+                    .select('package_id')
+                    .eq('user_id', user.id)
 
                 const { data: subs } = await supabase
                     .from('user_subscriptions')
                     .select('package_id, status')
                     .eq('user_id', user.id)
 
-                const purchasedIds = new Set(subs?.map(s => s.package_id) || [])
+                const purchasedIds = new Set([
+                    ...(purchases?.map(p => p.package_id) || []),
+                    ...(subs?.map(s => s.package_id) || [])
+                ])
 
                 const mappedPackages = (pkgs || []).map(p => ({
                     ...p,
