@@ -10,7 +10,7 @@ import DashboardSidebar, { TabType } from '../../DashboardSidebar'
 import { NotificationBell } from '../../NotificationBell'
 import Image from 'next/image'
 
-type PurchaseStatus = 'pending_appointment' | 'processing_plan' | 'delivered'
+type PurchaseStatus = 'paid' | 'pending_appointment' | 'processing_plan' | 'delivered'
 
 interface PersonalViewProps {
     status: PurchaseStatus
@@ -31,7 +31,7 @@ export default function PersonalView({ status, documentUrl, packageName, userNam
     const renderContent = () => {
 
         // Status 1: Pending Appointment (Default)
-        if (status === 'pending_appointment') {
+        if (status === 'pending_appointment' || status === 'paid') {
             return (
                 <div className="min-h-[80vh] flex items-center justify-center p-6 animate-in fade-in duration-700">
                     <Card className="max-w-2xl w-full bg-white rounded-[40px] shadow-2xl overflow-hidden border-[#846047]/20">
@@ -176,14 +176,14 @@ export default function PersonalView({ status, documentUrl, packageName, userNam
     }
 
     return (
-        <div className="flex min-h-screen bg-[#f3efec] text-[var(--secondary)] selection:bg-brand/30 relative">
+        <div className="flex min-h-screen bg-[#f3efec] text-[var(--secondary)] selection:bg-brand/30 relative overflow-x-hidden w-full">
             <DashboardSidebar
                 activeTab="1to1"
                 setActiveTab={handleTabChange}
                 userProfile={userProfile}
             />
 
-            <main className="flex-1 lg:ml-72 relative min-h-screen flex flex-col">
+            <main className="flex-1 lg:ml-72 relative min-h-screen flex flex-col overflow-x-hidden">
                 {/* Desktop Header for Consistency */}
                 <header className="hidden lg:flex h-14 items-center justify-between px-12 border-b border-[#f3efec] sticky top-0 bg-gradient-to-r from-[#654540] to-[#503530] backdrop-blur-xl z-20 transition-all shadow-md">
                     <div></div>
@@ -215,7 +215,7 @@ export default function PersonalView({ status, documentUrl, packageName, userNam
                     </div>
                 </header>
 
-                <div className="flex-1 flex items-center justify-center p-4 md:p-12 pt-20 md:pt-12 max-w-7xl mx-auto w-full">
+                <div className="flex-1 flex items-center justify-center p-4 md:p-12 pt-20 md:pt-12 pb-24 md:pb-12 max-w-7xl mx-auto w-full">
                     {renderContent()}
                 </div>
             </main>

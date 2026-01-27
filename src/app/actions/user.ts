@@ -41,6 +41,7 @@ export async function getUserSubscriptionInfo() {
             created_at,
             stripe_customer_id,
             stripe_subscription_id,
+            amount,
             packages ( 
                 name, 
                 description,
@@ -179,12 +180,15 @@ export async function getUserSubscriptionInfo() {
         const pkg = (Array.isArray(sub.packages) ? sub.packages[0] : sub.packages) as { name: string; description: string; price: number; image_url: string | null } | null
         const refunds = Array.isArray(sub.refund_requests) ? sub.refund_requests : (sub.refund_requests ? [sub.refund_requests] : [])
 
+        // Prefer sub.amount (actual paid price) over package base price
+        const actualAmount = sub.amount ? Number(sub.amount) / 100 : Number(pkg?.price || 0)
+
         return {
             ...sub,
             packages: pkg,
             refund_requests: refunds,
             next_invoice: sub.current_period_end,
-            amount: Number(pkg?.price || 0),
+            amount: actualAmount,
             interval: 'mese',
             documents,
             receipt_url: documents.find(d => d.type === 'invoice')?.url // legacy support if needed

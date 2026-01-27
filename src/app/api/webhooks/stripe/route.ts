@@ -49,40 +49,51 @@ export async function POST(req: Request) {
 
                 if (mode === 'payment') {
                     // One-Time Purchase Logic
-                    subscriptionStatus = 'active' // Always active for lifetime
-                    periodEnd = null as unknown as string // Infinite access
-                    stripeSubscriptionId = null as unknown as string // No recurring sub ID
+                    subscriptionStatus = 'active'
+                    periodEnd = null as unknown as string
+                    stripeSubscriptionId = null as unknown as string
+
+                    console.log(`Processing One-Time Purchase: User=${userId}, Pkg=${packageId}, Amount=${session.amount_total}`)
 
                     // Log purchase
-                    await supabaseAdmin.from('one_time_purchases').insert({
+                    const { error: oneTimeError } = await supabaseAdmin.from('one_time_purchases').insert({
                         user_id: userId,
                         package_id: packageId,
                         item_type: 'package',
                         amount: session.amount_total,
-                        stripe_payment_intent_id: session.payment_intent as string
+                        stripe_payment_intent_id: session.payment_intent as string,
+                        status: 'paid'
                     })
+
+                    if (oneTimeError) {
+                        console.error('CRITICAL: Error inserting one_time_purchase:', oneTimeError)
+                        throw oneTimeError
+                    } else {
+                        console.log('Successfully inserted one_time_purchase record')
+                    }
                 } else if (session.subscription) {
                     // Subscription Logic
                     const stripeSub = await stripe.subscriptions.retrieve(session.subscription as string)
                     subscriptionStatus = stripeSub.status
                     periodEnd = new Date((stripeSub as unknown as { current_period_end: number }).current_period_end * 1000).toISOString()
                     console.log(`Syncing subscription ${session.subscription}: Status ${subscriptionStatus}`)
+
+                    const { error: upsertError } = await supabaseAdmin
+                        .from('user_subscriptions')
+                        .upsert({
+                            user_id: userId,
+                            package_id: packageId,
+                            status: subscriptionStatus,
+                            amount: session.amount_total,
+                            stripe_customer_id: session.customer as string,
+                            stripe_subscription_id: session.subscription as string,
+                            current_period_end: periodEnd,
+                        }, {
+                            onConflict: 'user_id, package_id'
+                        })
+
+                    if (upsertError) throw upsertError
                 }
-
-                const { error: upsertError } = await supabaseAdmin
-                    .from('user_subscriptions')
-                    .upsert({
-                        user_id: userId,
-                        package_id: packageId,
-                        status: subscriptionStatus,
-                        stripe_customer_id: session.customer as string,
-                        stripe_subscription_id: stripeSubscriptionId,
-                        current_period_end: periodEnd,
-                    }, {
-                        onConflict: 'user_id, package_id'
-                    })
-
-                if (upsertError) throw upsertError
 
                 // Mark trial as used if applicable
                 if (isTrial) {
