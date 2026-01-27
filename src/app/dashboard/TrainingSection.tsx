@@ -50,7 +50,7 @@ export default function TrainingSection({ levels, progress, userProfile, userNam
                                 : "text-[#846047]/70 hover:bg-[#846047]/5 hover:text-[#846047]"
                         )}
                     >
-                        Nuovi Allenamenti
+                        Nuovi corsi
                     </button>
                 </div>
             </div>

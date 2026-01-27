@@ -68,29 +68,7 @@ export default function LibrarySection({
                 return (
                     <div key={level.id}>
                         {/* Level Header Card */}
-                        <div className="relative h-64 md:h-80 rounded-[32px] overflow-hidden mb-12 shadow-2xl group border border-white/5">
-                            {bgImage ? (
-                                <Image
-                                    src={bgImage}
-                                    alt={level.name}
-                                    fill
-                                    className="object-cover transition-transform duration-700 group-hover:scale-105"
-                                    sizes="(max-width: 768px) 100vw, 1200px"
-                                    quality={90}
-                                />
-                            ) : (
-                                <div className="absolute inset-0 bg-neutral-800" />
-                            )}
-                            <div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent" />
-                            <div className="absolute bottom-0 left-0 p-8 md:p-12">
-                                <span className="text-[var(--brand)] text-xs font-black uppercase tracking-[0.3em] mb-2 block">Livello di Allenamento</span>
-                                <h2 className="text-4xl md:text-6xl font-black text-white uppercase tracking-tighter italic">
-                                    {level.name}
-                                </h2>
-                            </div>
-                        </div>
-
-                        <div className="space-y-16">
+                        <div className="space-y-16 mt-8">
                             {level.courses.map((course) => (
                                 <div key={course.id} className="space-y-8">
                                     <div className="flex items-center gap-4">

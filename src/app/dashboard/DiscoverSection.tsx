@@ -6,7 +6,7 @@ import { Card, CardDescription, CardFooter, CardHeader, CardTitle } from '@/comp
 import { Dialog, DialogContent } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import BuyButton from '@/components/BuyButton'
-import { Compass, Eye, Map, Check, Star, Calendar, Clock, Trophy, Leaf } from 'lucide-react'
+import { Compass, Eye, Map, Check, Star, Calendar, Clock, Trophy, Leaf, Contact, MessageCircle, ArrowRight } from 'lucide-react'
 import Image from 'next/image'
 
 interface DashboardProfile {
@@ -54,6 +54,13 @@ export default function DiscoverSection({
     const discoverLevels = (levels || []).map(level => {
         const coursesWithAvailable = (level.courses || []).map(course => {
             const availablePackages = (course.packages || []).filter(pkg => !pkg.isPurchased)
+                .sort((a, b) => {
+                    const isABali = a.name.toLowerCase().includes('bali') || (a.name.toLowerCase().includes('pilates') && a.name.toLowerCase().includes('principiante'));
+                    const isBBali = b.name.toLowerCase().includes('bali') || (b.name.toLowerCase().includes('pilates') && b.name.toLowerCase().includes('principiante'));
+                    if (isABali && !isBBali) return -1;
+                    if (!isABali && isBBali) return 1;
+                    return 0;
+                });
             return { ...course, packages: availablePackages }
         }).filter(course => course.packages.length > 0)
         return { ...level, courses: coursesWithAvailable }
@@ -77,14 +84,12 @@ export default function DiscoverSection({
 
     return (
         <div className="space-y-16 animate-in fade-in slide-in-from-bottom-4 duration-500">
-            <div className="bg-white p-8 rounded-3xl shadow-sm">
-                <div className="inline-block bg-pink-50 px-6 py-3 rounded-2xl mb-6">
-                    <h2 className="text-3xl font-bold text-[#001f3d] tracking-tight flex items-center gap-3">
-                        Il Tuo Passaporto Fit & Smile <Map className="w-8 h-8 text-[#001f3d]" />
-                    </h2>
-                </div>
+            <div className="bg-[#fff5f2] p-8 rounded-3xl shadow-sm">
+                <h2 className="text-3xl font-bold text-[#a66042] tracking-tight flex items-center gap-3 mb-6">
+                    Il Tuo Passaporto Fit & Smile <Contact className="w-8 h-8 text-[#a66042]" />
+                </h2>
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mt-6">
-                    <div className="text-[#001f3d]/70 text-base font-medium max-w-2xl leading-relaxed space-y-2">
+                    <div className="text-black text-base font-medium max-w-2xl leading-relaxed space-y-2">
                         <p>Prepara i bagagli (e il tappetino), si parte!</p>
                         <p>Qui trovi tutte le tappe del tuo viaggio di rinascita.</p>
                         <p>Scegli la tua prossima destinazione e inizia a collezionare i timbri!</p>
@@ -101,120 +106,173 @@ export default function DiscoverSection({
             </div>
 
             {discoverLevels.map((level) => (
-                <div key={level.id} className="space-y-10">
-                    <div className="flex items-center gap-4">
-                        <span className="text-neutral-500 font-black uppercase tracking-[0.2em] text-xs flex items-center gap-2">
-                            <span className="text-[#001f3d] text-base">|</span> {level.name.toLowerCase().includes('principiante') ? 'PRIMA TAPPA CONSIGLIATA: BALI (MESE 1)' : `CATEGORIA: ${level.name}`}
-                        </span>
-                        <div className="flex-1 h-px bg-white/5" />
-                    </div>
+                <div key={level.id} className="space-y-16">
+                    {level.courses.map((course) => (
+                        <div key={course.id} className="space-y-8">
+                            <h3 className="text-2xl font-bold text-white flex items-center gap-3">
+                                <div className="w-2 h-2 rounded-full bg-brand" />
+                                {course.name.toLowerCase().includes('pilates') ? (
+                                    <span className="text-[#a66042]">MESE 1</span>
+                                ) : (course.name.toLowerCase().includes('total') || course.name.toLowerCase().includes('body')) ? (
+                                    <span className="text-[#a66042]">MESE 2</span>
+                                ) : course.name}
+                            </h3>
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-12 relative">
+                                {course.packages.map((pkg, index) => {
+                                    const isBali = pkg.name.toLowerCase().includes('bali') || (pkg.name.toLowerCase().includes('pilates') && pkg.name.toLowerCase().includes('principiante'));
+                                    const isNewYork = pkg.name.toLowerCase().includes('new york') || pkg.name.toLowerCase().includes('total') || pkg.name.toLowerCase().includes('body');
+                                    const isLast = index === course.packages.length - 1;
+                                    const isEndOfRowDesktop = index % 3 === 2;
+                                    const isEndOfRowTablet = index % 2 === 1;
 
-                    <div className="space-y-16">
-                        {level.courses.map((course) => (
-                            <div key={course.id} className="space-y-8">
-                                <h3 className="text-2xl font-bold text-white flex items-center gap-3">
-                                    <div className="w-2 h-2 rounded-full bg-brand" />
-                                    {course.name.toLowerCase().includes('pilates') ? (
-                                        <span className="text-[#846047]">MESE 1</span>
-                                    ) : course.name.toLowerCase().includes('total') || course.name.toLowerCase().includes('body') ? (
-                                        <span className="text-[#846047]">MESE 2</span>
-                                    ) : course.name}
-                                </h3>
-                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                                    {course.packages.map((pkg) => (
-                                        <Card key={pkg.id} className="bg-[#fffcfc] border-white/5 shadow-2xl overflow-hidden group hover:border-[var(--brand)]/40 transition-all duration-300 rounded-[32px] flex flex-col">
-                                            <div className="h-48 w-full relative overflow-hidden">
-                                                {pkg.image_url ? (
-                                                    <Image
-                                                        src={pkg.image_url}
-                                                        alt={pkg.name}
-                                                        fill
-                                                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                                                        className="object-cover group-hover:scale-110 transition-transform duration-500"
-                                                    />
-                                                ) : (
-                                                    <div className="w-full h-full bg-neutral-800 flex items-center justify-center opacity-80">
-                                                        <Compass className="w-12 h-12 text-white/10" />
+                                    return (
+                                        <div key={pkg.id} className="relative group/card">
+                                            {/* Connecting Map Paths */}
+                                            {!isLast && (
+                                                <>
+                                                    {/* Desktop/Tablet Horizontal Path */}
+                                                    <div className={`hidden md:block absolute -right-12 top-1/2 w-12 border-t-2 border-dashed border-[#a66042]/40 z-0 ${isEndOfRowDesktop ? 'lg:hidden' : ''} ${isEndOfRowTablet ? 'md:hidden lg:block' : ''}`} />
+
+                                                    {/* Mobile/Wrap Vertical Path */}
+                                                    <div className={`absolute left-1/2 -bottom-12 h-12 border-l-2 border-dashed border-[#a66042]/40 z-0 ${!isEndOfRowDesktop ? 'lg:hidden' : 'lg:block'} ${!isEndOfRowTablet ? 'md:hidden' : 'md:block lg:hidden'} md:hidden`} />
+
+                                                    {/* Always show vertical on true mobile */}
+                                                    <div className="md:hidden absolute left-1/2 -bottom-12 h-12 border-l-2 border-dashed border-[#a66042]/40 z-0" />
+                                                </>
+                                            )}
+
+                                            <Card className="bg-white border border-[#a66042]/10 shadow-xl overflow-hidden group hover:border-[#a66042]/30 transition-all duration-500 rounded-[40px] flex flex-col relative z-10 h-full">
+                                                {/* Image Header */}
+                                                <div className="h-56 w-full relative overflow-hidden">
+                                                    {pkg.image_url ? (
+                                                        <Image
+                                                            src={pkg.image_url}
+                                                            alt={pkg.name}
+                                                            fill
+                                                            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                                                            className="object-cover group-hover:scale-110 transition-transform duration-1000"
+                                                        />
+                                                    ) : (
+                                                        <div className="w-full h-full bg-neutral-100 flex items-center justify-center">
+                                                            <Compass className="w-12 h-12 text-[#a66042]/20" />
+                                                        </div>
+                                                    )}
+                                                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+
+                                                    {/* Badge */}
+                                                    <div className="absolute top-4 right-4">
+                                                        {isTrialEligible ? (
+                                                            <div className="bg-emerald-500 text-white text-[10px] font-black uppercase tracking-widest px-3 py-1.5 rounded-full shadow-lg border border-emerald-400/50">
+                                                                7 Giorni Gratis
+                                                            </div>
+                                                        ) : isLoyaltyEligible ? (
+                                                            <div className="bg-brand text-white text-[10px] font-black uppercase tracking-widest px-3 py-1.5 rounded-full shadow-lg border border-orange-400/50">
+                                                                Sconto Active
+                                                            </div>
+                                                        ) : null}
                                                     </div>
-                                                )}
-                                                <div className="absolute inset-0 bg-gradient-to-t from-neutral-900/60 to-transparent" />
-                                                <div className="absolute top-0 left-0 w-full h-1.5 bg-[var(--brand)] shadow-[var(--brand)]/30" />
 
-                                                {/* Badge for Trial or Discount */}
-                                                <div className="absolute bottom-4 left-4">
-                                                    {isTrialEligible ? (
-                                                        <div className="bg-emerald-500 text-white text-[10px] font-black uppercase tracking-widest px-3 py-1.5 rounded-full shadow-lg border border-emerald-400/50 animate-pulse">
-                                                            Prova 7 Giorni Gratis
+                                                    {/* Price Tag Overlay */}
+                                                    <div className="absolute bottom-4 left-6">
+                                                        <div className="bg-white/95 backdrop-blur-md px-3 py-1 rounded-full border border-white/20 shadow-lg">
+                                                            <span className="text-[#a66042] font-black text-sm">€{pkg.price}</span>
                                                         </div>
-                                                    ) : isLoyaltyEligible ? (
-                                                        <div className="bg-brand text-white text-[10px] font-black uppercase tracking-widest px-3 py-1.5 rounded-full shadow-lg border border-orange-400/50">
-                                                            Sconto Fedeltà Attivo
-                                                        </div>
-                                                    ) : null}
+                                                    </div>
                                                 </div>
-                                            </div>
 
-                                            <CardHeader className="pb-4 pt-6 px-8 flex-1">
-                                                <CardTitle className="text-xl font-black text-[#2a2e30] line-clamp-2 min-h-[3.5rem] italic tracking-tighter group-hover:text-[var(--brand)] transition-colors">
-                                                    {pkg.name.toLowerCase().includes('pilates') && pkg.name.toLowerCase().includes('principiante')
-                                                        ? (
-                                                            <span className="flex flex-col gap-1 text-[#846047]">
-                                                                <span className="uppercase not-italic">BALI:</span>
-                                                                <span className="flex items-center gap-2">Equilibrio & Detox <Leaf className="w-5 h-5 text-emerald-500 fill-emerald-100" /></span>
+                                                <CardHeader className="pb-4 pt-8 px-8 flex-1 space-y-6">
+                                                    <div>
+                                                        <h4 className="text-[#a66042] text-[10px] font-black uppercase tracking-[0.2em] mb-2">Destinazione</h4>
+                                                        <CardTitle className="text-3xl font-black text-[#2a2e30] uppercase tracking-tighter leading-none mb-1">
+                                                            {isBali ? "Bali" : isNewYork ? "New York" : pkg.name}
+                                                            {isBali && <span className="ml-2">🍹</span>}
+                                                            {isNewYork && <span className="ml-2">🗽</span>}
+                                                        </CardTitle>
+                                                        <p className="text-gray-500 text-sm font-medium">
+                                                            {pkg.title || (isNewYork ? "Energia & Metabolismo" : "Metodo Fit & Smile")}
+                                                        </p>
+                                                    </div>
+
+                                                    {/* Mini Highlights - Inspired by the image */}
+                                                    <div className="grid grid-cols-2 gap-3 pt-2">
+                                                        <div className="bg-[#f8f9fa] p-3 rounded-2xl border border-gray-100 flex flex-col items-center text-center gap-1">
+                                                            <Clock className="w-4 h-4 text-[#846047]" />
+                                                            <span className="text-[9px] uppercase font-bold text-gray-400">Durata</span>
+                                                            <span className="text-[11px] font-black text-[#2a2e30]">4 Settimane</span>
+                                                        </div>
+                                                        <div className="bg-[#f8f9fa] p-3 rounded-2xl border border-gray-100 flex flex-col items-center text-center gap-1">
+                                                            <Calendar className="w-4 h-4 text-[#846047]" />
+                                                            <span className="text-[9px] uppercase font-bold text-gray-400">Ritmo</span>
+                                                            <span className="text-[11px] font-black text-[#2a2e30]">3x Week</span>
+                                                        </div>
+                                                    </div>
+
+                                                    {/* "INIZIA QUI" label - Specific for Bali */}
+                                                    {isBali && (
+                                                        <div className="flex justify-center">
+                                                            <span className="inline-flex items-center px-4 py-1.5 rounded-full bg-orange-50 text-[var(--brand)] text-[10px] font-black uppercase tracking-widest border border-orange-200 shadow-sm animate-pulse">
+                                                                Ideale per iniziare 🌸
                                                             </span>
-                                                        )
-                                                        : (pkg.name.toLowerCase().includes('total') || pkg.name.toLowerCase().includes('body'))
-                                                            ? (
-                                                                <span className="flex flex-col gap-1 text-[#846047]">
-                                                                    <span className="uppercase not-italic">NEW YORK:</span>
-                                                                    <span>Energia & Metabolismo 🍎</span>
-                                                                </span>
-                                                            )
-                                                            : <span className="uppercase">{pkg.name}</span>}
-                                                </CardTitle>
-                                                {pkg.name.toLowerCase().includes('pilates') && pkg.name.toLowerCase().includes('principiante') ? (
-                                                    <div className="mt-3">
-                                                        <span className="inline-flex items-center px-3 py-1.5 rounded-full bg-[#f3efec] text-[#846047] text-xs font-black uppercase tracking-wider">
-                                                            INIZIA QUI
-                                                        </span>
-                                                    </div>
-                                                ) : (pkg.name.toLowerCase().includes('total') || pkg.name.toLowerCase().includes('body')) ? (
-                                                    <div className="mt-3">
-                                                        {/* No description for total body */}
-                                                    </div>
-                                                ) : (
-                                                    <CardDescription className="text-gray-500 text-xs mt-2 line-clamp-3 leading-relaxed font-medium">
-                                                        {pkg.description}
-                                                    </CardDescription>
-                                                )}
-                                            </CardHeader>
+                                                        </div>
+                                                    )}
+                                                </CardHeader>
 
-                                            <CardFooter className="pt-2 pb-10 px-6 flex flex-col gap-3">
-                                                <Button
-                                                    onClick={() => setSelectedPkg(pkg)}
-                                                    variant="outline"
-                                                    className="w-full h-12 rounded-2xl border-[#7f554f] bg-[#7f554f] hover:bg-[#7f554f]/90 text-white font-bold uppercase tracking-wide text-[11px] gap-2 shadow-lg shadow-[#7f554f]/20"
-                                                >
-                                                    <Map className="w-4 h-4" /> Scopri l&apos;itinerario
-                                                </Button>
+                                                <CardFooter className="pt-2 pb-10 px-8 flex flex-col gap-4">
+                                                    <Button
+                                                        onClick={() => setSelectedPkg(pkg)}
+                                                        variant="ghost"
+                                                        className="w-full text-[#a66042] font-black uppercase tracking-widest text-[10px] gap-2 hover:bg-[#fff5f2] transition-all"
+                                                    >
+                                                        Vedi Itinerario Completo <ArrowRight className="w-4 h-4" />
+                                                    </Button>
 
-                                                <BuyButton
-                                                    packageId={pkg.id}
-                                                    packageName={pkg.name}
-                                                    price={pkg.price}
-                                                    isTrial={isTrialEligible}
-                                                    isDiscounted={isLoyaltyEligible}
-                                                    className="w-full bg-[var(--brand)] hover:bg-white hover:text-[var(--brand)] text-white rounded-2xl h-14 font-black uppercase tracking-widest text-[11px] md:text-xs transition-all shadow-2xl shadow-[var(--brand)]/30 hover:scale-[1.02] active:scale-[0.98] px-2 text-center"
-                                                />
-                                            </CardFooter>
-                                        </Card>
-                                    ))}
-                                </div>
+                                                    <BuyButton
+                                                        packageId={pkg.id}
+                                                        packageName={pkg.name}
+                                                        price={pkg.price}
+                                                        isTrial={isTrialEligible}
+                                                        isDiscounted={isLoyaltyEligible}
+                                                        className="w-full bg-[#2a2e30] hover:bg-[#a66042] text-white rounded-2xl h-14 font-black uppercase tracking-widest text-xs transition-all shadow-xl hover:scale-[1.02] active:scale-[0.98] px-2 text-center"
+                                                        customLabel="Ottieni il Biglietto"
+                                                    />
+                                                </CardFooter>
+                                            </Card>
+                                        </div>
+                                    )
+                                })}
                             </div>
-                        ))}
-                    </div>
+                        </div>
+                    ))}
                 </div>
             ))}
+
+            {/* Help / Advice Section */}
+            <div className="mt-20 bg-[#fff5f2] p-8 sm:p-12 rounded-[40px] border border-[#a66042]/10 shadow-sm text-center space-y-6 max-w-4xl mx-auto">
+                <div className="space-y-2">
+                    <h3 className="text-2xl font-black text-[#a66042] uppercase tracking-tight">
+                        Non sai quale biglietto prendere?
+                    </h3>
+                    <div className="text-black text-lg font-medium leading-relaxed max-w-3xl mx-auto">
+                        <p>Il mio consiglio è di seguire l&apos;ordine naturale:</p>
+                        <p className="text-[#a66042] font-black text-2xl my-3">
+                            Bali → NY → Siviglia → Avana
+                        </p>
+                        <div className="mt-4 text-base text-gray-600 space-y-2">
+                            <p>Il tuo corpo è stato progettato per questo percorso.</p>
+                            <p>Ma se ti senti già piena di energia, puoi volare subito a New York!</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div className="pt-4">
+                    <Button
+                        onClick={() => window.open('https://wa.me/your-number', '_blank')}
+                        className="bg-emerald-500 hover:bg-emerald-600 text-white rounded-2xl h-12 px-8 font-bold uppercase tracking-wide text-xs gap-2 shadow-lg shadow-emerald-500/20 transition-all hover:scale-105 active:scale-95"
+                    >
+                        <MessageCircle className="w-5 h-5" /> Scrivimi per un consiglio
+                    </Button>
+                </div>
+            </div>
 
             <Dialog open={!!selectedPkg} onOpenChange={(open) => !open && setSelectedPkg(null)}>
                 <DialogContent className="max-w-2xl bg-white border-none rounded-[32px] overflow-hidden p-0">
@@ -273,23 +331,45 @@ export default function DiscoverSection({
 
                                 {/* Description */}
                                 <div className="space-y-3">
-                                    <h3 className="text-lg font-black text-[#2a2e30]">Benvenuta a Bali! 🍹</h3>
-                                    {selectedPkg.name.toLowerCase().includes('pilates') && selectedPkg.name.toLowerCase().includes('principiante')
+                                    <h3 className="text-lg font-black text-[#2a2e30]">
+                                        Benvenuta a {
+                                            selectedPkg.name.toLowerCase().includes('bali') || (selectedPkg.name.toLowerCase().includes('pilates') && selectedPkg.name.toLowerCase().includes('principiante'))
+                                                ? "Bali 🍹"
+                                                : (selectedPkg.name.toLowerCase().includes('total') || selectedPkg.name.toLowerCase().includes('body') || selectedPkg.name.toLowerCase().includes('new york'))
+                                                    ? "New York 🗽"
+                                                    : selectedPkg.name
+                                        }
+                                    </h3>
+                                    {(selectedPkg.name.toLowerCase().includes('bali') || (selectedPkg.name.toLowerCase().includes('pilates') && selectedPkg.name.toLowerCase().includes('principiante')))
                                         ? (
                                             <div className="text-gray-600 text-sm leading-relaxed space-y-3">
                                                 <p>Togliti le scarpe.</p>
-                                                <p>Questo mese non dobbiamo correre, dobbiamo 'fluire'.</p>
-                                                <p>Lavoreremo come l'acqua: movimenti dolci di Pilates per sgonfiare le gambe e Total Body a terra per risvegliare i muscoli senza traumi.</p>
+                                                <p>Questo mese non dobbiamo correre.</p>
+                                                <p>Dobbiamo &apos;fluire&apos;.</p>
+                                                <p>Lavoreremo come l&apos;acqua.</p>
+                                                <p>Movimenti dolci di Pilates per sgonfiare le gambe.</p>
+                                                <p>Total Body a terra per risvegliare i muscoli senza traumi.</p>
                                                 <p>E la sera?</p>
-                                                <p>Impareremo a muovere il bacino con la dolcezza della Bachata e le basi morbide della Salsa.</p>
+                                                <p>Impareremo a muovere il bacino con la dolcezza della Bachata.</p>
+                                                <p>Le basi morbide della Salsa.</p>
                                                 <p>Niente scatti, solo onde.</p>
                                             </div>
                                         )
-                                        : (
-                                            <p className="text-gray-600 text-sm leading-relaxed">
-                                                {selectedPkg.description || "Un viaggio trasformativo per il tuo benessere fisico e mentale. Questo pacchetto include tutto il necessario per raggiungere i tuoi obiettivi con il metodo RITA."}
-                                            </p>
-                                        )}
+                                        : (selectedPkg.name.toLowerCase().includes('total') || selectedPkg.name.toLowerCase().includes('body') || selectedPkg.name.toLowerCase().includes('new york'))
+                                            ? (
+                                                <div className="text-gray-600 text-sm leading-relaxed space-y-3">
+                                                    <p>Allaccia le scarpe da ginnastica, siamo nella Grande Mela!</p>
+                                                    <p>Ora che ti sei sbloccata, alziamo un po&apos; il ritmo.</p>
+                                                    <p>Questo mese il focus è sulle gambe e sull&apos;energia:</p>
+                                                    <p>Camminate sul posto, esercizi in piedi per il metabolismo e una postura fiera da &apos;donna in carriera&apos;.</p>
+                                                    <p>Nel weekend ci scateniamo con una Salsa elegante, per sentirci dive di Broadway!</p>
+                                                </div>
+                                            )
+                                            : (
+                                                <p className="text-gray-600 text-sm leading-relaxed">
+                                                    {selectedPkg.description || "Un viaggio trasformativo per il tuo benessere fisico e mentale. Questo pacchetto include tutto il necessario per raggiungere i tuoi obiettivi con il metodo RITA."}
+                                                </p>
+                                            )}
                                 </div>
 
                                 {/* Itinerary List */}
@@ -346,6 +426,6 @@ export default function DiscoverSection({
                     )}
                 </DialogContent>
             </Dialog>
-        </div>
+        </div >
     )
 }

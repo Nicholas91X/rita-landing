@@ -149,7 +149,7 @@ export default function DashboardClient({ levels }: { levels: Level[] }) {
                 {/* Header Sezione */}
                 <div className="relative pt-0 pb-6 md:pt-32 md:pb-16 px-6 md:px-12 bg-[#ffffff] backdrop-blur-sm border-b border-[var(--secondary)]/10">
                     <div className="max-w-7xl mx-auto pt-20 md:pt-0">
-                        <h1 className="text-4xl md:text-5xl font-black text-[#593e25] mb-2 tracking-tight italic uppercase">
+                        <h1 className="text-4xl md:text-5xl font-medium text-[#593e25] mb-2 tracking-tight uppercase">
                             Area <span className="text-[#593e25]">Riservata</span>
                         </h1>
                         <p className="text-[#2a2e30] text-lg md:text-xl font-medium max-w-2xl">
