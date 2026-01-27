@@ -5,8 +5,7 @@ import { Level } from '@/app/actions/content'
 import { useSearchParams } from 'next/navigation'
 import DashboardSidebar, { TabType } from './DashboardSidebar'
 import HomeSection from './HomeSection'
-import LibrarySection from './LibrarySection'
-import DiscoverSection from './DiscoverSection'
+import TrainingSection from './TrainingSection'
 import BillingSection from './BillingSection'
 import ProfileSection from './ProfileSection'
 import { getLibraryProgress, LibraryProgress } from '@/app/actions/video'
@@ -48,12 +47,16 @@ export default function DashboardClient({ levels }: { levels: Level[] }) {
     // Fetch library progress & user profile
     useEffect(() => {
         const fetchData = async () => {
-            const [progress, profile] = await Promise.all([
-                getLibraryProgress(),
-                getUserProfile()
-            ])
-            setLibraryProgress(progress)
-            setUserProfile(profile)
+            try {
+                const [progress, profile] = await Promise.all([
+                    getLibraryProgress(),
+                    getUserProfile()
+                ])
+                setLibraryProgress(progress)
+                setUserProfile(profile as DashboardProfile)
+            } catch (error) {
+                console.error('Failed to fetch dashboard data:', error)
+            }
         }
         fetchData()
     }, [])
@@ -64,13 +67,12 @@ export default function DashboardClient({ levels }: { levels: Level[] }) {
         const success = searchParams.get('success')
         const tab = searchParams.get('tab') as TabType
 
-        if (tab && ['home', 'library', 'discover', 'billing', 'profile'].includes(tab)) {
+        if (tab && ['home', 'training', 'billing', 'profile'].includes(tab)) {
             setActiveTab(tab)
         } else if (success === 'true') {
-            setActiveTab('library')
-            fetchUserProfile() // Re-fetch to get new subscription/trial state
+            setActiveTab('training')
         } else if (pkgId) {
-            setActiveTab('discover')
+            setActiveTab('training')
         }
     }, [searchParams])
 
@@ -85,22 +87,20 @@ export default function DashboardClient({ levels }: { levels: Level[] }) {
 
         switch (activeTab) {
             case 'home':
-                return <HomeSection levels={levels} onShowLibrary={() => setActiveTab('library')} userName={firstName} />
-            case 'library':
-                return <LibrarySection
+                return <HomeSection levels={levels} onShowLibrary={() => setActiveTab('training')} userName={firstName} />
+            case 'training':
+                return <TrainingSection
                     levels={levels}
                     progress={libraryProgress}
-                    onShowDiscover={() => setActiveTab('discover')}
+                    userProfile={userProfile}
                     userName={firstName}
                 />
-            case 'discover':
-                return <DiscoverSection levels={levels} userProfile={userProfile} />
             case 'billing':
                 return <BillingSection />
             case 'profile':
                 return <ProfileSection onProfileUpdate={fetchUserProfile} />
             default:
-                return <HomeSection levels={levels} onShowLibrary={() => setActiveTab('library')} />
+                return <HomeSection levels={levels} onShowLibrary={() => setActiveTab('training')} />
         }
     }
 

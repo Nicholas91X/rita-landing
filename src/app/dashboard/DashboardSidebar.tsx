@@ -8,7 +8,7 @@ import { signOutUser } from '@/app/actions/user'
 import { toast } from 'sonner'
 import { NotificationBell } from './NotificationBell'
 
-export type TabType = 'home' | 'library' | 'discover' | 'billing' | 'profile'
+export type TabType = 'home' | 'training' | 'billing' | 'profile'
 
 interface NavItem {
     id: TabType
@@ -18,8 +18,7 @@ interface NavItem {
 
 const NAV_ITEMS: NavItem[] = [
     { id: 'home', label: 'Home', icon: Home },
-    { id: 'library', label: 'CORSI', icon: BookOpen },
-    { id: 'discover', label: 'Scopri', icon: Search },
+    { id: 'training', label: 'Allenamento', icon: BookOpen },
     { id: 'billing', label: 'Billing', icon: CreditCard },
     { id: 'profile', label: 'Profilo', icon: User },
 ]
@@ -126,7 +125,7 @@ export default function DashboardSidebar({ activeTab, setActiveTab, userProfile 
                         )}
                     >
                         <item.icon className="w-5 h-5 transition-transform duration-300" />
-                        <span className="text-[9px] font-black uppercase tracking-tight text-center">{item.label}</span>
+                        <span className="text-[9px] font-black uppercase tracking-tight text-center max-w-[64px] truncate">{item.label}</span>
                     </button>
                 ))}
             </nav>
