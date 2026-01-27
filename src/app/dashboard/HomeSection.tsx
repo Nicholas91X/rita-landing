@@ -152,7 +152,7 @@ export default function HomeSection({ levels, onShowLibrary, userName }: { level
 
                 return (
                     <div className="space-y-6">
-                        <h4 className="text-2xl font-black text-[#593e25] italic uppercase tracking-tighter">
+                        <h4 className="text-xl md:text-2xl font-bold text-[#593e25] tracking-tight uppercase">
                             Il tuo percorso personalizzato
                         </h4>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -211,7 +211,7 @@ export default function HomeSection({ levels, onShowLibrary, userName }: { level
 
                 return (
                     <div className="space-y-6">
-                        <h4 className="text-2xl font-black text-[#593e25] italic uppercase tracking-tighter">
+                        <h4 className="text-xl md:text-2xl font-bold text-[#593e25] tracking-tight uppercase">
                             Altri Percorsi Esclusivi
                         </h4>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

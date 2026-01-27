@@ -232,7 +232,7 @@ export default function DiscoverSection({
                                                         price={pkg.price}
                                                         isTrial={isTrialEligible}
                                                         isDiscounted={isLoyaltyEligible}
-                                                        className="w-full bg-[#2a2e30] hover:bg-[#a66042] text-white rounded-2xl h-14 font-black uppercase tracking-widest text-xs transition-all shadow-xl hover:scale-[1.02] active:scale-[0.98] px-2 text-center"
+                                                        className="w-full bg-[#2a2e30] hover:bg-[#a66042] text-white rounded-xl h-11 font-bold uppercase tracking-widest text-[11px] transition-all shadow-lg hover:scale-[1.02] active:scale-[0.98] px-2 text-center"
                                                         customLabel="Ottieni il Biglietto"
                                                     />
                                                 </CardFooter>

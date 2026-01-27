@@ -15,6 +15,7 @@ import { Loader2 } from 'lucide-react'
 import Image from 'next/image'
 
 import { NotificationBell } from './NotificationBell'
+import { cn } from '@/lib/utils'
 
 interface DashboardProfile {
     user: {
@@ -41,6 +42,7 @@ interface DashboardProfile {
 
 export default function DashboardClient({ levels }: { levels: Level[] }) {
     const [activeTab, setActiveTab] = useState<TabType>('home')
+    const [profileSubTab, setProfileSubTab] = useState<'info' | 'badges'>('info')
     const [libraryProgress, setLibraryProgress] = useState<LibraryProgress[]>([])
     const [userProfile, setUserProfile] = useState<DashboardProfile | null>(null)
     const searchParams = useSearchParams()
@@ -101,7 +103,7 @@ export default function DashboardClient({ levels }: { levels: Level[] }) {
             case 'billing':
                 return <BillingSection />
             case 'profile':
-                return <ProfileSection onProfileUpdate={fetchUserProfile} />
+                return <ProfileSection onProfileUpdate={fetchUserProfile} activeSubTab={profileSubTab} />
             default:
                 return <HomeSection levels={levels} onShowLibrary={() => setActiveTab('training')} />
         }
@@ -152,12 +154,55 @@ export default function DashboardClient({ levels }: { levels: Level[] }) {
                 {/* Header Sezione */}
                 <div className="relative pt-0 pb-6 md:pt-32 md:pb-16 px-6 md:px-12 bg-[#ffffff] backdrop-blur-sm border-b border-[var(--secondary)]/10">
                     <div className="max-w-7xl mx-auto pt-20 md:pt-0">
-                        <h1 className="text-4xl md:text-5xl font-medium text-[#593e25] mb-2 tracking-tight uppercase">
-                            Area <span className="text-[#593e25]">Riservata</span>
-                        </h1>
-                        <p className="text-[#2a2e30] text-lg md:text-xl font-medium max-w-2xl">
-                            Benvenuta nel tuo spazio di allenamento.<br />Qui trovi i tuoi programmi, i progressi e i nuovi contenuti.
-                        </p>
+                        {activeTab !== 'profile' ? (
+                            <>
+                                <h1 className="text-4xl md:text-5xl font-medium text-[#593e25] mb-2 tracking-tight uppercase">
+                                    Area <span className="text-[#593e25]">Riservata</span>
+                                </h1>
+                                <p className="text-[#2a2e30] text-lg md:text-xl font-medium max-w-2xl">
+                                    Benvenuta nel tuo spazio di allenamento.<br />Qui trovi i tuoi programmi, i progressi e i nuovi contenuti.
+                                </p>
+                            </>
+                        ) : (
+                            <div className="space-y-8">
+                                <div>
+                                    <h1 className="text-4xl md:text-5xl font-medium text-[#593e25] mb-2 tracking-tight uppercase">
+                                        Il Tuo <span className="text-[#593e25]">Profilo</span>
+                                    </h1>
+                                    <p className="text-[#2a2e30] text-lg md:text-xl font-medium max-w-2xl">
+                                        Gestisci le tue informazioni e guarda i tuoi traguardi.
+                                    </p>
+                                </div>
+
+                                {/* Header / Tabs - Styled to match previous design aesthetics */}
+                                <div className="flex justify-center md:justify-start">
+                                    <div className="bg-white rounded-full p-1.5 flex gap-1 shadow-sm border border-[#846047]/10 w-full md:w-auto">
+                                        <button
+                                            onClick={() => setProfileSubTab('info')}
+                                            className={cn(
+                                                "px-6 py-3 rounded-full text-sm font-bold transition-all duration-300 flex-1 md:flex-none text-center whitespace-nowrap",
+                                                profileSubTab === 'info'
+                                                    ? "bg-[#846047] text-white shadow-md"
+                                                    : "text-[#846047]/70 hover:bg-[#846047]/5 hover:text-[#846047]"
+                                            )}
+                                        >
+                                            Dati Personali
+                                        </button>
+                                        <button
+                                            onClick={() => setProfileSubTab('badges')}
+                                            className={cn(
+                                                "px-6 py-3 rounded-full text-sm font-bold transition-all duration-300 flex-1 md:flex-none text-center whitespace-nowrap",
+                                                profileSubTab === 'badges'
+                                                    ? "bg-[#846047] text-white shadow-md"
+                                                    : "text-[#846047]/70 hover:bg-[#846047]/5 hover:text-[#846047]"
+                                            )}
+                                        >
+                                            Le mie conquiste
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
                     </div>
                 </div>
 

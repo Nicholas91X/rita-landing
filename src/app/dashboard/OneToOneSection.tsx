@@ -104,8 +104,8 @@ export default function OneToOneSection() {
     return (
         <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
             <div className="space-y-2">
-                <h2 className="text-3xl font-black text-[#593e25] italic uppercase tracking-tighter flex items-center gap-3">
-                    <Sparkles className="w-8 h-8 text-brand" />
+                <h2 className="text-xl md:text-2xl font-bold text-[#593e25] tracking-tight uppercase flex items-center gap-3">
+                    <Sparkles className="w-6 h-6 text-brand" />
                     Percorsi 1:1
                 </h2>
                 <p className="text-[#2a2e30] opacity-80 max-w-2xl">
@@ -171,7 +171,7 @@ export default function OneToOneSection() {
                                     <Button
                                         onClick={() => handlePurchase(pkg.id)}
                                         disabled={purchasingId === pkg.id}
-                                        className="w-full bg-[#593e25] hover:bg-[#4a331f] text-white font-bold py-6 rounded-xl shadow-lg shadow-[#593e25]/20"
+                                        className="w-full bg-[#593e25] hover:bg-[#4a331f] text-white font-bold h-11 rounded-xl shadow-lg shadow-[#593e25]/20"
                                     >
                                         {purchasingId === pkg.id ? (
                                             <Loader2 className="w-5 h-5 animate-spin" />
