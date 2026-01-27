@@ -425,3 +425,51 @@ export async function updatePassword(password: string) {
 
     return { success: true }
 }
+
+export async function recoverPassword(email: string) {
+    const supabase = await createClient()
+
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/auth/reset-password`,
+    })
+
+    if (error) {
+        console.error('Error sending reset password email:', error)
+        throw new Error(error.message)
+    }
+
+    return { success: true }
+}
+
+export async function findEmail(fullName: string) {
+    const supabase = await createClient()
+
+    // We use a broader search to help the user find themselves
+    const { data: profiles, error } = await supabase
+        .from('profiles')
+        .select('email')
+        .ilike('full_name', `%${fullName}%`)
+        .limit(5)
+
+    if (error) {
+        console.error('Error finding email:', error)
+        throw new Error('Errore durante la ricerca. Riprova più tardi.')
+    }
+
+    if (!profiles || profiles.length === 0) {
+        throw new Error('Nessun utente trovato con questo nome.')
+    }
+
+    // Mask the emails: n*******@domain.com
+    const maskedEmails = profiles.map(p => {
+        if (!p.email) return null
+        const [local, domain] = p.email.split('@')
+        if (!domain) return p.email // Should not happen
+        const maskedLocal = local.length > 2
+            ? local[0] + '*'.repeat(local.length - 2) + local[local.length - 1]
+            : local[0] + '*';
+        return `${maskedLocal}@${domain}`
+    }).filter(p => p !== null) as string[]
+
+    return { success: true, maskedEmails }
+}
