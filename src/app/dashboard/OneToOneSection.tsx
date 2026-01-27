@@ -163,15 +163,29 @@ export default function OneToOneSection() {
                                     </div>
                                 )}
                                 {pkg.isPurchased ? (
-                                    <Button className="w-full bg-emerald-100 text-emerald-700 hover:bg-emerald-200 border border-emerald-200 font-bold" disabled>
-                                        <Check className="w-5 h-5 mr-2" />
-                                        Già Acquistato
-                                    </Button>
+                                    <div className="w-full space-y-3">
+                                        <Button className="w-full bg-emerald-50 text-emerald-600 hover:bg-emerald-50 border border-emerald-100 font-bold h-12 rounded-xl shadow-sm" disabled>
+                                            <Check className="w-4 h-4 mr-2" />
+                                            Già Acquistato
+                                        </Button>
+                                        <Button
+                                            onClick={() => handlePurchase(pkg.id)}
+                                            disabled={purchasingId === pkg.id}
+                                            variant="outline"
+                                            className="w-full border-[#593e25]/20 text-[#593e25] hover:bg-[#593e25]/5 font-bold h-12 rounded-xl transition-all"
+                                        >
+                                            {purchasingId === pkg.id ? (
+                                                <Loader2 className="w-4 h-4 animate-spin" />
+                                            ) : (
+                                                "Acquista di nuovo"
+                                            )}
+                                        </Button>
+                                    </div>
                                 ) : (
                                     <Button
                                         onClick={() => handlePurchase(pkg.id)}
                                         disabled={purchasingId === pkg.id}
-                                        className="w-full bg-[#593e25] hover:bg-[#4a331f] text-white font-bold py-6 rounded-xl shadow-lg shadow-[#593e25]/20"
+                                        className="w-full bg-[#593e25] hover:bg-[#4a331f] text-white font-bold h-14 rounded-xl shadow-lg shadow-[#593e25]/20"
                                     >
                                         {purchasingId === pkg.id ? (
                                             <Loader2 className="w-5 h-5 animate-spin" />
