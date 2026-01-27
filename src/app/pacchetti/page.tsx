@@ -67,17 +67,17 @@ export default async function PackagesPage() {
         gap={12}
         speedSec={22}
       />
-      <div className="max-w-7xl mx-auto px-8 md:px-10 lg:px-26 xl:px-26 py-20">
+      <div className="max-w-7xl mx-auto px-6 md:px-10 py-12 md:py-20 text-[var(--secondary)]">
         <Section className="section">
           <div className="grid gap-10 md:grid-cols-[minmax(0,0.75fr)_minmax(0,1fr)] items-center">
             <div className="space-y-4">
               <p className="text-sm uppercase tracking-[0.3em] text-[var(--muted-foreground)]">
                 Pacchetti coaching
               </p>
-              <h1 className="h1 text-white ts-white">
+              <h1 className="h1 text-[var(--secondary)]">
                 Scegli il tuo percorso
               </h1>
-              <p className="text-lg lead">
+              <p className="text-lg lead text-[var(--secondary)]">
                 Dai primi passi al perfezionamento tecnico.
                 Trova il pacchetto adatto al tuo livello e inizia ad allenarti oggi stesso.
               </p>
