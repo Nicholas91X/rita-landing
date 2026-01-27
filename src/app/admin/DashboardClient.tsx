@@ -231,13 +231,6 @@ export default function AdminDashboardClient({ packages, libraryId, stats }: { p
                     <span className="text-[10px] font-black uppercase tracking-widest text-center">Utenti</span>
                 </button>
 
-                <Link
-                    href="/"
-                    className="relative z-10 flex flex-col items-center justify-center py-6 transition-all duration-300 group text-neutral-400 hover:text-white"
-                >
-                    <Home className="w-5 h-5 mb-2 transition-all duration-500 group-hover:scale-110 group-hover:text-white" />
-                    <span className="text-[10px] font-black uppercase tracking-widest text-center">Landing Page</span>
-                </Link>
             </div>
 
             {activeTab === 'packages' ? (
