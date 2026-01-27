@@ -2,12 +2,14 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import Section from "../Section";
-import { Card } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { storia } from "@/content/it";
 import CollapsibleHtml from "@/components/CollapsibleHtml";
 import GalleryScroller from "@/components/GalleryScroller";
 import { Button } from "@/components/ui/button";
 import { createClient } from "@/utils/supabase/client";
+import { Calendar, Users, ArrowRight, Clock, Dumbbell, Sparkles, CheckCircle2 } from "lucide-react";
+import Image from "next/image";
 
 export default function Storia({
   isLoggedIn: initialIsLoggedIn = false,
@@ -141,44 +143,78 @@ export default function Storia({
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          <div className="bg-[#FCF5E8] p-8 md:p-10 rounded-[2.5rem] border border-slate-100 shadow-xl hover:shadow-2xl transition-all flex flex-col h-full relative overflow-hidden group">
-            <div className="absolute top-0 right-0 bg-[var(--brand)] text-white text-[10px] font-bold uppercase tracking-widest px-6 py-2 rounded-bl-2xl">
-              Al Tuo Ritmo
+          {/* Card 1: Subscription */}
+          <Card className="bg-white border-none shadow-xl hover:shadow-2xl transition-all duration-500 rounded-[32px] overflow-hidden flex flex-col group">
+            {/* Promo Banner */}
+            <div className="bg-[#593e25] text-white py-3 px-6 flex items-center justify-center gap-2">
+              <Sparkles className="w-4 h-4 text-white/80" />
+              <span className="text-[11px] font-black uppercase tracking-[0.2em]">Offerta a tempo limitato</span>
             </div>
-
-            <h4 className="text-xl font-bold text-[var(--secondary)] mb-2 mt-6 uppercase tracking-tight">Rinascita Club (Mensile)</h4>
-            <p className="text-[var(--brand)] font-bold text-sm mb-6">
-              La tua palestra digitale completa, accessibile h24.
-            </p>
-
-            <div className="space-y-4 mb-8 flex-grow">
-              <div className="flex gap-3">
-                <span className="text-emerald-500 font-bold">✅</span>
-                <p className="text-sm text-slate-600"><strong className="text-slate-900">Accesso Illimitato:</strong> Accesso completo all&apos;abbonamento per 30 giorni.</p>
-              </div>
-              <div className="flex gap-3">
-                <span className="text-emerald-500 font-bold">✅</span>
-                <p className="text-sm text-slate-600"><strong className="text-slate-900">Percorsi Graduali:</strong> Filtra subito tra livello Principiante o Intermedio.</p>
-              </div>
-              <div className="flex gap-3">
-                <span className="text-emerald-500 font-bold">✅</span>
-                <p className="text-sm text-slate-600"><strong className="text-slate-900">Doppia Disciplina:</strong> Alterna Total Body e Pilates quando vuoi.</p>
-              </div>
-              <div className="flex gap-3">
-                <span className="text-emerald-500 font-bold">✅</span>
-                <p className="text-sm text-slate-600"><strong className="text-slate-900">BONUS ESCLUSIVO:</strong> Lezioni di Salsa Cubana e Bachata per divertirti.</p>
-              </div>
-              <div className="flex gap-3">
-                <span className="text-emerald-500 font-bold">✅</span>
-                <p className="text-sm text-slate-600"><strong className="text-slate-900">Nessun Vincolo:</strong> Disdici quando vuoi con un click.</p>
+            <div className="relative h-64 overflow-hidden">
+              <Image
+                src="https://hel1.your-objectstorage.com/nicholas-bucket/rita-zanicchi/side/left-2.png"
+                alt="Rinascita Club"
+                fill
+                className="object-cover group-hover:scale-105 transition-transform duration-700"
+              />
+              <div className="absolute inset-0 bg-black/10" />
+              <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-md text-[var(--brand)] text-[10px] font-black uppercase tracking-widest px-4 py-2 rounded-full shadow-lg">
+                Al Tuo Ritmo
               </div>
             </div>
 
-            <div className="pt-6 border-t border-slate-50 mt-auto">
-              <div className="flex items-baseline gap-3 mb-10">
-                <span className="text-slate-400 line-through decoration-red-500 decoration-2 text-lg">30 €</span>
-                <span className="text-3xl font-bold text-[var(--secondary)]">19,99€</span>
-                <span className="text-slate-500 text-sm">/ mese</span>
+            <CardContent className="p-8 md:p-10 space-y-6 flex-1 flex flex-col">
+              <div>
+                <h4 className="text-2xl font-bold text-[var(--secondary)] leading-tight mb-2">
+                  Passaporto Fit & Smile (Mensile)
+                </h4>
+                <p className="text-sm text-slate-500 leading-relaxed italic">
+                  La tua carta d&apos;imbarco per tutte le destinazioni del benessere. 🌿
+                </p>
+              </div>
+
+              <div className="flex flex-col gap-3">
+                <div className="flex items-center gap-3 text-slate-400 text-sm font-medium">
+                  <Clock className="w-4 h-4" />
+                  <span>Accesso Illimitato 24/7</span>
+                </div>
+                <div className="flex items-center gap-3 text-slate-400 text-sm font-medium">
+                  <Dumbbell className="w-4 h-4" />
+                  <span>Principiante & Intermedio</span>
+                </div>
+              </div>
+
+              <div className="space-y-4 py-4">
+                <div className="flex gap-3">
+                  <CheckCircle2 className="w-5 h-5 text-emerald-500 shrink-0" />
+                  <p className="text-sm text-slate-600">Accesso completo per 30 giorni</p>
+                </div>
+                <div className="flex gap-3">
+                  <CheckCircle2 className="w-5 h-5 text-emerald-500 shrink-0" />
+                  <p className="text-sm text-slate-600">Total Body & Pilates</p>
+                </div>
+                <div className="flex gap-3">
+                  <CheckCircle2 className="w-5 h-5 text-emerald-500 shrink-0" />
+                  <p className="text-sm text-slate-600"><strong>BONUS:</strong> Salsa Cubana & Bachata</p>
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between pt-4 mt-auto">
+                <div className="flex -space-x-2.5">
+                  <div className="w-8 h-8 rounded-full border-2 border-white bg-neutral-200" />
+                  <div className="w-8 h-8 rounded-full border-2 border-white bg-neutral-300" />
+                  <div className="w-8 h-8 rounded-full border-2 border-white bg-neutral-400" />
+                  <div className="flex items-center justify-center w-8 h-8 rounded-full border-2 border-white bg-[#f3efec] text-[9px] font-black text-neutral-500">
+                    +1.2k
+                  </div>
+                </div>
+                <div className="text-right">
+                  <div className="flex items-baseline gap-2">
+                    <span className="text-slate-300 line-through text-sm font-bold">30€</span>
+                    <span className="text-3xl font-black text-[var(--secondary)]">19,99€</span>
+                  </div>
+                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">Sottoscrizione Mensile</p>
+                </div>
               </div>
 
               {isLoggedIn && hasUsedTrial && (
@@ -195,39 +231,84 @@ export default function Storia({
                   Inizia la Prova Gratuita
                 </Link>
               </Button>
+            </CardContent>
+          </Card>
+
+          {/* Card 2: Guided Path */}
+          <Card className="bg-white border-2 border-[var(--brand)] shadow-2xl hover:shadow-2xl transition-all duration-500 rounded-[32px] overflow-hidden flex flex-col group relative">
+            {/* Promo Banner */}
+            <div className="bg-[#593e25] text-white py-3 px-6 flex items-center justify-center gap-2">
+              <Sparkles className="w-4 h-4 text-white/80" />
+              <span className="text-[11px] font-black uppercase tracking-[0.2em]">Offerta a tempo limitato</span>
             </div>
-          </div>
-
-          <div className="bg-[#FCF5E8] p-8 md:p-10 rounded-[2.5rem] border border-[var(--brand)] shadow-xl hover:shadow-2xl transition-all flex flex-col h-full relative overflow-hidden group">
-            <div className="absolute top-0 right-0 bg-[var(--brand)] text-white text-[10px] font-bold uppercase tracking-widest px-6 py-2 rounded-bl-2xl">
-              Mano nella Mano
-            </div>
-
-            <h4 className="text-xl font-bold text-[var(--secondary)] mb-2 mt-6 uppercase tracking-tight">Percorso Rinascita Guidata (6 Settimane)</h4>
-            <p className="text-[var(--brand)] font-bold text-sm mb-6">
-              Un programma costruito sartorialmente sul TUO corpo e sulla tua storia.
-            </p>
-
-            <div className="space-y-4 mb-8 flex-grow">
-              <div className="flex gap-3">
-                <span className="text-emerald-500 font-bold">✅</span>
-                <p className="text-sm text-slate-600"><strong className="text-slate-900">Consulenza Iniziale:</strong> Una Call di 30 minuti diretta con me per analizzare la tua situazione.</p>
-              </div>
-              <div className="flex gap-3">
-                <span className="text-emerald-500 font-bold">✅</span>
-                <p className="text-sm text-slate-600"><strong className="text-slate-900">Strategia Sartoriale:</strong> Creazione di 2 Schede di Allenamento specifiche per le tue esigenze.</p>
-              </div>
-              <div className="flex gap-3">
-                <span className="text-emerald-500 font-bold">✅</span>
-                <p className="text-sm text-slate-600"><strong className="text-slate-900">Monitoraggio:</strong> Supporto dedicato per 6 settimane per correggere il tiro.</p>
+            <div className="relative h-64 overflow-hidden">
+              <Image
+                src="https://hel1.your-objectstorage.com/nicholas-bucket/rita-zanicchi/side/right-2.png"
+                alt="Rinascita Guidata"
+                fill
+                className="object-cover group-hover:scale-105 transition-transform duration-700"
+              />
+              <div className="absolute inset-0 bg-black/10" />
+              <div className="absolute top-4 right-4 bg-[var(--brand)] text-white text-[10px] font-black uppercase tracking-widest px-4 py-2 rounded-full shadow-lg">
+                Mano nella Mano
               </div>
             </div>
 
-            <div className="pt-6 border-t border-slate-50 mt-auto">
-              <div className="flex items-baseline gap-3 mb-10">
-                <span className="text-slate-400 line-through decoration-red-500 decoration-2 text-lg">85 €</span>
-                <span className="text-3xl font-bold text-[var(--secondary)]">59,99€</span>
-                <span className="text-slate-500 text-sm">/ percorso</span>
+            <CardContent className="p-8 md:p-10 space-y-6 flex-1 flex flex-col">
+              <div>
+                <div className="flex items-center gap-2 mb-2">
+                  <Sparkles className="w-4 h-4 text-[var(--brand)]" />
+                  <span className="text-[10px] font-bold text-[var(--brand)] uppercase tracking-widest">Percorso Premium</span>
+                </div>
+                <h4 className="text-2xl font-bold text-[var(--secondary)] leading-tight mb-2">
+                  Rinascita Guidata (6 Settimane)
+                </h4>
+                <p className="text-sm text-slate-500 leading-relaxed italic">
+                  Un programma costruito sartorialmente sul TUO corpo.
+                </p>
+              </div>
+
+              <div className="flex flex-col gap-3">
+                <div className="flex items-center gap-3 text-slate-400 text-sm font-medium">
+                  <Calendar className="w-4 h-4" />
+                  <span>Durata 6 Settimane</span>
+                </div>
+                <div className="flex items-center gap-3 text-slate-400 text-sm font-medium">
+                  <Users className="w-4 h-4" />
+                  <span>Supporto 1:1 Dedicato</span>
+                </div>
+              </div>
+
+              <div className="space-y-4 py-4">
+                <div className="flex gap-3">
+                  <CheckCircle2 className="w-5 h-5 text-[var(--brand)] shrink-0" />
+                  <p className="text-sm text-slate-600"><strong>Call di 30 min</strong> diretta con me</p>
+                </div>
+                <div className="flex gap-3">
+                  <CheckCircle2 className="w-5 h-5 text-[var(--brand)] shrink-0" />
+                  <p className="text-sm text-slate-600">2 Schede di Allenamento specifica</p>
+                </div>
+                <div className="flex gap-3">
+                  <CheckCircle2 className="w-5 h-5 text-[var(--brand)] shrink-0" />
+                  <p className="text-sm text-slate-600">Monitoraggio e correzione costante</p>
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between pt-4 mt-auto">
+                <div className="flex -space-x-2.5">
+                  <div className="w-8 h-8 rounded-full border-2 border-white bg-neutral-200" />
+                  <div className="w-8 h-8 rounded-full border-2 border-white bg-neutral-300" />
+                  <div className="w-8 h-8 rounded-full border-2 border-white bg-[#f3efec] text-[9px] font-black text-neutral-500">
+                    +420
+                  </div>
+                </div>
+                <div className="text-right">
+                  <div className="flex items-baseline gap-2">
+                    <span className="text-slate-300 line-through text-sm font-bold">85€</span>
+                    <span className="text-3xl font-black text-[var(--brand)]">59,99€</span>
+                  </div>
+                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">Una Tantum</p>
+                </div>
               </div>
 
               <Button asChild className="w-full bg-[var(--accent)] hover:bg-[var(--accent)]/90 text-white rounded-2xl py-6 h-auto text-lg font-bold shadow-lg shadow-amber-900/10 transition-transform active:scale-95">
@@ -235,8 +316,8 @@ export default function Storia({
                   Sì, voglio essere guidata
                 </Link>
               </Button>
-            </div>
-          </div>
+            </CardContent>
+          </Card>
         </div>
       </Section>
     </>

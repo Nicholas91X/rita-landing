@@ -1,11 +1,11 @@
 'use client'
 
 import { Level } from '@/app/actions/content'
-import { Card, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
 import Image from 'next/image'
-import { PlayCircle, Dumbbell, Clock, CheckCircle2 } from 'lucide-react'
+import { PlayCircle, Dumbbell, Clock, CheckCircle2, Calendar, Users, ArrowRight } from 'lucide-react'
 import { LibraryProgress } from '@/app/actions/video'
 
 // Mappa delle immagini per livello (copiata da DashboardClient per ora, ma centralizzabile)
@@ -79,35 +79,70 @@ export default function LibrarySection({
                 <div className="space-y-8">
                     <div className="flex items-center gap-3">
                         <div className="h-8 w-1.5 bg-[var(--brand)] rounded-full" />
-                        <h2 className="text-3xl md:text-4xl font-black text-[#593e25] tracking-tight italic uppercase">
+                        <h2 className="text-xl md:text-2xl font-bold text-[#593e25] tracking-tight uppercase">
                             Il tuo percorso personalizzato
                         </h2>
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                         {personalizedPackages.map((pkg) => (
                             <Card key={pkg.id} className="bg-white border-[#846047]/20 shadow-xl overflow-hidden group hover:shadow-2xl hover:border-[var(--brand)]/40 transition-all duration-300 rounded-[32px] flex flex-col">
-                                <div className="h-48 w-full relative overflow-hidden">
-                                    {pkg.image_url ? (
-                                        <Image
-                                            src={pkg.image_url}
-                                            alt={pkg.name}
-                                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
-                                            fill
-                                        />
-                                    ) : (
-                                        <div className="w-full h-full bg-[#f3efec] flex items-center justify-center">
-                                            <span className="text-4xl">✨</span>
-                                        </div>
-                                    )}
-                                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-                                    <div className="absolute bottom-4 left-6">
-                                        <h3 className="text-white text-xl font-black italic uppercase tracking-tight leading-none">{pkg.name}</h3>
+                                <Link href={`/dashboard/package/${pkg.id}`} className="flex-1 flex flex-col">
+                                    <div className="h-56 w-full relative overflow-hidden">
+                                        {pkg.image_url ? (
+                                            <Image
+                                                src={pkg.image_url}
+                                                alt={pkg.name}
+                                                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+                                                fill
+                                            />
+                                        ) : (
+                                            <div className="w-full h-full bg-[#f3efec] flex items-center justify-center">
+                                                <span className="text-4xl">✨</span>
+                                            </div>
+                                        )}
+                                        <div className="absolute inset-0 bg-black/10" />
                                     </div>
-                                </div>
-                                <CardFooter className="p-6 mt-auto">
-                                    <Button asChild className="w-full h-12 bg-[#593e25] hover:bg-[#4a331f] text-white rounded-xl font-bold uppercase tracking-widest shadow-lg">
+                                    <CardContent className="p-6 space-y-4">
+                                        <h3 className="text-[22px] font-bold text-[#2a2e30] leading-tight">
+                                            {pkg.name}
+                                        </h3>
+                                        <p className="text-sm text-neutral-500 line-clamp-2 leading-relaxed">
+                                            {pkg.description || "Il tuo percorso personalizzato per il benessere fisico e mentale."}
+                                        </p>
+
+                                        <div className="flex flex-col gap-2 pt-2">
+                                            <div className="flex items-center gap-2 text-neutral-400 text-sm">
+                                                <Calendar className="w-4 h-4" />
+                                                <span>Personalizzato</span>
+                                            </div>
+                                            <div className="flex items-center gap-2 text-neutral-400 text-sm">
+                                                <Dumbbell className="w-4 h-4" />
+                                                <span>In base alle tue esigenze</span>
+                                            </div>
+                                        </div>
+
+                                        <div className="flex items-center justify-between pt-4">
+                                            <div className="flex -space-x-2">
+                                                <div className="w-8 h-8 rounded-full border-2 border-white bg-[#e5e7eb]" />
+                                                <div className="w-8 h-8 rounded-full border-2 border-white bg-[#d1d5db]" />
+                                                <div className="flex items-center justify-center w-8 h-8 rounded-full border-2 border-white bg-[#f3efec] text-[10px] font-bold text-neutral-500">
+                                                    +2k
+                                                </div>
+                                            </div>
+
+                                            <div className="flex items-center gap-2">
+                                                <span className="text-sm font-medium text-neutral-400">Su Misura</span>
+                                                <div className="w-6 h-6 rounded-full border-2 border-[#846047]/30 flex items-center justify-center">
+                                                    <div className="w-3 h-3 bg-[#846047] rounded-full" />
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </CardContent>
+                                </Link>
+                                <CardFooter className="p-6 pt-0 mt-auto">
+                                    <Button asChild className="w-full h-11 bg-[#593e25] hover:bg-[#4a331f] text-white rounded-xl font-bold uppercase tracking-widest shadow-lg">
                                         <Link href={`/dashboard/package/${pkg.id}`} className="flex items-center gap-2 justify-center">
-                                            Vai al Percorso
+                                            VAI AL PERCORSO <ArrowRight className="w-4 h-4" />
                                         </Link>
                                     </Button>
                                 </CardFooter>
@@ -121,7 +156,7 @@ export default function LibrarySection({
                 <div className="space-y-12">
                     {personalizedPackages.length > 0 && <div className="w-full h-px bg-[#846047]/10" />}
 
-                    <h2 className="text-3xl md:text-4xl font-black text-[#593e25] tracking-tight italic uppercase">
+                    <h2 className="text-xl md:text-2xl font-bold text-[#593e25] tracking-tight uppercase">
                         Pacchetti Acquistati
                     </h2>
 
@@ -144,77 +179,96 @@ export default function LibrarySection({
                                                 const isDone = pkgProgress?.isFullyCompleted
 
                                                 return (
-                                                    <Card key={pkg.id} className="bg-white border-[#846047]/20 shadow-xl overflow-hidden group hover:border-[var(--brand)]/40 transition-all duration-300 rounded-[32px] flex flex-col">
-                                                        <div className="h-40 w-full relative overflow-hidden">
-                                                            {pkg.image_url ? (
-                                                                <Image
-                                                                    src={pkg.image_url}
-                                                                    alt={pkg.name}
-                                                                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                                                                    fill
-                                                                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                                                                />
-                                                            ) : (
-                                                                <div className="w-full h-full bg-neutral-100 flex items-center justify-center opacity-80">
-                                                                    <PlayCircle className="w-10 h-10 text-neutral-300" />
-                                                                </div>
-                                                            )}
-                                                            <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
-                                                            <div className={`absolute top-0 left-0 w-full h-1.5 shadow-lg ${isDone ? 'bg-emerald-500 shadow-emerald-500/30' : 'bg-[var(--brand)] shadow-[var(--brand)]/30'}`} />
-                                                        </div>
-
-                                                        <CardHeader className="pb-4 pt-6 px-8 flex-1">
-                                                            <CardTitle className="text-xl font-black text-[#2a2e30] line-clamp-2 min-h-[3.5rem] italic uppercase tracking-tighter group-hover:text-[var(--brand)] transition-colors">
-                                                                {pkg.name.toLowerCase().includes('pilates') && pkg.name.toLowerCase().includes('principiante') ? 'Destinazione Bali (equilibrio)' : pkg.name}
-                                                            </CardTitle>
-
-                                                            {pkgProgress && (
-                                                                <div className="mt-4 space-y-3">
-                                                                    <div className="flex items-center justify-between text-[10px] font-black uppercase tracking-widest">
-                                                                        <span className={isDone ? 'text-emerald-500' : 'text-[var(--brand)]'}>
-                                                                            {isDone ? 'Completato' : isStarted ? 'In corso' : 'Non iniziato'}
-                                                                        </span>
-                                                                        <span className="text-neutral-400">{Math.round(pkgProgress.completionPercentage)}%</span>
+                                                    <Card key={pkg.id} className="bg-white border-[#846047]/10 shadow-sm overflow-hidden group hover:shadow-xl transition-all duration-500 rounded-[32px] flex flex-col border-none">
+                                                        <Link href={`/dashboard/package/${pkg.id}`} className="flex-1 flex flex-col">
+                                                            <div className="h-56 w-full relative overflow-hidden">
+                                                                {pkg.image_url ? (
+                                                                    <Image
+                                                                        src={pkg.image_url}
+                                                                        alt={pkg.name}
+                                                                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+                                                                        fill
+                                                                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                                                                    />
+                                                                ) : (
+                                                                    <div className="w-full h-full bg-neutral-100 flex items-center justify-center opacity-80">
+                                                                        <PlayCircle className="w-12 h-12 text-neutral-300" />
                                                                     </div>
-                                                                    <div className="h-1.5 w-full bg-neutral-100 rounded-full overflow-hidden">
-                                                                        <div
-                                                                            className={`h-full transition-all duration-1000 ${isDone ? 'bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.5)]' : 'bg-[var(--brand)] shadow-[0_0_10px_rgba(244,101,48,0.5)]'}`}
-                                                                            style={{ width: `${pkgProgress.completionPercentage}%` }}
-                                                                        />
+                                                                )}
+                                                                <div className="absolute inset-0 bg-black/5" />
+                                                                {isDone && (
+                                                                    <div className="absolute top-4 right-4 bg-emerald-500 text-white p-1.5 rounded-full shadow-lg">
+                                                                        <CheckCircle2 className="w-4 h-4" />
+                                                                    </div>
+                                                                )}
+                                                            </div>
+
+                                                            <CardContent className="p-8 space-y-4">
+                                                                <h3 className="text-[22px] font-bold text-[#2a2e30] leading-tight">
+                                                                    {pkg.name.toLowerCase().includes('pilates') && pkg.name.toLowerCase().includes('principiante') ? 'Pilates Linfodrenante Principianti' : pkg.name}
+                                                                </h3>
+                                                                <p className="text-sm text-neutral-500 line-clamp-2 leading-relaxed">
+                                                                    {pkg.description || "Il Percorso di introduzione al Pilates Linfodrenante per ritrovare equilibrio e vitalità."}
+                                                                </p>
+
+                                                                <div className="flex flex-col gap-2.5 pt-2">
+                                                                    <div className="flex items-center gap-2.5 text-neutral-400 text-sm">
+                                                                        <Calendar className="w-4 h-4 opacity-70" />
+                                                                        <span>2 Mesi</span>
+                                                                    </div>
+                                                                    <div className="flex items-center gap-2.5 text-neutral-400 text-sm">
+                                                                        <Users className="w-4 h-4 opacity-70" />
+                                                                        <span>Nessun attrezzo</span>
+                                                                    </div>
+                                                                </div>
+
+                                                                <div className="flex items-center justify-between pt-6">
+                                                                    <div className="flex -space-x-2.5">
+                                                                        <div className="w-8 h-8 rounded-full border-2 border-white bg-neutral-200" />
+                                                                        <div className="w-8 h-8 rounded-full border-2 border-white bg-neutral-300" />
+                                                                        <div className="w-8 h-8 rounded-full border-2 border-white bg-neutral-400" />
+                                                                        <div className="flex items-center justify-center w-8 h-8 rounded-full border-2 border-white bg-[#f3efec] text-[9px] font-black text-neutral-500">
+                                                                            +9.683
+                                                                        </div>
                                                                     </div>
 
-                                                                    {pkgProgress.resumeVideoTitle && !isDone && (
-                                                                        <div className="flex items-center gap-2 text-[11px] text-neutral-600 font-medium bg-neutral-50 p-2 rounded-xl border border-neutral-100">
-                                                                            <Clock className="h-3 w-3 text-[var(--brand)]" />
-                                                                            <span className="truncate">
-                                                                                {isStarted ? 'Riprendi: ' : 'Inizia: '} {pkgProgress.resumeVideoTitle}
-                                                                            </span>
+                                                                    <div className="flex items-center gap-3">
+                                                                        <span className="text-xs font-bold text-neutral-400 uppercase tracking-widest">Facile</span>
+                                                                        <div className="relative w-8 h-8">
+                                                                            {/* Circular Progress */}
+                                                                            <svg className="w-8 h-8 transform -rotate-90">
+                                                                                <circle cx="16" cy="16" r="14" stroke="currentColor" strokeWidth="3" fill="transparent" className="text-neutral-100" />
+                                                                                <circle
+                                                                                    cx="16" cy="16" r="14"
+                                                                                    stroke="currentColor" strokeWidth="3" fill="transparent"
+                                                                                    strokeDasharray={2 * Math.PI * 14}
+                                                                                    strokeDashoffset={2 * Math.PI * 14 * (1 - (pkgProgress?.completionPercentage || 0) / 100)}
+                                                                                    className="text-[#846047] transition-all duration-1000"
+                                                                                />
+                                                                            </svg>
+                                                                            <div className="absolute inset-0 flex items-center justify-center text-[8px] font-bold text-[#846047]">
+                                                                                {Math.round(pkgProgress?.completionPercentage || 0)}%
+                                                                            </div>
                                                                         </div>
-                                                                    )}
-                                                                    {isDone && (
-                                                                        <div className="flex items-center gap-2 text-[11px] text-emerald-500/80 font-medium bg-emerald-500/5 p-2 rounded-xl border border-emerald-500/10">
-                                                                            <CheckCircle2 className="h-3 w-3" />
-                                                                            <span>Allenamento completato!</span>
-                                                                        </div>
-                                                                    )}
+                                                                    </div>
                                                                 </div>
-                                                            )}
-                                                        </CardHeader>
+                                                            </CardContent>
+                                                        </Link>
 
-                                                        <CardFooter className="pt-2 pb-8 px-6">
-                                                            <Button asChild className={`w-full h-14 rounded-2xl font-black uppercase tracking-widest transition-all duration-300 shadow-2xl ${isDone
-                                                                ? 'bg-emerald-600 hover:bg-emerald-500 text-white shadow-emerald-900/20'
-                                                                : 'bg-[var(--brand)] hover:bg-white hover:text-[var(--brand)] text-white shadow-[var(--brand)]/30'
+                                                        <CardFooter className="p-8 pt-0 mt-auto">
+                                                            <Button asChild className={`w-full h-11 rounded-xl font-bold uppercase tracking-widest transition-all duration-300 shadow-lg ${isDone
+                                                                ? 'bg-emerald-600 hover:bg-emerald-500 text-white shadow-emerald-900/10'
+                                                                : 'bg-[#593e25] hover:bg-[#4a331f] text-white shadow-[#593e25]/20'
                                                                 } hover:scale-[1.02] active:scale-[0.98]`}>
                                                                 <Link href={`/dashboard/package/${pkg.id}`} className="flex items-center gap-3 justify-center">
                                                                     {isDone ? (
                                                                         <>
-                                                                            <PlayCircle className="h-5 w-5 fill-current/20" />
+                                                                            <PlayCircle className="h-5 w-5 fill-current/10" />
                                                                             Rivedi Corso
                                                                         </>
                                                                     ) : (
                                                                         <>
-                                                                            <PlayCircle className="h-5 w-5 fill-current/20" />
+                                                                            <PlayCircle className="h-5 w-5 fill-current/10" />
                                                                             {isStarted ? 'Continua Training' : 'Inizia Allenamento'}
                                                                         </>
                                                                     )}

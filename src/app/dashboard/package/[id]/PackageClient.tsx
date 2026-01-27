@@ -3,9 +3,13 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
-import { ChevronLeft, PlayCircle, CheckCircle2, Clock, Loader2, Footprints, Plane, Stamp } from 'lucide-react'
+import { ChevronLeft, PlayCircle, CheckCircle2, Clock, Loader2, Footprints, Plane, Stamp, Luggage } from 'lucide-react'
 import VideoPlayer from '@/components/video/VideoPlayer'
 import { getAllPackageProgress } from '@/app/actions/video'
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { Button } from '@/components/ui/button'
+import { useRouter } from 'next/navigation'
+import confetti from 'canvas-confetti'
 
 type Video = {
     id: string
@@ -32,6 +36,9 @@ export default function PackageClient({ pkg, videos }: { pkg: Package, videos: V
     const [activeVideo, setActiveVideo] = useState<Video>(videos[0])
     const [progressData, setProgressData] = useState<Record<string, WatchProgress>>({})
     const [loadingProgress, setLoadingProgress] = useState(true)
+    const [showCelebration, setShowCelebration] = useState(false)
+    const [celebrated, setCelebrated] = useState(false)
+    const router = useRouter()
 
     const fetchProgress = useCallback(async () => {
         try {
@@ -74,243 +81,306 @@ export default function PackageClient({ pkg, videos }: { pkg: Package, videos: V
         return (totalProgress / videos.length) * 100
     })() : 0
 
+    // Celebration logic
+    useEffect(() => {
+        if (preciseCompletionRate >= 100 && !celebrated && !loadingProgress) {
+            setShowCelebration(true)
+            setCelebrated(true)
+            // Trigger confetti
+            const duration = 5 * 1000;
+            const animationEnd = Date.now() + duration;
+            const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 0 };
+
+            const randomInRange = (min: number, max: number) => Math.random() * (max - min) + min;
+
+            const interval: any = setInterval(function () {
+                const timeLeft = animationEnd - Date.now();
+
+                if (timeLeft <= 0) {
+                    return clearInterval(interval);
+                }
+
+                const particleCount = 50 * (timeLeft / duration);
+                // since particles fall down, start a bit higher than random
+                confetti({ ...defaults, particleCount, origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 } });
+                confetti({ ...defaults, particleCount, origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 } });
+            }, 250);
+        }
+    }, [preciseCompletionRate, celebrated, loadingProgress])
+
     return (
-        <main className="h-[100dvh] flex flex-col bg-[var(--bg)] text-[var(--foreground)] selection:bg-[var(--brand)]/10 overflow-x-hidden w-full max-w-full">
-            {/* Header / Navigation - Part of the flex flow */}
-            <header className="flex-none relative z-[100] bg-[#7f554f] border-b border-white/10 shadow-xl pt-[safe-area-inset-top]">
-                <div className="max-w-[1400px] mx-auto px-4 lg:px-8 py-3 md:py-4 flex items-center justify-between">
-                    <div className="flex items-center gap-4">
-                        <Link
-                            href="/dashboard?tab=library"
-                            className="relative z-[110] flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 border border-white/10 text-white/80 hover:text-white transition-all hover:bg-white/20 text-sm font-medium touch-manipulation"
-                        >
-                            <ChevronLeft className="h-4 w-4" />
-                            <span className="hidden md:inline">Esci dalla lezione</span>
-                            <span className="md:hidden">Esci</span>
-                        </Link>
+        <>
+            <main className="h-[100dvh] flex flex-col bg-[var(--bg)] text-[var(--foreground)] selection:bg-[var(--brand)]/10 overflow-x-hidden w-full max-w-full">
+                {/* Header / Navigation - Part of the flex flow */}
+                <header className="flex-none relative z-[100] bg-[#7f554f] border-b border-white/10 shadow-xl pt-[safe-area-inset-top]">
+                    <div className="max-w-[1400px] mx-auto px-4 lg:px-8 py-3 md:py-4 flex items-center justify-between">
+                        <div className="flex items-center gap-4">
+                            <Link
+                                href="/dashboard?tab=library"
+                                className="relative z-[110] flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 border border-white/10 text-white/80 hover:text-white transition-all hover:bg-white/20 text-sm font-medium touch-manipulation"
+                            >
+                                <ChevronLeft className="h-4 w-4" />
+                                <span className="hidden md:inline">Esci dalla lezione</span>
+                                <span className="md:hidden">Esci</span>
+                            </Link>
 
-                        <div className="flex flex-col">
-                            <h2 className="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--brand)] mb-0.5 leading-none">Corso in corso</h2>
-                            <h1 className="text-sm md:text-base font-bold text-white/90 truncate max-w-[150px] sm:max-w-[200px] lg:max-w-md">
-                                {pkg.name.toLowerCase().includes('pilates') && pkg.name.toLowerCase().includes('principiante') ? 'Destinazione Bali' : pkg.name}
-                            </h1>
-                        </div>
-                    </div>
-
-
-                </div>
-            </header>
-
-            <div className="flex flex-col lg:flex-row flex-1 overflow-y-auto lg:overflow-hidden min-h-0">
-                {/* Main Content Area - Video Player */}
-                <div className="flex-none lg:flex-1 bg-black/10 flex flex-col pt-6 lg:pt-10 pb-8 lg:pb-12 lg:overflow-y-auto custom-scrollbar">
-                    <div className="flex-none flex flex-col">
-                        <div className="w-full max-w-6xl mx-auto px-4 lg:px-10 flex flex-col">
-                            {/* Immersive Video Container */}
-                            <h2 className="text-xl md:text-2xl font-black uppercase tracking-tight mb-10">
-                                <span className="text-[#846047]">MESE 1: </span>
-                                <span className="text-[#2a2e30]">BALI</span> <span className="font-black text-gray-500">(equilibrio & drenaggio)</span> 🌿
-                            </h2>
-                            <div className="relative group flex-none">
-                                <div className="absolute -inset-4 bg-[var(--brand)]/20 blur-3xl rounded-full opacity-40 group-hover:opacity-60 transition-opacity duration-1000 hidden md:block" />
-                                <div className="relative z-10 shadow-[0_20px_100px_rgba(0,0,0,0.6)] overflow-hidden rounded-2xl bg-black aspect-video w-full border border-white/5">
-                                    {loadingProgress ? (
-                                        <div className="w-full h-full flex items-center justify-center">
-                                            <Loader2 className="w-10 h-10 animate-spin text-[var(--brand)]" />
-                                        </div>
-                                    ) : (
-                                        <VideoPlayer
-                                            videoId={activeVideo.id}
-                                            initialTime={progressData[activeVideo.id]?.is_completed ? 0 : (progressData[activeVideo.id]?.progress_seconds || 0)}
-                                            onProgressUpdate={fetchProgress}
-                                        />
-                                    )}
-                                </div>
+                            <div className="flex flex-col">
+                                <h2 className="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--brand)] mb-0.5 leading-none">Corso in corso</h2>
+                                <h1 className="text-sm md:text-base font-bold text-white/90 truncate max-w-[150px] sm:max-w-[200px] lg:max-w-md">
+                                    {pkg.name.toLowerCase().includes('pilates') && pkg.name.toLowerCase().includes('principiante') ? 'Destinazione Bali' : pkg.name}
+                                </h1>
                             </div>
+                        </div>
 
-                            {/* Info Section below video */}
-                            <div className="mt-8 lg:mt-12 animate-in fade-in slide-in-from-bottom-4 duration-700">
-                                <div className="flex flex-col gap-4">
-                                    <div className="flex flex-wrap items-center gap-3">
-                                        <span className="px-4 py-1.5 rounded-lg bg-[#7f554f] text-white text-[11px] font-black uppercase tracking-[0.1em] shadow-lg shadow-[#7f554f]/20">
-                                            In riproduzione
-                                        </span>
-                                        {progressData[activeVideo.id]?.is_completed && (
-                                            <span className="px-4 py-1.5 rounded-lg bg-emerald-600 text-white text-[11px] font-black uppercase tracking-[0.1em] flex items-center gap-1.5 shadow-lg shadow-emerald-600/20">
-                                                <CheckCircle2 className="w-3.5 h-3.5" /> Completata
-                                            </span>
+
+                    </div>
+                </header>
+
+                <div className="flex flex-col lg:flex-row flex-1 overflow-y-auto lg:overflow-hidden min-h-0">
+                    {/* Main Content Area - Video Player */}
+                    <div className="flex-none lg:flex-1 bg-black/10 flex flex-col pt-6 lg:pt-10 pb-8 lg:pb-12 lg:overflow-y-auto custom-scrollbar">
+                        <div className="flex-none flex flex-col">
+                            <div className="w-full max-w-6xl mx-auto px-4 lg:px-10 flex flex-col">
+                                {/* Immersive Video Container */}
+                                <h2 className="text-xl md:text-2xl font-black uppercase tracking-tight mb-10">
+                                    <span className="text-[#846047]">MESE 1: </span>
+                                    <span className="text-[#2a2e30]">BALI</span> <span className="font-black text-gray-500">(equilibrio & drenaggio)</span> 🌿
+                                </h2>
+                                <div className="relative group flex-none">
+                                    <div className="absolute -inset-4 bg-[var(--brand)]/20 blur-3xl rounded-full opacity-40 group-hover:opacity-60 transition-opacity duration-1000 hidden md:block" />
+                                    <div className="relative z-10 shadow-[0_20px_100px_rgba(0,0,0,0.6)] overflow-hidden rounded-2xl bg-black aspect-video w-full border border-white/5">
+                                        {loadingProgress ? (
+                                            <div className="w-full h-full flex items-center justify-center">
+                                                <Loader2 className="w-10 h-10 animate-spin text-[var(--brand)]" />
+                                            </div>
+                                        ) : (
+                                            <VideoPlayer
+                                                videoId={activeVideo.id}
+                                                initialTime={progressData[activeVideo.id]?.is_completed ? 0 : (progressData[activeVideo.id]?.progress_seconds || 0)}
+                                                onProgressUpdate={fetchProgress}
+                                            />
                                         )}
                                     </div>
-                                    <h1 className="text-3xl lg:text-5xl font-black text-[var(--foreground)] tracking-tight ts-white flex items-center gap-3 flex-wrap">
-                                        <Footprints className="w-8 h-8 lg:w-12 lg:h-12 shrink-0" />
-                                        <span className="break-words">
-                                            Tappa {activeVideo.order_index ?? (videos.indexOf(activeVideo) + 1)}
-                                        </span>
-                                    </h1>
-                                    <div className="flex items-center gap-6 text-sm text-[var(--foreground)]/60 font-medium">
-                                        <div className="flex items-center gap-2">
-                                            <Clock className="w-4 h-4 text-[var(--brand)]" />
-                                            <span>
-                                                {progressData[activeVideo.id]?.last_watched_at
-                                                    ? `Ultimo accesso: ${new Date(progressData[activeVideo.id].last_watched_at).toLocaleDateString('it-IT')}`
-                                                    : 'Prima visualizzazione'}
+                                </div>
+
+                                {/* Info Section below video */}
+                                <div className="mt-8 lg:mt-12 animate-in fade-in slide-in-from-bottom-4 duration-700">
+                                    <div className="flex flex-col gap-4">
+                                        <div className="flex flex-wrap items-center gap-3">
+                                            <span className="px-4 py-1.5 rounded-lg bg-[#7f554f] text-white text-[11px] font-black uppercase tracking-[0.1em] shadow-lg shadow-[#7f554f]/20">
+                                                In riproduzione
                                             </span>
+                                            {progressData[activeVideo.id]?.is_completed && (
+                                                <span className="px-4 py-1.5 rounded-lg bg-emerald-600 text-white text-[11px] font-black uppercase tracking-[0.1em] flex items-center gap-1.5 shadow-lg shadow-emerald-600/20">
+                                                    <CheckCircle2 className="w-3.5 h-3.5" /> Completata
+                                                </span>
+                                            )}
                                         </div>
-                                    </div>
-                                    <p className="text-lg text-[var(--foreground)]/70 max-w-3xl leading-relaxed mt-4">
-                                        {pkg.name.toLowerCase().includes('pilates') && pkg.name.toLowerCase().includes('principiante') ? '🌸 Mese 1: Destinazione Bali (Equilibrio)' : pkg.description}
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                {/* Sidebar - Playlist with Glassmorphism */}
-                <aside className="w-full lg:w-[400px] xl:w-[450px] bg-white/40 backdrop-blur-3xl lg:border-l border-white/20 flex flex-col h-auto min-h-[400px] lg:h-full relative z-30 shadow-2xl shrink-0">
-                    {/* Progress Overview Header */}
-                    <div className="p-6 lg:p-8 border-b border-[var(--brand)]/20">
-                        <div className="flex items-center justify-between">
-                            <h2 className="text-xs font-black uppercase tracking-[0.3em] text-[var(--foreground)]/50">
-                                IL TUO ITINERARIO
-                            </h2>
-                            <div className="bg-white/40 border border-[var(--brand)]/10 px-4 py-2 rounded-2xl flex items-center gap-2 md:gap-4 shrink-0 shadow-sm">
-                                <span className="text-[10px] font-black uppercase text-[var(--foreground)]/40 hidden xl:block">Partenza</span>
-
-                                <div className="h-0.5 w-24 xl:w-32 bg-[var(--brand)]/10 relative">
-                                    {/* Dotted path */}
-                                    <div className="absolute inset-x-0 top-0 bottom-0 border-t-2 border-dashed border-[var(--brand)]/30" />
-
-                                    {/* Progress Line (Solid) */}
-                                    <div className="absolute top-0 left-0 h-full border-t-2 border-[var(--brand)] transition-all duration-1000 ease-out" style={{ width: `${preciseCompletionRate}%` }} />
-
-                                    {/* Airplane Icon moving */}
-                                    <div className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 transition-all duration-1000 ease-out" style={{ left: `${preciseCompletionRate}%` }}>
-                                        <Plane className="w-4 h-4 text-[var(--brand)] fill-[var(--brand)] rotate-90 transform" />
-                                    </div>
-                                </div>
-
-                                <div className="flex items-center gap-2">
-                                    <span className="text-[10px] font-black uppercase text-[var(--foreground)]/40 hidden xl:block">Arrivo</span>
-                                    <div className={`p-1 rounded-full border border-[var(--brand)]/20 ${preciseCompletionRate >= 100 ? 'bg-emerald-500 text-white border-emerald-400' : 'bg-transparent text-[var(--brand)]/40'}`}>
-                                        <Stamp className="w-3 h-3" />
+                                        <h1 className="text-3xl lg:text-5xl font-black text-[var(--foreground)] tracking-tight ts-white flex items-center gap-3 flex-wrap">
+                                            <Footprints className="w-8 h-8 lg:w-12 lg:h-12 shrink-0" />
+                                            <span className="break-words">
+                                                Tappa {activeVideo.order_index ?? (videos.indexOf(activeVideo) + 1)}
+                                            </span>
+                                        </h1>
+                                        <div className="flex items-center gap-6 text-sm text-[var(--foreground)]/60 font-medium">
+                                            <div className="flex items-center gap-2">
+                                                <Clock className="w-4 h-4 text-[var(--brand)]" />
+                                                <span>
+                                                    {progressData[activeVideo.id]?.last_watched_at
+                                                        ? `Ultimo accesso: ${new Date(progressData[activeVideo.id].last_watched_at).toLocaleDateString('it-IT')}`
+                                                        : 'Prima visualizzazione'}
+                                                </span>
+                                            </div>
+                                        </div>
+                                        <p className="text-lg text-[var(--foreground)]/70 max-w-3xl leading-relaxed mt-4">
+                                            {pkg.name.toLowerCase().includes('pilates') && pkg.name.toLowerCase().includes('principiante') ? '🌸 Mese 1: Destinazione Bali (Equilibrio)' : pkg.description}
+                                        </p>
                                     </div>
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    {/* Lesson Scroll Area */}
-                    <div className="flex-1 overflow-y-auto p-4 lg:p-6 space-y-8 custom-scrollbar">
-                        {[1, 2, 3, 4].map((weekNum) => {
-                            const weekVideos = videos.filter(v => {
-                                const index = v.order_index ?? (videos.indexOf(v) + 1);
-                                if (weekNum === 1) return index >= 1 && index <= 3;
-                                if (weekNum === 2) return index >= 4 && index <= 6;
-                                if (weekNum === 3) return index >= 7 && index <= 9;
-                                if (weekNum === 4) return index >= 10 && index <= 12;
-                                return false;
-                            });
+                    {/* Sidebar - Playlist with Glassmorphism */}
+                    <aside className="w-full lg:w-[400px] xl:w-[450px] bg-white/40 backdrop-blur-3xl lg:border-l border-white/20 flex flex-col h-auto min-h-[400px] lg:h-full relative z-30 shadow-2xl shrink-0">
+                        {/* Progress Overview Header */}
+                        <div className="p-6 lg:p-8 border-b border-[var(--brand)]/20">
+                            <div className="flex items-center justify-between">
+                                <h2 className="text-xs font-black uppercase tracking-[0.3em] text-[var(--foreground)]/50">
+                                    IL TUO ITINERARIO
+                                </h2>
+                                <div className="bg-white/40 border border-[var(--brand)]/10 px-4 py-2 rounded-2xl flex items-center gap-2 md:gap-4 shrink-0 shadow-sm">
+                                    <span className="text-[10px] font-black uppercase text-[var(--foreground)]/40 hidden xl:block">Partenza</span>
 
-                            if (weekVideos.length === 0) return null;
+                                    <div className="h-0.5 w-24 xl:w-32 bg-[var(--brand)]/10 relative">
+                                        {/* Dotted path */}
+                                        <div className="absolute inset-x-0 top-0 bottom-0 border-t-2 border-dashed border-[var(--brand)]/30" />
 
-                            return (
-                                <div key={`week-${weekNum}`} className="space-y-4">
-                                    <div className="flex flex-col gap-2">
-                                        <div className="flex items-center gap-3 px-2">
-                                            <div className="h-px flex-1 bg-[var(--brand)]/20" />
-                                            <h3 className="text-[10px] font-black uppercase tracking-[0.4em] text-[var(--brand)] whitespace-nowrap">
-                                                Settimana {weekNum}
-                                            </h3>
-                                            <div className="h-px flex-1 bg-[var(--brand)]/20" />
+                                        {/* Progress Line (Solid) */}
+                                        <div className="absolute top-0 left-0 h-full border-t-2 border-[var(--brand)] transition-all duration-1000 ease-out" style={{ width: `${preciseCompletionRate}%` }} />
+
+                                        {/* Airplane Icon moving */}
+                                        <div className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 transition-all duration-1000 ease-out" style={{ left: `${preciseCompletionRate}%` }}>
+                                            <Plane className="w-4 h-4 text-[var(--brand)] fill-[var(--brand)] rotate-90 transform" />
                                         </div>
-                                        {weekNum === 1 && (
-                                            <p className="text-center text-sm font-bold text-[#846047] italic">L&apos;Atterraggio 🛬</p>
-                                        )}
                                     </div>
 
-                                    <div className="space-y-3">
-                                        {weekVideos.map((v) => {
-                                            const globalIndex = videos.indexOf(v);
-                                            const isActive = v.id === activeVideo.id
-                                            const progress = progressData[v.id]
-                                            const percent = progress ? (progress.progress_seconds / progress.duration_seconds) * 100 : 0
-                                            const isDone = progress?.is_completed
+                                    <div className="flex items-center gap-2">
+                                        <span className="text-[10px] font-black uppercase text-[var(--foreground)]/40 hidden xl:block">Arrivo</span>
+                                        <div className={`p-1 rounded-full border border-[var(--brand)]/20 ${preciseCompletionRate >= 100 ? 'bg-emerald-500 text-white border-emerald-400' : 'bg-transparent text-[var(--brand)]/40'}`}>
+                                            <Stamp className="w-3 h-3" />
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
 
-                                            return (
-                                                <div
-                                                    key={v.id}
-                                                    ref={(el) => {
-                                                        if (el) itemRefs.current.set(v.id, el)
-                                                        else itemRefs.current.delete(v.id)
-                                                    }}
-                                                    onClick={() => setActiveVideo(v)}
-                                                    className={`relative p-4 rounded-2xl transition-all duration-300 cursor-pointer group flex flex-col gap-3 ${isActive
-                                                        ? 'bg-white/40 shadow-[0_8px_32px_rgba(0,0,0,0.08)] scale-[1.02] ring-1 ring-[var(--brand)]/20'
-                                                        : 'hover:bg-white/30 border border-transparent'
-                                                        }`}
-                                                >
-                                                    {/* Active Glow Indicator */}
-                                                    {isActive && (
-                                                        <div className="absolute left-[-4px] top-1/2 -translate-y-1/2 w-1 h-8 bg-[var(--brand)] rounded-full shadow-[0_0_10px_rgba(244,101,48,0.5)]" />
-                                                    )}
+                        {/* Lesson Scroll Area */}
+                        <div className="flex-1 overflow-y-auto p-4 lg:p-6 space-y-8 custom-scrollbar">
+                            {[1, 2, 3, 4].map((weekNum) => {
+                                const weekVideos = videos.filter(v => {
+                                    const index = v.order_index ?? (videos.indexOf(v) + 1);
+                                    if (weekNum === 1) return index >= 1 && index <= 3;
+                                    if (weekNum === 2) return index >= 4 && index <= 6;
+                                    if (weekNum === 3) return index >= 7 && index <= 9;
+                                    if (weekNum === 4) return index >= 10 && index <= 12;
+                                    return false;
+                                });
 
-                                                    <div className="flex items-start gap-4">
-                                                        {/* Thumbnail or Status Icon */}
-                                                        <div className="relative shrink-0">
-                                                            <div className={`relative h-16 w-24 rounded-lg overflow-hidden border border-white/5 ${isActive ? 'ring-2 ring-[var(--brand)]' : 'group-hover:ring-1 group-hover:ring-white/20'}`}>
-                                                                <div className="absolute inset-0 bg-neutral-800" />
-                                                                <Image
-                                                                    src={`https://${process.env.NEXT_PUBLIC_BUNNY_CDN_HOSTNAME}/${v.bunny_video_id}/preview.webp`}
-                                                                    alt={v.title}
-                                                                    className={`w-full h-full object-cover transition-opacity duration-300 ${isDone ? 'opacity-50' : 'opacity-100'}`}
-                                                                    loading="lazy"
-                                                                    fill
-                                                                    sizes="96px"
-                                                                />
-                                                                <div className="absolute inset-0 flex items-center justify-center">
-                                                                    {isDone ? (
-                                                                        <CheckCircle2 className="h-6 w-6 text-emerald-500 bg-black/50 rounded-full p-1" />
-                                                                    ) : isActive ? (
-                                                                        <div className="bg-[var(--brand)]/80 rounded-full p-1.5 animate-pulse">
-                                                                            <PlayCircle className="h-4 w-4 text-white fill-white" />
-                                                                        </div>
-                                                                    ) : (
-                                                                        <span className="text-[10px] font-bold text-white/50 bg-black/40 px-1.5 py-0.5 rounded backdrop-blur-sm flex items-center gap-1">
-                                                                            <Footprints className="w-3 h-3" />
-                                                                            Tappa {String(globalIndex + 1).padStart(2, '0')}
-                                                                        </span>
-                                                                    )}
+                                if (weekVideos.length === 0) return null;
+
+                                return (
+                                    <div key={`week-${weekNum}`} className="space-y-4">
+                                        <div className="flex flex-col gap-2">
+                                            <div className="flex items-center gap-3 px-2">
+                                                <div className="h-px flex-1 bg-[var(--brand)]/20" />
+                                                <h3 className="text-[10px] font-black uppercase tracking-[0.4em] text-[var(--brand)] whitespace-nowrap">
+                                                    Settimana {weekNum}
+                                                </h3>
+                                                <div className="h-px flex-1 bg-[var(--brand)]/20" />
+                                            </div>
+                                            {weekNum === 1 && (
+                                                <p className="text-center text-sm font-bold text-[#846047] italic">L&apos;Atterraggio 🛬</p>
+                                            )}
+                                        </div>
+
+                                        <div className="space-y-3">
+                                            {weekVideos.map((v) => {
+                                                const globalIndex = videos.indexOf(v);
+                                                const isActive = v.id === activeVideo.id
+                                                const progress = progressData[v.id]
+                                                const percent = progress ? (progress.progress_seconds / progress.duration_seconds) * 100 : 0
+                                                const isDone = progress?.is_completed
+
+                                                return (
+                                                    <div
+                                                        key={v.id}
+                                                        ref={(el) => {
+                                                            if (el) itemRefs.current.set(v.id, el)
+                                                            else itemRefs.current.delete(v.id)
+                                                        }}
+                                                        onClick={() => setActiveVideo(v)}
+                                                        className={`relative p-4 rounded-2xl transition-all duration-300 cursor-pointer group flex flex-col gap-3 ${isActive
+                                                            ? 'bg-white/40 shadow-[0_8px_32px_rgba(0,0,0,0.08)] scale-[1.02] ring-1 ring-[var(--brand)]/20'
+                                                            : 'hover:bg-white/30 border border-transparent'
+                                                            }`}
+                                                    >
+                                                        {/* Active Glow Indicator */}
+                                                        {isActive && (
+                                                            <div className="absolute left-[-4px] top-1/2 -translate-y-1/2 w-1 h-8 bg-[var(--brand)] rounded-full shadow-[0_0_10px_rgba(244,101,48,0.5)]" />
+                                                        )}
+
+                                                        <div className="flex items-start gap-4">
+                                                            {/* Thumbnail or Status Icon */}
+                                                            <div className="relative shrink-0">
+                                                                <div className={`relative h-16 w-24 rounded-lg overflow-hidden border border-white/5 ${isActive ? 'ring-2 ring-[var(--brand)]' : 'group-hover:ring-1 group-hover:ring-white/20'}`}>
+                                                                    <div className="absolute inset-0 bg-neutral-800" />
+                                                                    <Image
+                                                                        src={`https://${process.env.NEXT_PUBLIC_BUNNY_CDN_HOSTNAME}/${v.bunny_video_id}/preview.webp`}
+                                                                        alt={v.title}
+                                                                        className={`w-full h-full object-cover transition-opacity duration-300 ${isDone ? 'opacity-50' : 'opacity-100'}`}
+                                                                        loading="lazy"
+                                                                        fill
+                                                                        sizes="96px"
+                                                                    />
+                                                                    <div className="absolute inset-0 flex items-center justify-center">
+                                                                        {isDone ? (
+                                                                            <CheckCircle2 className="h-6 w-6 text-emerald-500 bg-black/50 rounded-full p-1" />
+                                                                        ) : isActive ? (
+                                                                            <div className="bg-[var(--brand)]/80 rounded-full p-1.5 animate-pulse">
+                                                                                <PlayCircle className="h-4 w-4 text-white fill-white" />
+                                                                            </div>
+                                                                        ) : (
+                                                                            <span className="text-[10px] font-bold text-white/50 bg-black/40 px-1.5 py-0.5 rounded backdrop-blur-sm flex items-center gap-1">
+                                                                                <Footprints className="w-3 h-3" />
+                                                                                Tappa {String(globalIndex + 1).padStart(2, '0')}
+                                                                            </span>
+                                                                        )}
+                                                                    </div>
                                                                 </div>
                                                             </div>
-                                                        </div>
 
-                                                        <div className="flex-1 min-w-0 py-1">
-                                                            <h4 className={`font-bold text-sm leading-tight transition-colors line-clamp-2 ${isActive ? 'text-[var(--brand)]' : 'text-[var(--foreground)]'
-                                                                }`}>
-                                                                {v.title}
-                                                            </h4>
+                                                            <div className="flex-1 min-w-0 py-1">
+                                                                <h4 className={`font-bold text-sm leading-tight transition-colors line-clamp-2 ${isActive ? 'text-[var(--brand)]' : 'text-[var(--foreground)]'
+                                                                    }`}>
+                                                                    {v.title}
+                                                                </h4>
 
-                                                            {progress && !isDone && percent > 0 && (
-                                                                <div className="mt-2 h-1 w-full bg-black/5 rounded-full overflow-hidden">
-                                                                    <div
-                                                                        className="h-full bg-[var(--brand)] opacity-60 transition-all duration-500"
-                                                                        style={{ width: `${percent}%` }}
-                                                                    />
-                                                                </div>
-                                                            )}
+                                                                {progress && !isDone && percent > 0 && (
+                                                                    <div className="mt-2 h-1 w-full bg-black/5 rounded-full overflow-hidden">
+                                                                        <div
+                                                                            className="h-full bg-[var(--brand)] opacity-60 transition-all duration-500"
+                                                                            style={{ width: `${percent}%` }}
+                                                                        />
+                                                                    </div>
+                                                                )}
+                                                            </div>
                                                         </div>
                                                     </div>
-                                                </div>
-                                            )
-                                        })}
+                                                )
+                                            })}
+                                        </div>
                                     </div>
-                                </div>
-                            );
-                        })}
+                                );
+                            })}
+                        </div>
+                    </aside>
+                </div>
+            </main>
+
+            <Dialog open={showCelebration} onOpenChange={setShowCelebration}>
+                <DialogContent className="bg-[#fdfbf7] border-none rounded-[40px] max-w-lg p-0 overflow-hidden shadow-2xl">
+                    <div className="relative p-10 flex flex-col items-center text-center">
+                        <div className="absolute inset-0 opacity-[0.03] pointer-events-none" style={{ backgroundImage: 'radial-gradient(#846047 1px, transparent 1px)', backgroundSize: '20px 20px' }} />
+
+                        <div className="w-24 h-24 rounded-full bg-emerald-500/10 flex items-center justify-center mb-6 animate-bounce">
+                            <Luggage className="w-12 h-12 text-emerald-600" />
+                        </div>
+
+                        <DialogHeader className="space-y-4">
+                            <DialogTitle className="text-4xl font-serif font-bold text-[#593e25] tracking-tight leading-tight">
+                                Valigia pronta! 🧳
+                            </DialogTitle>
+                            <DialogDescription className="text-lg text-neutral-600 font-medium">
+                                Hai completato con successo il tuo viaggio a <span className="text-[#846047] font-bold">{pkg.name.toLowerCase().includes('bali') ? 'Bali' : (pkg.name.split(' ')[0] || 'questa destinazione')}</span>. Un nuovo timbro ti aspetta nel tuo passaporto!
+                            </DialogDescription>
+                        </DialogHeader>
+
+                        <div className="mt-10 w-full space-y-4">
+                            <Button
+                                onClick={() => {
+                                    setShowCelebration(false)
+                                    router.push('/dashboard?tab=profile&sub=badges')
+                                }}
+                                className="w-full bg-[#846047] text-white hover:bg-[#846047]/90 rounded-2xl h-14 text-lg font-bold shadow-lg shadow-[#846047]/20"
+                            >
+                                Guarda il Passaporto
+                            </Button>
+                            <p className="text-[10px] font-black uppercase tracking-widest text-neutral-400">Repubblica delle Ritiane • Documento di Viaggio</p>
+                        </div>
                     </div>
-                </aside>
-            </div>
-        </main >
+                </DialogContent>
+            </Dialog>
+        </>
     )
 }
