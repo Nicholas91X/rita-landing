@@ -127,7 +127,7 @@ export default function OneToOneClients() {
                             <TableHead className="text-neutral-300 font-bold uppercase text-[11px] tracking-wider">Pacchetto</TableHead>
                             <TableHead className="text-neutral-300 font-bold uppercase text-[11px] tracking-wider">Data Acquisto</TableHead>
                             <TableHead className="text-neutral-300 font-bold uppercase text-[11px] tracking-wider">Stato</TableHead>
-                            <TableHead className="text-neutral-300 font-bold uppercase text-[11px] tracking-wider w-[300px]">Link Documento</TableHead>
+                            <TableHead className="text-neutral-300 font-bold uppercase text-[11px] tracking-wider min-w-[400px]">Link Documento</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -166,65 +166,67 @@ export default function OneToOneClients() {
                                         </SelectContent>
                                     </Select>
                                 </TableCell>
-                                <div className="flex gap-2 items-center">
-                                    <div className="relative flex-1">
-                                        <Input
-                                            defaultValue={client.document_url || ''}
-                                            className="h-8 bg-black/20 border-neutral-700 text-xs text-neutral-300 pr-8"
-                                            placeholder="Link o Upload..."
-                                            onBlur={(e) => {
-                                                if (e.target.value !== client.document_url) {
-                                                    updateDocumentUrl(client.id, e.target.value)
-                                                }
-                                            }}
-                                        />
-                                        {client.document_url && (
-                                            <Link href={client.document_url} target="_blank" className="absolute right-2 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-white">
-                                                <ExternalLink className="w-3.5 h-3.5" />
-                                            </Link>
-                                        )}
-                                    </div>
-
-                                    <div className="relative">
-                                        <input
-                                            type="file"
-                                            id={`file-${client.id}`}
-                                            className="hidden"
-                                            accept=".pdf,.doc,.docx"
-                                            onChange={async (e) => {
-                                                const file = e.target.files?.[0]
-                                                if (!file) return
-
-                                                const toastId = toast.loading('Caricamento file...')
-                                                // Call server action directly
-                                                try {
-                                                    const formData = new FormData()
-                                                    formData.append('file', file)
-                                                    formData.append('clientId', client.id)
-
-                                                    const res = await uploadClientDocument(formData)
-
-                                                    if (res.success) {
-                                                        setClients(clients.map(c => c.id === client.id ? { ...c, document_url: res.url } : c))
-                                                        toast.success('File caricato con successo', { id: toastId })
+                                <TableCell>
+                                    <div className="flex gap-2 items-center">
+                                        <div className="relative flex-1">
+                                            <Input
+                                                defaultValue={client.document_url || ''}
+                                                className="h-8 bg-black/20 border-neutral-700 text-xs text-neutral-300 pr-8"
+                                                placeholder="Link o Upload..."
+                                                onBlur={(e) => {
+                                                    if (e.target.value !== client.document_url) {
+                                                        updateDocumentUrl(client.id, e.target.value)
                                                     }
-                                                } catch (err) {
-                                                    console.error(err)
-                                                    toast.error('Errore caricamento', { id: toastId })
-                                                }
-                                            }}
-                                        />
-                                        <Button
-                                            size="icon"
-                                            variant="ghost"
-                                            className="h-8 w-8 hover:bg-neutral-800 text-neutral-400 hover:text-white"
-                                            onClick={() => document.getElementById(`file-${client.id}`)?.click()}
-                                            title="Carica PDF"
-                                        >
-                                            <UploadCloud className="w-4 h-4" />
-                                        </Button>
+                                                }}
+                                            />
+                                            {client.document_url && (
+                                                <Link href={client.document_url} target="_blank" className="absolute right-2 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-white">
+                                                    <ExternalLink className="w-3.5 h-3.5" />
+                                                </Link>
+                                            )}
+                                        </div>
+
+                                        <div className="relative">
+                                            <input
+                                                type="file"
+                                                id={`file-${client.id}`}
+                                                className="hidden"
+                                                accept=".pdf,.doc,.docx"
+                                                onChange={async (e) => {
+                                                    const file = e.target.files?.[0]
+                                                    if (!file) return
+
+                                                    const toastId = toast.loading('Caricamento file...')
+                                                    // Call server action directly
+                                                    try {
+                                                        const formData = new FormData()
+                                                        formData.append('file', file)
+                                                        formData.append('clientId', client.id)
+
+                                                        const res = await uploadClientDocument(formData)
+
+                                                        if (res.success) {
+                                                            setClients(clients.map(c => c.id === client.id ? { ...c, document_url: res.url } : c))
+                                                            toast.success('File caricato con successo', { id: toastId })
+                                                        }
+                                                    } catch (err) {
+                                                        console.error(err)
+                                                        toast.error('Errore caricamento', { id: toastId })
+                                                    }
+                                                }}
+                                            />
+                                            <Button
+                                                size="icon"
+                                                variant="ghost"
+                                                className="h-8 w-8 hover:bg-neutral-800 text-neutral-400 hover:text-white"
+                                                onClick={() => document.getElementById(`file-${client.id}`)?.click()}
+                                                title="Carica PDF"
+                                            >
+                                                <UploadCloud className="w-4 h-4" />
+                                            </Button>
+                                        </div>
                                     </div>
-                                </div>
+                                </TableCell>
                             </TableRow>
                         ))}
                     </TableBody>

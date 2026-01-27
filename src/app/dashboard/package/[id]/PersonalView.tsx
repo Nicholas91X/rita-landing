@@ -116,53 +116,54 @@ export default function PersonalView({ status, documentUrl, packageName, userNam
         // Status 3: Delivered (Download available)
         if (status === 'delivered') {
             return (
-                <div className="min-h-[80vh] flex flex-col items-center justify-center p-6 animate-in fade-in duration-700 space-y-8">
-                    <div className="text-center space-y-2">
-                        <span className="text-emerald-600 font-bold uppercase tracking-widest text-xs bg-emerald-100 px-3 py-1 rounded-full border border-emerald-200">
+                <div className="min-h-[80vh] flex flex-col items-center justify-center p-4 md:p-6 pb-24 animate-in fade-in duration-700 space-y-4 md:space-y-8">
+                    <div className="text-center space-y-3">
+                        <span className="inline-block text-emerald-600 font-bold uppercase tracking-widest text-[10px] md:text-xs bg-emerald-100 px-3 py-1 rounded-full border border-emerald-200 shadow-sm">
                             Pronto per il download
                         </span>
-                        <h1 className="text-4xl md:text-6xl font-black text-[#593e25] italic uppercase tracking-tighter">
+                        <h1 className="text-3xl md:text-6xl font-black text-[#593e25] italic uppercase tracking-tighter leading-none shrink-0">
                             Il tuo Piano è Qui
                         </h1>
                     </div>
 
-                    <Card className="max-w-4xl w-full bg-white rounded-[40px] shadow-2xl overflow-hidden border-[#846047]/20 flex flex-col md:flex-row">
-                        <div className="bg-[#593e25] p-10 md:w-2/5 flex flex-col justify-between relative overflow-hidden text-white">
+                    <Card className="max-w-4xl w-full bg-white rounded-[32px] md:rounded-[40px] shadow-2xl overflow-hidden border-[#846047]/20 flex flex-col md:flex-row">
+                        <div className="bg-[#593e25] p-8 md:p-10 md:w-2/5 flex flex-col justify-between relative overflow-hidden text-white min-h-[220px]">
                             <div className="absolute inset-0 bg-[url('/images/texture-noise.png')] opacity-10"></div>
-                            <div className="relative z-10">
+                            <div className="relative z-10 flex flex-col items-center md:items-start text-center md:text-left">
                                 <Sparkles className="w-8 h-8 text-[#e1d5c6] mb-4" />
-                                <h3 className="text-2xl font-black italic uppercase leading-none mb-2">{packageName}</h3>
-                                <p className="text-white/70 text-sm">Creato esclusivamente per {userName}</p>
+                                <h3 className="text-2xl md:text-3xl font-black italic uppercase leading-tight mb-2">{packageName}</h3>
+                                <p className="text-white/70 text-sm font-medium">Creato esclusivamente per {userName}</p>
                             </div>
-                            <div className="relative z-10 mt-12">
-                                <FileText className="w-24 h-24 text-white/10 absolute -bottom-4 -right-4 rotate-12" />
+                            <div className="relative z-10 mt-8 md:mt-12 flex justify-center md:justify-end">
+                                <FileText className="w-20 h-20 md:w-24 md:h-24 text-white/10 absolute -bottom-4 -right-4 rotate-12" />
                             </div>
                         </div>
 
-                        <div className="p-10 md:p-14 md:w-3/5 flex flex-col justify-center space-y-8">
-                            <div>
-                                <h4 className="text-2xl font-bold text-[#2a2e30] mb-2">Ora tocca a te!</h4>
-                                <p className="text-neutral-500">
+                        <div className="p-6 md:p-14 md:w-3/5 flex flex-col justify-center space-y-6 md:space-y-8">
+                            <div className="text-center md:text-left">
+                                <h4 className="text-xl md:text-2xl font-bold text-[#2a2e30] mb-2">Ora tocca a te!</h4>
+                                <p className="text-neutral-500 text-sm md:text-base leading-relaxed">
                                     Scarica il documento PDF che contiene la tua scheda, i consigli nutrizionali e il programma settimanale.
                                 </p>
                             </div>
 
                             <div className="space-y-4">
                                 {documentUrl ? (
-                                    <Button asChild className="w-full h-16 bg-[#593e25] hover:bg-[#4a331f] text-white rounded-2xl text-lg font-bold shadow-xl shadow-[#593e25]/20 flex items-center justify-between px-8 hover:scale-[1.02] transition-all">
+                                    <Button asChild className="w-full h-14 md:h-16 bg-[#593e25] hover:bg-[#4a331f] text-white rounded-xl md:rounded-2xl text-base md:text-lg font-bold shadow-xl shadow-[#593e25]/20 flex items-center justify-between px-6 md:px-8 hover:scale-[1.02] transition-all">
                                         <Link href={documentUrl} target="_blank" download>
                                             <span>Scarica PDF</span>
-                                            <Download className="w-6 h-6" />
+                                            <Download className="w-5 h-5 md:w-6 md:h-6" />
                                         </Link>
                                     </Button>
                                 ) : (
-                                    <div className="p-4 bg-red-50 text-red-500 rounded-xl text-sm font-bold border border-red-100">
-                                        Errore: Link al documento mancante. Contatta l'assistenza.
+                                    <div className="p-4 bg-red-50 text-red-500 rounded-xl text-sm font-bold border border-red-100 flex items-center gap-2">
+                                        <AlertCircle className="w-4 h-4 shrink-0" />
+                                        <span>Link al documento mancante.</span>
                                     </div>
                                 )}
 
                                 <p className="text-center text-xs text-neutral-400">
-                                    Hai bisogno di chiarimenti sul piano? <Link href="https://wa.me/393519398967" className="underline hover:text-[#593e25]">Scrivimi su WhatsApp</Link>
+                                    Hai bisogno di chiarimenti? <Link href="https://wa.me/393519398967" className="underline hover:text-[#593e25] font-semibold">Scrivimi su WhatsApp</Link>
                                 </p>
                             </div>
                         </div>
