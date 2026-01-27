@@ -8,6 +8,7 @@ import HomeSection from './HomeSection'
 import TrainingSection from './TrainingSection'
 import BillingSection from './BillingSection'
 import ProfileSection from './ProfileSection'
+import OneToOneSection from './OneToOneSection'
 import { getLibraryProgress, LibraryProgress } from '@/app/actions/video'
 import { getUserProfile } from '@/app/actions/user'
 import { Loader2 } from 'lucide-react'
@@ -67,7 +68,7 @@ export default function DashboardClient({ levels }: { levels: Level[] }) {
         const success = searchParams.get('success')
         const tab = searchParams.get('tab') as TabType
 
-        if (tab && ['home', 'training', 'billing', 'profile'].includes(tab)) {
+        if (tab && ['home', 'training', 'billing', 'profile', '1to1'].includes(tab)) {
             setActiveTab(tab)
         } else if (success === 'true') {
             setActiveTab('training')
@@ -95,6 +96,8 @@ export default function DashboardClient({ levels }: { levels: Level[] }) {
                     userProfile={userProfile}
                     userName={firstName}
                 />
+            case '1to1':
+                return <OneToOneSection />
             case 'billing':
                 return <BillingSection />
             case 'profile':
@@ -105,14 +108,14 @@ export default function DashboardClient({ levels }: { levels: Level[] }) {
     }
 
     return (
-        <div className="flex min-h-screen bg-[#f3efec] text-[var(--secondary)] selection:bg-brand/30 relative">
+        <div className="flex min-h-screen bg-[#f3efec] text-[var(--secondary)] selection:bg-brand/30 relative overflow-x-hidden">
             {/* Sfondo chiaro, rimuovo il gradiente scuro */}
 
             {/* Navigation */}
             <DashboardSidebar activeTab={activeTab} setActiveTab={setActiveTab} userProfile={userProfile} />
 
             {/* Main Content Area */}
-            <main className="flex-1 lg:ml-72 pb-24 lg:pb-0 relative">
+            <main className="flex-1 lg:ml-72 pb-24 lg:pb-0 relative overflow-x-hidden">
                 {/* Content Header (Visible only on Desktop for Profile name or breadcrumbs if needed) */}
                 <header className="hidden lg:flex h-14 items-center justify-between px-12 border-b border-[#f3efec] sticky top-0 bg-gradient-to-r from-[#654540] to-[#503530] backdrop-blur-xl z-20 transition-all shadow-md">
                     <div>

@@ -29,6 +29,7 @@ type Package = {
     stripe_price_id: string | null
     course_id: string | null
     badge_type: string | null
+    payment_mode: string | null
     image_url: string | null
     courses?: { name: string }
 }
@@ -45,7 +46,7 @@ export default function AdminPackages() {
     const [loading, setLoading] = useState(true)
     const [isDialogOpen, setIsDialogOpen] = useState(false)
     const [editingPackage, setEditingPackage] = useState<Package | null>(null)
-    const [formData, setFormData] = useState({ name: '', title: '', description: '', price: 0, course_id: '', badge_type: '' })
+    const [formData, setFormData] = useState({ name: '', title: '', description: '', price: 0, course_id: '', badge_type: '', payment_mode: 'subscription' })
     const [imageFile, setImageFile] = useState<File | null>(null)
     const [imagePreview, setImagePreview] = useState<string | null>(null)
     const [submitting, setSubmitting] = useState(false)
@@ -83,12 +84,13 @@ export default function AdminPackages() {
                 description: pkg.description || '',
                 price: pkg.price,
                 course_id: pkg.course_id || '',
-                badge_type: pkg.badge_type || ''
+                badge_type: pkg.badge_type || '',
+                payment_mode: pkg.payment_mode || 'subscription'
             })
             setImagePreview(pkg.image_url)
         } else {
             setEditingPackage(null)
-            setFormData({ name: '', title: '', description: '', price: 0, course_id: '', badge_type: '' })
+            setFormData({ name: '', title: '', description: '', price: 0, course_id: '', badge_type: '', payment_mode: 'subscription' })
             setImagePreview(null)
         }
         setImageFile(null)
@@ -105,7 +107,9 @@ export default function AdminPackages() {
         data.append('description', formData.description)
         data.append('price', formData.price.toString())
         data.append('course_id', formData.course_id)
+        data.append('course_id', formData.course_id)
         data.append('badge_type', formData.badge_type)
+        data.append('payment_mode', formData.payment_mode)
         if (imageFile) {
             data.append('image', imageFile)
         }
@@ -330,6 +334,18 @@ export default function AdminPackages() {
                                         <option value="wolf">🐺 Lupo (Determinazione/Leadership)</option>
                                         <option value="fox">🦊 Volpe (Intelligenza/Adattabilità)</option>
                                         <option value="panda">🐼 Panda (Equilibrio/Gentilezza)</option>
+                                    </select>
+                                </div>
+                                <div className="space-y-2 col-span-2">
+                                    <label className="text-sm font-bold text-white uppercase tracking-widest text-[10px]">Modalità Pagamento</label>
+                                    <select
+                                        value={formData.payment_mode}
+                                        onChange={(e) => setFormData({ ...formData, payment_mode: e.target.value })}
+                                        className="w-full h-10 bg-neutral-800 border-neutral-700 rounded-md px-3 text-sm focus:ring-2 focus:ring-emerald-500 outline-none"
+                                        required
+                                    >
+                                        <option value="subscription">Abbonamento (Ricorrente)</option>
+                                        <option value="payment">Una Tantum (Lifetime)</option>
                                     </select>
                                 </div>
                             </div>

@@ -20,6 +20,7 @@ export async function getAdminPackages() {
         .select(`
             *,
             title,
+            payment_mode,
             courses (
                 name
             )
@@ -60,6 +61,7 @@ export async function createPackage(formData: FormData) {
     const priceAmount = parseFloat(formData.get('price') as string)
     const courseId = formData.get('course_id') as string
     const badgeType = formData.get('badge_type') as string
+    const paymentMode = formData.get('payment_mode') as 'subscription' | 'payment' || 'subscription'
     const imageFile = formData.get('image') as File
 
     // 1. Create Product in Stripe
@@ -73,9 +75,9 @@ export async function createPackage(formData: FormData) {
         product: product.id,
         unit_amount: Math.round(priceAmount * 100), // Convert to cents
         currency: 'eur',
-        recurring: {
+        recurring: paymentMode === 'subscription' ? {
             interval: 'month',
-        },
+        } : undefined,
     })
 
     const supabase = await createClient()
@@ -109,6 +111,7 @@ export async function createPackage(formData: FormData) {
             stripe_product_id: product.id,
             stripe_price_id: price.id,
             badge_type: badgeType,
+            payment_mode: paymentMode,
             image_url: imageUrl
         })
 
@@ -126,6 +129,7 @@ export async function updatePackage(id: string, formData: FormData) {
     const priceAmount = parseFloat(formData.get('price') as string)
     const courseId = formData.get('course_id') as string
     const badgeType = formData.get('badge_type') as string
+    const paymentMode = formData.get('payment_mode') as 'subscription' | 'payment' || 'subscription'
     const imageFile = formData.get('image') as File
     const removeImage = formData.get('removeImage') === 'true'
 
@@ -157,9 +161,9 @@ export async function updatePackage(id: string, formData: FormData) {
             product: currentPkg.stripe_product_id,
             unit_amount: Math.round(priceAmount * 100),
             currency: 'eur',
-            recurring: {
+            recurring: paymentMode === 'subscription' ? {
                 interval: 'month',
-            },
+            } : undefined,
         })
         newStripePriceId = price.id
         await stripe.products.update(currentPkg.stripe_product_id, {
@@ -205,6 +209,7 @@ export async function updatePackage(id: string, formData: FormData) {
             course_id: courseId,
             stripe_price_id: newStripePriceId,
             badge_type: badgeType,
+            payment_mode: paymentMode,
             image_url: newImageUrl
         })
         .eq('id', id)
@@ -728,4 +733,77 @@ export async function getUserHistory(userId: string) {
     ].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
 
     return history
+}
+
+
+// Import for Supabase Admin (Service Role)
+import { createClient as createSupabaseClient } from '@supabase/supabase-js'
+
+export async function uploadClientDocument(formData: FormData) {
+    const isSuperAdmin = await isAdmin()
+    if (!isSuperAdmin) throw new Error('Unauthorized')
+
+    const file = formData.get('file') as File
+    const clientId = formData.get('clientId') as string
+
+    if (!file || !clientId) throw new Error('Missing file or client ID')
+
+    // Use Service Role Client for Storage to bypass RLS
+    const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+
+    if (!serviceRoleKey || !supabaseUrl) {
+        throw new Error('Server configuration error: Missing Service Role Key')
+    }
+
+    const sudo = createSupabaseClient(supabaseUrl, serviceRoleKey)
+
+    // 1. Upload to Supabase Storage
+    const fileExt = file.name.split('.').pop()
+    const fileName = `${clientId}-${Date.now()}.${fileExt}`
+
+    const uploadWithRetry = async (attemptCreate = true): Promise<{ error: any }> => {
+        const { error } = await sudo.storage
+            .from('client-documents')
+            .upload(fileName, file, {
+                contentType: file.type,
+                upsert: true
+            })
+
+        if (error && attemptCreate && ((error as any).error === 'Bucket not found' || (error as any).message?.includes('Bucket not found'))) {
+            console.log('Bucket not found, creating...')
+            await sudo.storage.createBucket('client-documents', {
+                public: true,
+                fileSizeLimit: 10485760,
+                allowedMimeTypes: ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document']
+            })
+            return uploadWithRetry(false)
+        }
+
+        return { error }
+    }
+
+    const { error: uploadError } = await uploadWithRetry()
+
+    if (uploadError) {
+        console.error('Upload Error:', uploadError)
+        throw new Error(`Errore upload: ${uploadError.message}`)
+    }
+
+    // 2. Get Public URL
+    const { data: { publicUrl } } = sudo.storage
+        .from('client-documents')
+        .getPublicUrl(fileName)
+
+    // 3. Update DB (Use standard client for DB)
+    const supabase = await createClient()
+    const { error: dbError } = await supabase
+        .from('one_time_purchases')
+        .update({ document_url: publicUrl })
+        .eq('id', clientId)
+
+    if (dbError) throw new Error('Errore durante l\'aggiornamento del database')
+
+    revalidatePath('/admin')
+    return { success: true, url: publicUrl }
 }

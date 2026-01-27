@@ -5,6 +5,7 @@ import { Level } from '@/app/actions/content'
 import { Button } from '@/components/ui/button'
 import { ArrowRight } from 'lucide-react'
 import Link from 'next/link'
+import Image from 'next/image'
 
 export default function HomeSection({ levels, onShowLibrary, userName }: { levels: Level[], onShowLibrary: () => void, userName?: string }) {
     // Find the first purchased package as "Recent" (simplified logic)
@@ -106,16 +107,8 @@ export default function HomeSection({ levels, onShowLibrary, userName }: { level
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     {levels.map((level) => {
                         const purchasedCount = level.courses.reduce((acc, course) => {
-                            return acc + course.packages.filter(p => p.isPurchased).length
+                            return acc + course.packages.filter(p => p.isPurchased && p.payment_mode === 'subscription').length
                         }, 0)
-
-                        // Only show levels that have purchased content or if we want to show all but with 0 count? 
-                        // The user said "shows 0 available" which implies they saw the 0. 
-                        // But usually for "Recent" we want to filter empty ones? 
-                        // Let's assume we show levels that exist, but with correct count. 
-                        // BUT, if levels.slice(0, 2) was hiding others, we should probably map all relevant ones.
-                        // Let's filter levels to only those with content for a cleaner "Home" experience?
-                        // User complained "Intermedio 0" while having 3 courses total. If they have 1 in Intermedio, it should show 1.
 
                         if (purchasedCount === 0) return null
 
@@ -137,6 +130,125 @@ export default function HomeSection({ levels, onShowLibrary, userName }: { level
                     })}
                 </div>
             </div>
+
+            {/* Personalized Section */}
+            {(() => {
+                const personalizedPackages = []
+                for (const level of levels) {
+                    for (const course of level.courses) {
+                        // Check if this is a "Personalizzato" course
+                        const isPersonalized = course.name.toLowerCase().includes('personalizzato')
+                        if (isPersonalized) {
+                            for (const pkg of course.packages) {
+                                if (pkg.isPurchased) {
+                                    personalizedPackages.push(pkg)
+                                }
+                            }
+                        }
+                    }
+                }
+
+                if (personalizedPackages.length === 0) return null
+
+                return (
+                    <div className="space-y-6">
+                        <h4 className="text-2xl font-black text-[#593e25] italic uppercase tracking-tighter">
+                            Il tuo percorso personalizzato
+                        </h4>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            {personalizedPackages.map((pkg) => (
+                                <Link key={pkg.id} href={`/dashboard/package/${pkg.id}`}>
+                                    <div className="bg-white rounded-[24px] overflow-hidden border border-[#846047]/20 shadow-lg hover:shadow-xl transition-all duration-300 group">
+                                        <div className="relative h-48">
+                                            {pkg.image_url ? (
+                                                <Image
+                                                    src={pkg.image_url}
+                                                    alt={pkg.name}
+                                                    fill
+                                                    className="object-cover group-hover:scale-105 transition-transform duration-700"
+                                                />
+                                            ) : (
+                                                <div className="w-full h-full bg-[#f3efec] flex items-center justify-center">
+                                                    <span className="text-4xl">✨</span>
+                                                </div>
+                                            )}
+                                            <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+                                            <div className="absolute bottom-4 left-6">
+                                                <h5 className="text-white text-xl font-black italic uppercase tracking-tight">{pkg.name}</h5>
+                                            </div>
+                                        </div>
+                                        <div className="p-6 flex justify-between items-center">
+                                            <span className="text-xs font-bold text-[#846047] uppercase tracking-widest">Accesso Illimitato</span>
+                                            <div className="w-8 h-8 rounded-full bg-[#f3efec] flex items-center justify-center group-hover:bg-[#846047] group-hover:text-white transition-colors">
+                                                <ArrowRight className="w-4 h-4" />
+                                            </div>
+                                        </div>
+                                    </div>
+                                </Link>
+                            ))}
+                        </div>
+                    </div>
+                )
+            })()}
+
+            {/* Other One-Time Purchases Section */}
+            {(() => {
+                const oneTimePurchases = []
+                for (const level of levels) {
+                    for (const course of level.courses) {
+                        // Exclude personalized from this generic list
+                        if (course.name.toLowerCase().includes('personalizzato')) continue
+
+                        for (const pkg of course.packages) {
+                            if (pkg.isPurchased && pkg.payment_mode === 'payment') {
+                                oneTimePurchases.push(pkg)
+                            }
+                        }
+                    }
+                }
+
+                if (oneTimePurchases.length === 0) return null
+
+                return (
+                    <div className="space-y-6">
+                        <h4 className="text-2xl font-black text-[#593e25] italic uppercase tracking-tighter">
+                            Altri Percorsi Esclusivi
+                        </h4>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            {oneTimePurchases.map((pkg) => (
+                                <Link key={pkg.id} href={`/dashboard/package/${pkg.id}`}>
+                                    <div className="bg-white rounded-[24px] overflow-hidden border border-[#846047]/20 shadow-lg hover:shadow-xl transition-all duration-300 group">
+                                        <div className="relative h-48">
+                                            {pkg.image_url ? (
+                                                <Image
+                                                    src={pkg.image_url}
+                                                    alt={pkg.name}
+                                                    fill
+                                                    className="object-cover group-hover:scale-105 transition-transform duration-700"
+                                                />
+                                            ) : (
+                                                <div className="w-full h-full bg-[#f3efec] flex items-center justify-center">
+                                                    <span className="text-4xl">✨</span>
+                                                </div>
+                                            )}
+                                            <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+                                            <div className="absolute bottom-4 left-6">
+                                                <h5 className="text-white text-xl font-black italic uppercase tracking-tight">{pkg.name}</h5>
+                                            </div>
+                                        </div>
+                                        <div className="p-6 flex justify-between items-center">
+                                            <span className="text-xs font-bold text-[#846047] uppercase tracking-widest">Accesso Illimitato</span>
+                                            <div className="w-8 h-8 rounded-full bg-[#f3efec] flex items-center justify-center group-hover:bg-[#846047] group-hover:text-white transition-colors">
+                                                <ArrowRight className="w-4 h-4" />
+                                            </div>
+                                        </div>
+                                    </div>
+                                </Link>
+                            ))}
+                        </div>
+                    </div>
+                )
+            })()}
         </div>
     )
 }

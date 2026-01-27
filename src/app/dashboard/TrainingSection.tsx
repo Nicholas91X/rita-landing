@@ -26,14 +26,14 @@ export default function TrainingSection({ levels, progress, userProfile, userNam
     }, [searchParams])
 
     return (
-        <div className="space-y-8 animate-in fade-in duration-500">
+        <div className="space-y-8 animate-in fade-in duration-500 overflow-x-hidden">
             {/* Header / Tabs - Styled to match previous design aesthetics */}
-            <div className="flex justify-center md:justify-start">
-                <div className="bg-white rounded-full p-1.5 flex gap-1 shadow-sm border border-[#846047]/10 w-full md:w-auto">
+            <div className="flex justify-center md:justify-start px-2 md:px-0">
+                <div className="bg-white rounded-full p-1.5 flex gap-1 shadow-sm border border-[#846047]/10 w-full md:w-auto max-w-full overflow-hidden">
                     <button
                         onClick={() => setSubTab('my-trainings')}
                         className={cn(
-                            "px-6 py-3 rounded-full text-sm font-bold transition-all duration-300 flex-1 md:flex-none text-center whitespace-nowrap",
+                            "px-4 py-3 rounded-full text-[11px] sm:text-sm font-bold transition-all duration-300 flex-1 md:flex-none text-center whitespace-nowrap truncate",
                             subTab === 'my-trainings'
                                 ? "bg-[#846047] text-white shadow-md"
                                 : "text-[#846047]/70 hover:bg-[#846047]/5 hover:text-[#846047]"
@@ -44,7 +44,7 @@ export default function TrainingSection({ levels, progress, userProfile, userNam
                     <button
                         onClick={() => setSubTab('new-trainings')}
                         className={cn(
-                            "px-6 py-3 rounded-full text-sm font-bold transition-all duration-300 flex-1 md:flex-none text-center whitespace-nowrap",
+                            "px-4 py-3 rounded-full text-[11px] sm:text-sm font-bold transition-all duration-300 flex-1 md:flex-none text-center whitespace-nowrap truncate",
                             subTab === 'new-trainings'
                                 ? "bg-[#846047] text-white shadow-md"
                                 : "text-[#846047]/70 hover:bg-[#846047]/5 hover:text-[#846047]"

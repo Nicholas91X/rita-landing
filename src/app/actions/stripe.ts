@@ -21,7 +21,7 @@ export async function createCheckoutSession(packageId: string) {
     // 2. Fetch package info and User eligibility
     const { data: pkg, error: pkgError } = await supabase
         .from('packages')
-        .select('stripe_price_id')
+        .select('stripe_price_id, payment_mode')
         .eq('id', packageId)
         .single()
 
@@ -54,8 +54,10 @@ export async function createCheckoutSession(packageId: string) {
     // 3. Create Stripe Checkout Session
     const origin = (await headers()).get('origin') || 'http://localhost:3000'
 
+    const isSubscription = pkg.payment_mode !== 'payment' // Default to subscription if null
+
     const sessionParams: Stripe.Checkout.SessionCreateParams = {
-        mode: 'subscription',
+        mode: isSubscription ? 'subscription' : 'payment',
         line_items: [
             {
                 price: pkg.stripe_price_id,
@@ -71,8 +73,8 @@ export async function createCheckoutSession(packageId: string) {
         cancel_url: `${origin}/dashboard?canceled=true`,
     }
 
-    // Apply Trial
-    if (isTrialEligible) {
+    // Apply Trial (Only for Subscriptions)
+    if (isTrialEligible && isSubscription) {
         sessionParams.subscription_data = {
             trial_period_days: 7
         }
