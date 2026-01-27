@@ -58,6 +58,7 @@ export async function POST(req: Request) {
                         user_id: userId,
                         package_id: packageId,
                         item_type: 'package',
+                        amount: session.amount_total,
                         stripe_payment_intent_id: session.payment_intent as string
                     })
                 } else if (session.subscription) {

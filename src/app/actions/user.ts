@@ -58,19 +58,31 @@ export async function getUserSubscriptionInfo() {
 
     if (error) {
         console.error('Error fetching user subscriptions:', error)
-        return []
     }
 
-    const typedSubs = (subs as unknown) as Array<{
-        id: string;
-        status: string;
-        current_period_end: string;
-        created_at: string;
-        stripe_customer_id: string | null;
-        stripe_subscription_id: string | null;
-        packages: unknown;
-        refund_requests: unknown;
-    }>;
+    // Fetch one-time purchases
+    const { data: oneTime, error: oneTimeError } = await supabase
+        .from('one_time_purchases')
+        .select(`
+            id,
+            created_at,
+            amount,
+            status,
+            stripe_payment_intent_id,
+            packages (
+                name,
+                description,
+                image_url,
+                price
+            )
+        `)
+        .eq('user_id', user.id)
+
+    if (oneTimeError) {
+        console.error('Error fetching one time purchases:', oneTimeError)
+    }
+
+    const typedSubs = (subs || []) as any[];
 
     // Map and fetch receipts from Stripe
     const subsWithDetailedInfo = await Promise.all(typedSubs.map(async (sub) => {
@@ -179,7 +191,19 @@ export async function getUserSubscriptionInfo() {
         }
     }))
 
-    return subsWithDetailedInfo
+    const oneTimeWithDetails = (oneTime || []).map((purchase: any) => ({
+        id: purchase.id,
+        status: purchase.status || 'paid',
+        created_at: purchase.created_at,
+        amount: purchase.amount,
+        packages: Array.isArray(purchase.packages) ? purchase.packages[0] : purchase.packages,
+        stripe_payment_intent_id: purchase.stripe_payment_intent_id
+    }))
+
+    return {
+        subscriptions: subsWithDetailedInfo,
+        oneTimePurchases: oneTimeWithDetails
+    }
 }
 
 export async function getUserProfile() {
@@ -215,11 +239,13 @@ export async function getUserProfile() {
         badges: badges || []
     }
 }
+
 export async function signOutUser() {
     const supabase = await createClient()
     await supabase.auth.signOut()
     redirect('/login')
 }
+
 export async function getUserNotifications() {
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
