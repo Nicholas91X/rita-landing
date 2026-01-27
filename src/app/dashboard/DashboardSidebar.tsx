@@ -170,7 +170,10 @@ export default function DashboardSidebar({ activeTab, setActiveTab, userProfile,
                 </Link>
                 <div className="flex items-center gap-4">
                     <NotificationBell />
-                    <div className="w-8 h-8 rounded-full bg-white flex items-center justify-center text-[10px] font-black text-[#001F3D] shadow-lg border border-brand/10 overflow-hidden relative">
+                    <button
+                        onClick={() => setActiveTab('profile')}
+                        className="w-8 h-8 rounded-full bg-white flex items-center justify-center text-[10px] font-black text-[#001F3D] shadow-lg border border-brand/10 overflow-hidden relative active:scale-95 transition-transform"
+                    >
                         {userProfile?.profile?.avatar_url ? (
                             <Image
                                 src={userProfile.profile.avatar_url}
@@ -187,7 +190,7 @@ export default function DashboardSidebar({ activeTab, setActiveTab, userProfile,
                                 }
                             </span>
                         )}
-                    </div>
+                    </button>
                 </div>
             </header>
         </>

@@ -134,7 +134,10 @@ export default function DashboardClient({ levels }: { levels: Level[] }) {
                     </div>
                     <div className="flex items-center gap-6">
                         <NotificationBell />
-                        <div className="flex items-center gap-4 border-l border-white/20 pl-6">
+                        <button
+                            onClick={() => setActiveTab('profile')}
+                            className="flex items-center gap-4 border-l border-white/20 pl-6 hover:opacity-80 transition-opacity"
+                        >
                             <div className="text-right">
                                 <p className="text-[10px] text-white uppercase tracking-widest font-black">Rita Workout</p>
                             </div>
@@ -156,7 +159,7 @@ export default function DashboardClient({ levels }: { levels: Level[] }) {
                                     </span>
                                 )}
                             </div>
-                        </div>
+                        </button>
                     </div>
                 </header>
 
@@ -184,6 +187,6 @@ export default function DashboardClient({ levels }: { levels: Level[] }) {
                     </Suspense>
                 </div>
             </main>
-        </div>
+        </div >
     )
 }
