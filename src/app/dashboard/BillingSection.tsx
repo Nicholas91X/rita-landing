@@ -60,6 +60,7 @@ interface OneTimePurchase {
         price: number;
     } | null;
     stripe_payment_intent_id: string;
+    documents: BillingDocument[];
 }
 
 export default function BillingSection() {
@@ -460,6 +461,40 @@ export default function BillingSection() {
                                         <span className="font-bold text-[#2a2e30]">{new Date(purchase.created_at).toLocaleDateString('it-IT')}</span>
                                     </div>
                                 </div>
+
+                                {purchase.documents && purchase.documents.length > 0 && (
+                                    <div className="pt-4 mt-2 border-t border-neutral-100 space-y-3">
+                                        <div className="flex items-center gap-2 mb-1">
+                                            <Receipt className="w-3.5 h-3.5 text-[#846047]" />
+                                            <span className="text-[10px] uppercase font-black tracking-widest text-[#593e25]">Documenti Scaricabili</span>
+                                        </div>
+                                        <div className="space-y-2 max-h-[160px] overflow-y-auto pr-2 custom-scrollbar">
+                                            {purchase.documents.map((doc) => (
+                                                <div key={doc.id} className="flex items-center justify-between p-2.5 rounded-2xl bg-neutral-50 border border-neutral-100 hover:bg-neutral-100 transition-colors group/doc">
+                                                    <div className="flex items-center gap-2 min-w-0">
+                                                        <FileText className="w-3.5 h-3.5 text-emerald-600" />
+                                                        <div className="flex flex-col min-w-0">
+                                                            <span className="text-[9px] font-black text-[#2a2e30] truncate uppercase tracking-tight">
+                                                                Fattura
+                                                            </span>
+                                                            <span className="text-[8px] text-neutral-500 font-bold">
+                                                                {new Date(doc.date * 1000).toLocaleDateString('it-IT')} • €{doc.amount.toFixed(2)}
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="icon"
+                                                        className="w-8 h-8 rounded-xl hover:bg-white hover:shadow-sm"
+                                                        onClick={() => window.open(doc.url || undefined, '_blank')}
+                                                    >
+                                                        <ExternalLink className="w-3.5 h-3.5 text-neutral-400 group-hover/doc:text-[#593e25]" />
+                                                    </Button>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
                             </CardContent>
                             <CardFooter className="pt-2 pb-6 px-6">
                                 <div className="w-full flex items-center justify-center gap-2 text-[8px] text-neutral-400 mt-2 uppercase tracking-[0.2em] font-black">

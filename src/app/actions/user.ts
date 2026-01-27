@@ -195,18 +195,50 @@ export async function getUserSubscriptionInfo() {
         }
     }))
 
-    const oneTimeWithDetails = (oneTime || []).map((purchase: any) => ({
-        id: purchase.id,
-        status: purchase.status || 'paid',
-        created_at: purchase.created_at,
-        amount: purchase.amount,
-        packages: Array.isArray(purchase.packages) ? purchase.packages[0] : purchase.packages,
-        stripe_payment_intent_id: purchase.stripe_payment_intent_id
+    const oneTimePurchasesWithDocs = await Promise.all((oneTime || []).map(async (purchase: any) => {
+        let documents: UserDocument[] = []
+
+        if (purchase.stripe_payment_intent_id) {
+            try {
+                // Fetch the Payment Intent to get the latest charge receipt
+                // This is more reliable for one-time payments 
+                const pi = await stripe.paymentIntents.retrieve(purchase.stripe_payment_intent_id, {
+                    expand: ['latest_charge']
+                })
+
+                const charge = pi.latest_charge as Stripe.Charge
+
+                if (charge && charge.receipt_url) {
+                    documents.push({
+                        id: charge.id,
+                        type: 'invoice' as const,
+                        number: charge.receipt_number || 'Ricevuta',
+                        date: pi.created,
+                        amount: pi.amount / 100,
+                        currency: pi.currency,
+                        url: charge.receipt_url,
+                        status: pi.status
+                    })
+                }
+            } catch (err) {
+                console.error('Error fetching documentation for PI:', purchase.stripe_payment_intent_id, err)
+            }
+        }
+
+        return {
+            id: purchase.id,
+            status: purchase.status || 'paid',
+            created_at: purchase.created_at,
+            amount: purchase.amount,
+            packages: Array.isArray(purchase.packages) ? purchase.packages[0] : purchase.packages,
+            stripe_payment_intent_id: purchase.stripe_payment_intent_id,
+            documents
+        }
     }))
 
     return {
         subscriptions: subsWithDetailedInfo,
-        oneTimePurchases: oneTimeWithDetails
+        oneTimePurchases: oneTimePurchasesWithDocs
     }
 }
 
