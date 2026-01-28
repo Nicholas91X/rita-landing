@@ -318,22 +318,20 @@ export default function AdminPackages() {
                                     </select>
                                 </div>
                                 <div className="space-y-2 col-span-2">
-                                    <label className="text-sm font-bold text-white uppercase tracking-widest text-[10px]">Badge di Completamento</label>
+                                    <label className="text-sm font-bold text-white uppercase tracking-widest text-[10px]">Timbro Passaporto (Badge)</label>
                                     <select
                                         value={formData.badge_type}
                                         onChange={(e) => setFormData({ ...formData, badge_type: e.target.value })}
                                         className="w-full h-10 bg-neutral-800 border-neutral-700 rounded-md px-3 text-sm focus:ring-2 focus:ring-emerald-500 outline-none"
                                         required
                                     >
-                                        <option value="" disabled>Seleziona un badge...</option>
-                                        <option value="leo">🦁 Leone (Energia/Forza)</option>
-                                        <option value="tiger">🐯 Tigre (Coraggio/Poderosa)</option>
-                                        <option value="giraffe">🦒 Giraffa (Sguardo Alto/Prospettiva)</option>
-                                        <option value="elephant">🐘 Elefante (Saggezza/Stabilità)</option>
-                                        <option value="monkey">🐒 Scimmia (Gioia/Flessibilità)</option>
-                                        <option value="wolf">🐺 Lupo (Determinazione/Leadership)</option>
-                                        <option value="fox">🦊 Volpe (Intelligenza/Adattabilità)</option>
-                                        <option value="panda">🐼 Panda (Equilibrio/Gentilezza)</option>
+                                        <option value="" disabled>Seleziona un timbro...</option>
+                                        <option value="bali">🏝️ Bali (Relax/Natura)</option>
+                                        <option value="new_york">🗽 New York (Energy/City)</option>
+                                        <option value="rinascita">🦋 Rinascita (Transformation)</option>
+                                        <option value="bubusettete">🧸 Bubusettete (Kids/Fun)</option>
+                                        <option value="siviglia">💃 Siviglia (Passion/Dance)</option>
+                                        <option value="generic">🏅 Generic (Medal)</option>
                                     </select>
                                 </div>
                                 <div className="space-y-2 col-span-2">

@@ -395,34 +395,67 @@ export default function ProfileSection({ onProfileUpdate, activeSubTab = 'info' 
                                 if (badge) {
                                     const rotations = ['rotate-3', '-rotate-2', 'rotate-1', '-rotate-3'];
                                     const rot = rotations[slotIdx % rotations.length];
-                                    const colors = [
-                                        'border-blue-600/40 text-blue-700/80 bg-blue-50/30',
-                                        'border-rose-600/40 text-rose-700/80 bg-rose-50/30',
-                                        'border-emerald-600/40 text-emerald-700/80 bg-emerald-50/30',
-                                        'border-indigo-600/40 text-indigo-700/80 bg-indigo-50/30'
-                                    ];
-                                    const color = colors[slotIdx % colors.length];
+
+                                    // Define color mapping based on destination characteristics
+                                    const getStampColor = (type: string) => {
+                                        switch (type.toLowerCase()) {
+                                            case 'bali':
+                                                return 'border-emerald-600/40 text-emerald-700/80 bg-emerald-50/30'; // Nature/Green
+                                            case 'new_york':
+                                                return 'border-blue-600/40 text-blue-700/80 bg-blue-50/30'; // City/Blue
+                                            case 'rinascita':
+                                                return 'border-indigo-600/40 text-indigo-700/80 bg-indigo-50/30'; // Transformation/Purple
+                                            case 'bubusettete':
+                                                return 'border-orange-600/40 text-orange-700/80 bg-orange-50/30'; // Kids/Fun/Orange
+                                            case 'siviglia':
+                                                return 'border-rose-600/40 text-rose-700/80 bg-rose-50/30'; // Passion/Red
+                                            default:
+                                                return 'border-neutral-600/40 text-neutral-700/80 bg-neutral-50/30'; // Generic
+                                        }
+                                    };
+
+                                    const color = getStampColor(badge.badge_type);
+
+                                    const stampUrl = `/images/stamps/${badge.badge_type}.png`; // We will use local paths
+                                    // For now, whilst we wait for generation, let's use a nice reliable placeholder or a robust fallback
+                                    // But since we are committing to "images", let's assume valid paths and I'll add a helper to resolve them.
+
+                                    const stampName = badge.badge_type === 'new_york' ? 'NEW YORK' :
+                                        badge.badge_type === 'bali' ? 'BALI' :
+                                            badge.badge_type === 'rinascita' ? 'RINASCITA' :
+                                                badge.badge_type === 'bubusettete' ? 'KIDS' :
+                                                    badge.badge_type.toUpperCase();
 
                                     return (
                                         <div key={badge.id} className={`group relative transition-all duration-500 hover:scale-105 active:scale-95 cursor-default ${rot}`}>
                                             <div className={`aspect-[4/3] p-4 border-[3px] border-dashed rounded-xl flex flex-col items-center justify-center text-center relative overflow-hidden transition-all group-hover:shadow-lg ${color}`}>
                                                 <div className="absolute inset-2 border border-current opacity-20 rounded-lg" />
-                                                <span className="text-[8px] font-black uppercase tracking-[0.2em] mb-1 opacity-60">Entry Permit</span>
-                                                <div className="text-4xl md:text-5xl my-2 filter saturate-[0.8] contrast-[1.2]">
-                                                    {badge.badge_type === 'leo' && '🦁'}
-                                                    {badge.badge_type === 'tiger' && '🐯'}
-                                                    {badge.badge_type === 'giraffe' && '🦒'}
-                                                    {badge.badge_type === 'elephant' && '🐘'}
-                                                    {badge.badge_type === 'monkey' && '🐵'}
-                                                    {badge.badge_type === 'wolf' && '🐺'}
-                                                    {badge.badge_type === 'fox' && '🦊'}
-                                                    {badge.badge_type === 'panda' && '🐼'}
-                                                    {!['leo', 'tiger', 'giraffe', 'elephant', 'monkey', 'wolf', 'fox', 'panda'].includes(badge.badge_type) && '🏅'}
+                                                <span className="text-[8px] font-black uppercase tracking-[0.2em] mb-1 opacity-60">Visa Stamp</span>
+
+                                                {/* Stamp Image Container - CSS Fallback with Ink Effect */}
+                                                <div className="relative w-24 h-24 md:w-32 md:h-32 my-1 mx-auto">
+                                                    <div className="w-full h-full rounded-full border-[6px] border-current flex items-center justify-center p-2 relative opacity-90"
+                                                        style={{
+                                                            maskImage: 'url("data:image/svg+xml,%3Csvg viewBox=\'0 0 200 200\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cfilter id=\'noiseFilter\'%3E%3CfeTurbulence type=\'fractalNoise\' baseFrequency=\'0.65\' numOctaves=\'3\' stitchTiles=\'stitch\'/%3E%3C/filter%3E%3Crect width=\'100%25\' height=\'100%25\' filter=\'url(%23noiseFilter)\' opacity=\'0.4\'/%3E%3C/svg%3E")',
+                                                            maskMode: 'alpha',
+                                                            WebkitMaskImage: 'url("data:image/svg+xml,%3Csvg viewBox=\'0 0 200 200\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cfilter id=\'noiseFilter\'%3E%3CfeTurbulence type=\'fractalNoise\' baseFrequency=\'0.65\' numOctaves=\'3\' stitchTiles=\'stitch\'/%3E%3C/filter%3E%3Crect width=\'100%25\' height=\'100%25\' filter=\'url(%23noiseFilter)\' opacity=\'0.4\'/%3E%3C/svg%3E")'
+                                                        }}
+                                                    >
+                                                        <div className="absolute inset-1 border-[2px] border-current rounded-full opacity-70" />
+                                                        <div className="absolute inset-0 flex flex-col items-center justify-center">
+                                                            <span className="font-serif italic text-[10px] md:text-xs font-bold leading-none mb-1">ARRIVED</span>
+                                                            <span className="font-black text-xl md:text-3xl -rotate-12 tracking-tighter leading-none text-center py-1 border-t border-b border-current/50 min-w-[80%]">
+                                                                {stampName}
+                                                            </span>
+                                                            <span className="font-mono text-[9px] font-bold mt-1 tabular-nums">{new Date().toLocaleDateString('it-IT')}</span>
+                                                        </div>
+                                                    </div>
                                                 </div>
-                                                <h4 className="font-serif italic font-bold text-sm md:text-lg leading-none mb-1 uppercase tracking-tight">
-                                                    VISTO: {badge.packages?.name?.split(' ')[0] || badge.badge_type}
+
+                                                <h4 className="font-serif italic font-bold text-sm md:text-lg leading-none mb-1 uppercase tracking-tight relative z-10">
+                                                    {badge.packages?.name?.split(' ')[0] || badge.badge_type}
                                                 </h4>
-                                                <div className="mt-2 pt-2 border-t border-current/20 w-full flex flex-col gap-0.5">
+                                                <div className="mt-2 pt-2 border-t border-current/20 w-full flex flex-col gap-0.5 relative z-10">
                                                     <span className="text-[7px] font-black uppercase tracking-widest opacity-60">Verified Member</span>
                                                     <span className="text-[8px] font-mono leading-none">STAMP-{slotIdx + 10}4A</span>
                                                 </div>
