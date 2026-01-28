@@ -52,14 +52,14 @@ interface OneTimePurchase {
     id: string;
     status: string;
     created_at: string;
-    amount: number;
+    amount: number | null;
     packages: {
         name: string;
         description: string;
         image_url: string | null;
         price: number;
     } | null;
-    stripe_payment_intent_id: string;
+    stripe_payment_intent_id: string | null;
     documents: BillingDocument[];
 }
 

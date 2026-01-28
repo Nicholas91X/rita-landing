@@ -1,6 +1,6 @@
 'use client'
 
-import { LucideIcon, Home, BookOpen, Search, CreditCard, User, LogOut, Sparkles, ChevronLeft, ChevronRight } from 'lucide-react'
+import { LucideIcon, Home, BookOpen, CreditCard, User, LogOut, Sparkles, ChevronLeft, ChevronRight } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import Link from 'next/link'
 import Image from 'next/image'

@@ -83,7 +83,39 @@ export async function getUserSubscriptionInfo() {
         console.error('Error fetching one time purchases:', oneTimeError)
     }
 
-    const typedSubs = (subs || []) as any[];
+    interface SubWithPackage {
+        id: string
+        status: string
+        current_period_end: string
+        created_at: string
+        stripe_customer_id: string | null
+        stripe_subscription_id: string | null
+        amount: number | null
+        packages: {
+            name: string
+            description: string
+            price: number
+            image_url: string | null
+        } | {
+            name: string
+            description: string
+            price: number
+            image_url: string | null
+        }[] | null
+        refund_requests: {
+            status: string
+            reason: string
+            created_at: string
+            processed_at: string | null
+        } | {
+            status: string
+            reason: string
+            created_at: string
+            processed_at: string | null
+        }[] | null
+    }
+
+    const typedSubs = (subs || []) as unknown as SubWithPackage[];
 
     // Map and fetch receipts from Stripe
     const subsWithDetailedInfo = await Promise.all(typedSubs.map(async (sub) => {
@@ -195,8 +227,28 @@ export async function getUserSubscriptionInfo() {
         }
     }))
 
-    const oneTimePurchasesWithDocs = await Promise.all((oneTime || []).map(async (purchase: any) => {
-        let documents: UserDocument[] = []
+    interface OneTimePurchaseDB {
+        id: string
+        created_at: string
+        amount: number | null
+        status: string
+        stripe_payment_intent_id: string | null
+        packages: {
+            name: string
+            description: string
+            image_url: string | null
+            price: number
+        } | {
+            name: string
+            description: string
+            image_url: string | null
+            price: number
+        }[] | null
+    }
+
+    const oneTimePurchasesWithDocs = await Promise.all((oneTime || []).map(async (purchaseUnknown) => {
+        const purchase = purchaseUnknown as unknown as OneTimePurchaseDB
+        const documents: UserDocument[] = []
 
         if (purchase.stripe_payment_intent_id) {
             try {

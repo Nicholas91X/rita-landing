@@ -65,7 +65,7 @@ export default function OneToOneClients() {
 
             if (error) throw error
             setClients(data as unknown as OneTimeClient[])
-        } catch (error) {
+        } catch (error: unknown) {
             console.error('Error loading clients:', error)
             toast.error('Errore nel caricamento clienti')
         } finally {
@@ -84,9 +84,9 @@ export default function OneToOneClients() {
 
             if (error) throw error
 
-            setClients(clients.map(c => c.id === id ? { ...c, status: newStatus as any } : c))
+            setClients(clients.map(c => c.id === id ? { ...c, status: newStatus as OneTimeClient['status'] } : c))
             toast.success('Stato aggiornato')
-        } catch (error) {
+        } catch {
             toast.error('Errore aggiornamento')
         } finally {
             setUpdatingId(null)
@@ -105,7 +105,7 @@ export default function OneToOneClients() {
 
             setClients(clients.map(c => c.id === id ? { ...c, document_url: url } : c))
             toast.success('Link salvato')
-        } catch (error) {
+        } catch {
             toast.error('Errore salvataggio link')
         }
     }

@@ -762,7 +762,7 @@ export async function uploadClientDocument(formData: FormData) {
     const fileExt = file.name.split('.').pop()
     const fileName = `${clientId}-${Date.now()}.${fileExt}`
 
-    const uploadWithRetry = async (attemptCreate = true): Promise<{ error: any }> => {
+    const uploadWithRetry = async (attemptCreate = true): Promise<{ error: unknown }> => {
         const { error } = await sudo.storage
             .from('client-documents')
             .upload(fileName, file, {
@@ -770,14 +770,17 @@ export async function uploadClientDocument(formData: FormData) {
                 upsert: true
             })
 
-        if (error && attemptCreate && ((error as any).error === 'Bucket not found' || (error as any).message?.includes('Bucket not found'))) {
-            console.log('Bucket not found, creating...')
-            await sudo.storage.createBucket('client-documents', {
-                public: true,
-                fileSizeLimit: 10485760,
-                allowedMimeTypes: ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document']
-            })
-            return uploadWithRetry(false)
+        if (error && attemptCreate && (typeof error === 'object' && ('error' in error || 'message' in error))) {
+            const err = error as { error?: string; message?: string };
+            if (err.error === 'Bucket not found' || err.message?.includes('Bucket not found')) {
+                console.log('Bucket not found, creating...')
+                await sudo.storage.createBucket('client-documents', {
+                    public: true,
+                    fileSizeLimit: 10485760,
+                    allowedMimeTypes: ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document']
+                })
+                return uploadWithRetry(false)
+            }
         }
 
         return { error }
@@ -787,7 +790,10 @@ export async function uploadClientDocument(formData: FormData) {
 
     if (uploadError) {
         console.error('Upload Error:', uploadError)
-        throw new Error(`Errore upload: ${uploadError.message}`)
+        const message = (uploadError && typeof uploadError === 'object' && 'message' in uploadError)
+            ? (uploadError as { message: string }).message
+            : 'Errore sconosciuto during upload'
+        throw new Error(`Errore upload: ${message}`)
     }
 
     // 2. Get Public URL

@@ -159,6 +159,7 @@ export default async function PackagesPage() {
                       {pkg.name}
                       {pkg.name?.toUpperCase().includes("BALI") && " 🍹"}
                       {pkg.name?.toUpperCase().includes("NEW YORK") && " 🗽"}
+                      {pkg.name?.toUpperCase().includes("AVANA") && " 🌴"}
                     </CardTitle>
                     <CardDescription className="text-sm text-gray-700 mt-2 line-clamp-3">
                       {pkg.description}

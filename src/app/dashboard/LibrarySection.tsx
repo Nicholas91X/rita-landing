@@ -1,19 +1,12 @@
 'use client'
 
-import { Level } from '@/app/actions/content'
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
+import { Level, Package } from '@/app/actions/content'
+import { Card, CardContent, CardFooter } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
 import Image from 'next/image'
-import { PlayCircle, Dumbbell, Clock, CheckCircle2, Calendar, Users, ArrowRight } from 'lucide-react'
+import { PlayCircle, Dumbbell, CheckCircle2, Calendar, Users, ArrowRight } from 'lucide-react'
 import { LibraryProgress } from '@/app/actions/video'
-
-// Mappa delle immagini per livello (copiata da DashboardClient per ora, ma centralizzabile)
-const LEVEL_IMAGES: Record<string, string> = {
-    'Pilates': '/images/dashboard/pilates-header.png',
-    'Total Body': '/images/dashboard/total-body-header.png',
-    'Intermedio': '/images/dashboard/intermediate-header.png'
-}
 
 export default function LibrarySection({
     levels,
@@ -26,7 +19,7 @@ export default function LibrarySection({
     userName?: string
 }) {
     // 1. Extract Personalized Packages first
-    const personalizedPackages: any[] = []
+    const personalizedPackages: Package[] = []
 
     // 2. Filter standard levels (excluding personalized)
     const purchasedLevels = levels.map(level => {

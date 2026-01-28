@@ -8,10 +8,33 @@ import DiscoverSection from './DiscoverSection'
 import { cn } from '@/lib/utils'
 import { useSearchParams } from 'next/navigation'
 
+interface DashboardProfile {
+    user: {
+        id: string;
+        email?: string;
+    };
+    profile: {
+        full_name: string | null;
+        avatar_url: string | null;
+        has_used_trial: boolean;
+    } | null;
+    activeSubscriptions: Array<{
+        id: string;
+        status: string;
+    }>;
+    badges: Array<{
+        id: string;
+        badge_type: string;
+        packages: {
+            name: string;
+        };
+    }>;
+}
+
 interface TrainingSectionProps {
     levels: Level[]
     progress: LibraryProgress[]
-    userProfile: any
+    userProfile: DashboardProfile | null
     userName: string
 }
 

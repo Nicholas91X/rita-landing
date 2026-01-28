@@ -45,13 +45,11 @@ export async function POST(req: Request) {
                 const mode = session.mode
                 let subscriptionStatus = 'active'
                 let periodEnd = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
-                let stripeSubscriptionId = session.subscription as string
 
                 if (mode === 'payment') {
                     // One-Time Purchase Logic
                     subscriptionStatus = 'active'
                     periodEnd = null as unknown as string
-                    stripeSubscriptionId = null as unknown as string
 
                     console.log(`Processing One-Time Purchase: User=${userId}, Pkg=${packageId}, Amount=${session.amount_total}`)
 
