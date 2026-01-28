@@ -245,7 +245,7 @@ export default function ProfileSection({ onProfileUpdate, activeSubTab = 'info' 
                                     <Button
                                         onClick={handleLogout}
                                         variant="ghost"
-                                        className="w-full text-rose-500 hover:text-rose-600 hover:bg-rose-50 font-bold flex items-center gap-2 transition-all"
+                                        className="w-full text-[#F46530] hover:text-[#F46530]/80 hover:bg-[#F46530]/10 font-bold flex items-center gap-2 transition-all"
                                     >
                                         <LogOut className="w-4 h-4" /> Esci dall&apos;Area Riservata
                                     </Button>
@@ -364,13 +364,14 @@ export default function ProfileSection({ onProfileUpdate, activeSubTab = 'info' 
                             </Card>
                         </div>
                     </div>
-                </div>
+                </div >
             ) : (
                 <div className="space-y-10 animate-in slide-in-from-right-4 duration-500 perspective-[2000px]">
                     <PassportBook userBadges={userData?.badges || []} userProfile={userData?.profile} />
                 </div>
-            )}
-        </div>
+            )
+            }
+        </div >
     )
 }
 

@@ -111,7 +111,7 @@ export default function DashboardClient({ levels }: { levels: Level[] }) {
     }
 
     return (
-        <div className="flex min-h-screen bg-[#f3efec] text-[var(--secondary)] selection:bg-brand/30 relative overflow-x-hidden">
+        <div className="flex min-h-screen bg-[#fff8f3] text-[var(--secondary)] selection:bg-brand/30 relative overflow-x-hidden">
             {/* Sfondo chiaro, rimuovo il gradiente scuro */}
 
             {/* Navigation */}
@@ -169,8 +169,8 @@ export default function DashboardClient({ levels }: { levels: Level[] }) {
                     <div className="max-w-7xl mx-auto pt-20 md:pt-0">
                         {activeTab !== 'profile' ? (
                             <>
-                                <h1 className="text-4xl md:text-5xl font-medium text-[#593e25] mb-2 tracking-tight uppercase">
-                                    Area <span className="text-[#593e25]">Riservata</span>
+                                <h1 className="text-4xl md:text-5xl font-medium text-[#345c72] mb-2 tracking-tight uppercase">
+                                    Area <span className="text-[#345c72]">Riservata</span>
                                 </h1>
                                 <p className="text-[#2a2e30] text-lg md:text-xl font-medium max-w-2xl">
                                     Benvenuta nel tuo spazio di allenamento.<br />Qui trovi i tuoi programmi, i progressi e i nuovi contenuti.
@@ -179,8 +179,8 @@ export default function DashboardClient({ levels }: { levels: Level[] }) {
                         ) : (
                             <div className="space-y-8">
                                 <div>
-                                    <h1 className="text-4xl md:text-5xl font-medium text-[#593e25] mb-2 tracking-tight uppercase">
-                                        Il Tuo <span className="text-[#593e25]">Profilo</span>
+                                    <h1 className="text-4xl md:text-5xl font-medium text-[#345c72] mb-2 tracking-tight uppercase">
+                                        Il Tuo <span className="text-[#345c72]">Profilo</span>
                                     </h1>
                                     <p className="text-[#2a2e30] text-lg md:text-xl font-medium max-w-2xl">
                                         Gestisci le tue informazioni e guarda i tuoi traguardi.

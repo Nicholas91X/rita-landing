@@ -200,7 +200,7 @@ export default function BillingSection() {
                 <Button
                     onClick={handleManageBilling}
                     disabled={portalLoading || (subscriptions.length === 0 && oneTimePurchases.length === 0)}
-                    className="bg-[#593e25] hover:bg-[#593e25]/90 text-white font-bold h-12 px-6 rounded-2xl transition-all shadow-xl"
+                    className="bg-[#d4c4b5] hover:bg-[#d4c4b5]/90 text-[#593e25] font-bold h-12 px-6 rounded-2xl transition-all shadow-xl"
                 >
                     {portalLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : (
                         <span className="flex items-center gap-2">

@@ -34,6 +34,7 @@ type WatchProgress = {
 
 export default function PackageClient({ pkg, videos }: { pkg: Package, videos: Video[] }) {
     const [activeVideo, setActiveVideo] = useState<Video>(videos[0])
+    const [activeWeek, setActiveWeek] = useState(1)
     const [progressData, setProgressData] = useState<Record<string, WatchProgress>>({})
     const [loadingProgress, setLoadingProgress] = useState(true)
     const [showCelebration, setShowCelebration] = useState(false)
@@ -112,12 +113,12 @@ export default function PackageClient({ pkg, videos }: { pkg: Package, videos: V
         <>
             <main className="h-[100dvh] flex flex-col bg-[var(--bg)] text-[var(--foreground)] selection:bg-[var(--brand)]/10 overflow-x-hidden w-full max-w-full">
                 {/* Header / Navigation - Part of the flex flow */}
-                <header className="flex-none relative z-[100] bg-[#7f554f] border-b border-white/10 shadow-xl pt-[safe-area-inset-top]">
+                <header className="flex-none relative z-[100] bg-[#f3efec] border-b border-[#846047]/10 shadow-sm pt-[safe-area-inset-top]">
                     <div className="max-w-[1400px] mx-auto px-4 lg:px-8 py-3 md:py-4 flex items-center justify-between">
                         <div className="flex items-center gap-4">
                             <Link
                                 href="/dashboard?tab=library"
-                                className="relative z-[110] flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 border border-white/10 text-white/80 hover:text-white transition-all hover:bg-white/20 text-sm font-medium touch-manipulation"
+                                className="relative z-[110] flex items-center gap-2 px-4 py-2 rounded-full bg-[#846047]/10 border border-[#846047]/20 text-[#846047] hover:text-[#593e25] transition-all hover:bg-[#846047]/20 text-sm font-medium touch-manipulation"
                             >
                                 <ChevronLeft className="h-4 w-4" />
                                 <span className="hidden md:inline">Esci dalla lezione</span>
@@ -126,7 +127,7 @@ export default function PackageClient({ pkg, videos }: { pkg: Package, videos: V
 
                             <div className="flex flex-col">
                                 <h2 className="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--brand)] mb-0.5 leading-none">Corso in corso</h2>
-                                <h1 className="text-sm md:text-base font-bold text-white/90 truncate max-w-[150px] sm:max-w-[200px] lg:max-w-md">
+                                <h1 className="text-sm md:text-base font-bold text-[#2a2e30] truncate max-w-[150px] sm:max-w-[200px] lg:max-w-md">
                                     {pkg.name.toLowerCase().includes('pilates') && pkg.name.toLowerCase().includes('principiante') ? 'Destinazione Bali' : pkg.name}
                                 </h1>
                             </div>
@@ -138,7 +139,7 @@ export default function PackageClient({ pkg, videos }: { pkg: Package, videos: V
 
                 <div className="flex flex-col lg:flex-row flex-1 overflow-y-auto lg:overflow-hidden min-h-0">
                     {/* Main Content Area - Video Player */}
-                    <div className="flex-none lg:flex-1 bg-black/10 flex flex-col pt-6 lg:pt-10 pb-8 lg:pb-12 lg:overflow-y-auto custom-scrollbar">
+                    <div className="flex-none lg:flex-1 bg-[#fff8f3] flex flex-col pt-6 lg:pt-10 pb-8 lg:pb-12 lg:overflow-y-auto custom-scrollbar">
                         <div className="flex-none flex flex-col">
                             <div className="w-full max-w-6xl mx-auto px-4 lg:px-10 flex flex-col">
                                 {/* Immersive Video Container */}
@@ -205,144 +206,167 @@ export default function PackageClient({ pkg, videos }: { pkg: Package, videos: V
                     <aside className="w-full lg:w-[400px] xl:w-[450px] bg-white/40 backdrop-blur-3xl lg:border-l border-white/20 flex flex-col h-auto min-h-[400px] lg:h-full relative z-30 shadow-2xl shrink-0">
                         {/* Progress Overview Header */}
                         <div className="p-6 lg:p-8 border-b border-[var(--brand)]/20">
-                            <div className="flex items-center justify-between">
+                            <div className="flex items-center justify-between mb-6">
                                 <h2 className="text-xs font-black uppercase tracking-[0.3em] text-[var(--foreground)]/50">
                                     IL TUO ITINERARIO
                                 </h2>
-                                <div className="bg-white/40 border border-[var(--brand)]/10 px-4 py-2 rounded-2xl flex items-center gap-2 md:gap-4 shrink-0 shadow-sm">
-                                    <span className="text-[10px] font-black uppercase text-[var(--foreground)]/40 hidden xl:block">Partenza</span>
-
-                                    <div className="h-0.5 w-24 xl:w-32 bg-[var(--brand)]/10 relative">
-                                        {/* Dotted path */}
-                                        <div className="absolute inset-x-0 top-0 bottom-0 border-t-2 border-dashed border-[var(--brand)]/30" />
-
-                                        {/* Progress Line (Solid) */}
-                                        <div className="absolute top-0 left-0 h-full border-t-2 border-[var(--brand)] transition-all duration-1000 ease-out" style={{ width: `${preciseCompletionRate}%` }} />
-
-                                        {/* Airplane Icon moving */}
-                                        <div className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 transition-all duration-1000 ease-out" style={{ left: `${preciseCompletionRate}%` }}>
-                                            <Plane className="w-4 h-4 text-[var(--brand)] fill-[var(--brand)] rotate-90 transform" />
-                                        </div>
+                                {/* Progress Bar Comp */}
+                                <div className="bg-white/40 border border-[var(--brand)]/10 px-4 py-2 rounded-2xl flex items-center gap-2 shadow-sm">
+                                    <div className="h-1.5 w-20 xl:w-24 bg-[var(--brand)]/10 relative rounded-full overflow-hidden">
+                                        <div className="absolute top-0 left-0 h-full bg-[var(--brand)] transition-all duration-1000 ease-out" style={{ width: `${preciseCompletionRate}%` }} />
                                     </div>
-
-                                    <div className="flex items-center gap-2">
-                                        <span className="text-[10px] font-black uppercase text-[var(--foreground)]/40 hidden xl:block">Arrivo</span>
-                                        <div className={`p-1 rounded-full border border-[var(--brand)]/20 ${preciseCompletionRate >= 100 ? 'bg-emerald-500 text-white border-emerald-400' : 'bg-transparent text-[var(--brand)]/40'}`}>
-                                            <Stamp className="w-3 h-3" />
-                                        </div>
-                                    </div>
+                                    <span className="text-[10px] font-black text-[var(--brand)]">{Math.round(preciseCompletionRate)}%</span>
                                 </div>
+                            </div>
+
+                            {/* Month Selectors (Visual Only for now as per image style) */}
+                            <div className="flex gap-2 mb-6">
+                                <button className="flex-1 py-2.5 rounded-xl bg-[#846047] text-white text-xs font-bold uppercase tracking-widest shadow-lg shadow-[#846047]/20">
+                                    Mese 1
+                                </button>
+                                <button className="flex-1 py-2.5 rounded-xl bg-[#846047]/10 text-[#846047]/40 text-xs font-bold uppercase tracking-widest flex items-center justify-center gap-2 cursor-not-allowed">
+                                    <span className="w-3 h-3 rounded-full border border-current flex items-center justify-center text-[8px]">🔒</span>
+                                    Mese 2
+                                </button>
+                            </div>
+
+                            {/* Week Tabs */}
+                            <div className="flex border-b border-[var(--brand)]/10 relative">
+                                {[1, 2, 3, 4].map((w) => (
+                                    <button
+                                        key={w}
+                                        onClick={() => setActiveWeek(w)}
+                                        className={`flex-1 pb-3 text-[11px] font-black uppercase tracking-widest transition-all relative ${activeWeek === w
+                                            ? 'text-[#846047]'
+                                            : 'text-[#846047]/40 hover:text-[#846047]/70'
+                                            }`}
+                                    >
+                                        Sett. {w}
+                                        {activeWeek === w && (
+                                            <div className="absolute bottom-0 left-0 w-full h-0.5 bg-[#846047] rounded-t-full" />
+                                        )}
+                                    </button>
+                                ))}
                             </div>
                         </div>
 
                         {/* Lesson Scroll Area */}
-                        <div className="flex-1 overflow-y-auto p-4 lg:p-6 space-y-8 custom-scrollbar">
-                            {[1, 2, 3, 4].map((weekNum) => {
-                                const weekVideos = videos.filter(v => {
+                        <div className="flex-1 overflow-y-auto p-4 lg:p-6 space-y-4 custom-scrollbar">
+                            {/* Week Subtitle */}
+                            <div className="text-center py-2">
+                                {activeWeek === 1 && <p className="text-sm font-bold text-[#846047] italic">L&apos;Atterraggio 🛬</p>}
+                                {activeWeek === 2 && <p className="text-sm font-bold text-[#846047] italic">L&apos;Esplorazione 🧭</p>}
+                                {activeWeek === 3 && <p className="text-sm font-bold text-[#846047] italic">La Scoperta 🗺️</p>}
+                                {activeWeek === 4 && <p className="text-sm font-bold text-[#846047] italic">Il Traguardo 🏆</p>}
+                            </div>
+
+                            <div className="space-y-3">
+                                {videos.filter(v => {
                                     const index = v.order_index ?? (videos.indexOf(v) + 1);
-                                    if (weekNum === 1) return index >= 1 && index <= 3;
-                                    if (weekNum === 2) return index >= 4 && index <= 6;
-                                    if (weekNum === 3) return index >= 7 && index <= 9;
-                                    if (weekNum === 4) return index >= 10 && index <= 12;
+                                    if (activeWeek === 1) return index >= 1 && index <= 3;
+                                    if (activeWeek === 2) return index >= 4 && index <= 6;
+                                    if (activeWeek === 3) return index >= 7 && index <= 9;
+                                    if (activeWeek === 4) return index >= 10 && index <= 12;
                                     return false;
-                                });
+                                }).map((v, i, mappedArr) => {
+                                    const globalIndex = videos.indexOf(v);
+                                    const isActive = v.id === activeVideo.id
+                                    const progress = progressData[v.id]
+                                    const percent = progress ? (progress.progress_seconds / progress.duration_seconds) * 100 : 0
+                                    const isDone = progress?.is_completed
 
-                                if (weekVideos.length === 0) return null;
-
-                                return (
-                                    <div key={`week-${weekNum}`} className="space-y-4">
-                                        <div className="flex flex-col gap-2">
-                                            <div className="flex items-center gap-3 px-2">
-                                                <div className="h-px flex-1 bg-[var(--brand)]/20" />
-                                                <h3 className="text-[10px] font-black uppercase tracking-[0.4em] text-[var(--brand)] whitespace-nowrap">
-                                                    Settimana {weekNum}
-                                                </h3>
-                                                <div className="h-px flex-1 bg-[var(--brand)]/20" />
+                                    return (
+                                        <div
+                                            key={v.id}
+                                            ref={(el) => {
+                                                if (el) itemRefs.current.set(v.id, el)
+                                                else itemRefs.current.delete(v.id)
+                                            }}
+                                            onClick={() => setActiveVideo(v)}
+                                            className={`relative p-4 transition-all duration-300 cursor-pointer group flex items-center gap-4 border-b border-[var(--brand)]/10 last:border-0 ${isActive
+                                                ? 'bg-white/80'
+                                                : 'hover:bg-white/40'
+                                                }`}
+                                        >
+                                            {/* Status Indicator (Left) */}
+                                            <div className="shrink-0">
+                                                {isDone ? (
+                                                    <div className="w-8 h-8 rounded-full bg-[#e8e2d9] flex items-center justify-center">
+                                                        <CheckCircle2 className="w-5 h-5 text-[#846047]" />
+                                                    </div>
+                                                ) : (
+                                                    <div className={`w-8 h-8 rounded-full border-2 flex items-center justify-center ${isActive ? 'border-[#846047] bg-[#846047]/10' : 'border-[#e8e2d9]'}`}>
+                                                        {isActive && <div className="w-2.5 h-2.5 rounded-full bg-[#846047]" />}
+                                                    </div>
+                                                )}
                                             </div>
-                                            {weekNum === 1 && (
-                                                <p className="text-center text-sm font-bold text-[#846047] italic">L&apos;Atterraggio 🛬</p>
-                                            )}
+
+                                            {/* Thumbnail (Middle) */}
+                                            <div className="relative shrink-0">
+                                                <div className="relative h-16 w-24 rounded-lg overflow-hidden border border-black/5">
+                                                    <div className="absolute inset-0 bg-neutral-100" />
+                                                    <Image
+                                                        src={`https://${process.env.NEXT_PUBLIC_BUNNY_CDN_HOSTNAME}/${v.bunny_video_id}/preview.webp`}
+                                                        alt={v.title}
+                                                        className={`w-full h-full object-cover transition-opacity duration-300 ${isDone ? 'opacity-80' : 'opacity-100'}`}
+                                                        loading="lazy"
+                                                        fill
+                                                        sizes="96px"
+                                                    />
+                                                </div>
+                                            </div>
+
+                                            {/* Text Content (Right) */}
+                                            <div className="flex-1 min-w-0 py-1">
+                                                <span className="text-[12px] font-medium text-[#c49285] mb-0.5 block">
+                                                    Tappa {globalIndex + 1}
+                                                </span>
+                                                <h4 className={`font-bold text-[15px] leading-tight line-clamp-2 mb-1 ${isActive ? 'text-[#2a2e30]' : 'text-[#2a2e30]'}`}>
+                                                    {globalIndex === 0 ? "Tirta Empul 🛕" :
+                                                        globalIndex === 1 ? "Le Risaie di Tegalalang 🌾" : v.title}
+                                                </h4>
+                                                <div className="flex items-center gap-2 opacity-60">
+                                                    <Clock className="w-3.5 h-3.5 text-gray-400" />
+                                                    <span className="text-[12px] font-medium text-gray-500">31 minuti</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )
+
+                                })}
+
+                                {/* BONUS ITEM for Week 2 & 4 */}
+                                {(activeWeek === 2 || activeWeek === 4) && (
+                                    <div className="relative p-4 flex items-center gap-4 border-b border-[var(--brand)]/10 cursor-default opacity-80 hover:opacity-100 transition-opacity">
+                                        {/* Status Indicator (Left) - Decorative for Bonus */}
+                                        <div className="shrink-0">
+                                            <div className="w-8 h-8 rounded-full border-2 border-amber-200 bg-amber-50 flex items-center justify-center">
+                                                <span className="text-[10px]">✨</span>
+                                            </div>
                                         </div>
 
-                                        <div className="space-y-3">
-                                            {weekVideos.map((v) => {
-                                                const globalIndex = videos.indexOf(v);
-                                                const isActive = v.id === activeVideo.id
-                                                const progress = progressData[v.id]
-                                                const percent = progress ? (progress.progress_seconds / progress.duration_seconds) * 100 : 0
-                                                const isDone = progress?.is_completed
+                                        {/* Thumbnail (Middle) */}
+                                        <div className="relative shrink-0">
+                                            <div className="h-16 w-24 rounded-lg bg-amber-100/50 flex items-center justify-center shrink-0 border border-amber-200/50">
+                                                <span className="text-2xl">🍹</span>
+                                            </div>
+                                        </div>
 
-                                                return (
-                                                    <div
-                                                        key={v.id}
-                                                        ref={(el) => {
-                                                            if (el) itemRefs.current.set(v.id, el)
-                                                            else itemRefs.current.delete(v.id)
-                                                        }}
-                                                        onClick={() => setActiveVideo(v)}
-                                                        className={`relative p-4 rounded-2xl transition-all duration-300 cursor-pointer group flex flex-col gap-3 ${isActive
-                                                            ? 'bg-white/40 shadow-[0_8px_32px_rgba(0,0,0,0.08)] scale-[1.02] ring-1 ring-[var(--brand)]/20'
-                                                            : 'hover:bg-white/30 border border-transparent'
-                                                            }`}
-                                                    >
-                                                        {/* Active Glow Indicator */}
-                                                        {isActive && (
-                                                            <div className="absolute left-[-4px] top-1/2 -translate-y-1/2 w-1 h-8 bg-[var(--brand)] rounded-full shadow-[0_0_10px_rgba(244,101,48,0.5)]" />
-                                                        )}
-
-                                                        <div className="flex items-start gap-4">
-                                                            {/* Thumbnail or Status Icon */}
-                                                            <div className="relative shrink-0">
-                                                                <div className={`relative h-16 w-24 rounded-lg overflow-hidden border border-white/5 ${isActive ? 'ring-2 ring-[var(--brand)]' : 'group-hover:ring-1 group-hover:ring-white/20'}`}>
-                                                                    <div className="absolute inset-0 bg-neutral-800" />
-                                                                    <Image
-                                                                        src={`https://${process.env.NEXT_PUBLIC_BUNNY_CDN_HOSTNAME}/${v.bunny_video_id}/preview.webp`}
-                                                                        alt={v.title}
-                                                                        className={`w-full h-full object-cover transition-opacity duration-300 ${isDone ? 'opacity-50' : 'opacity-100'}`}
-                                                                        loading="lazy"
-                                                                        fill
-                                                                        sizes="96px"
-                                                                    />
-                                                                    <div className="absolute inset-0 flex items-center justify-center">
-                                                                        {isDone ? (
-                                                                            <CheckCircle2 className="h-6 w-6 text-emerald-500 bg-black/50 rounded-full p-1" />
-                                                                        ) : isActive ? (
-                                                                            <div className="bg-[var(--brand)]/80 rounded-full p-1.5 animate-pulse">
-                                                                                <PlayCircle className="h-4 w-4 text-white fill-white" />
-                                                                            </div>
-                                                                        ) : (
-                                                                            <span className="text-[10px] font-bold text-white/50 bg-black/40 px-1.5 py-0.5 rounded backdrop-blur-sm flex items-center gap-1">
-                                                                                <Footprints className="w-3 h-3" />
-                                                                                Tappa {String(globalIndex + 1).padStart(2, '0')}
-                                                                            </span>
-                                                                        )}
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-
-                                                            <div className="flex-1 min-w-0 py-1">
-                                                                <h4 className={`font-bold text-sm leading-tight transition-colors line-clamp-2 ${isActive ? 'text-[var(--brand)]' : 'text-[var(--foreground)]'
-                                                                    }`}>
-                                                                    {v.title}
-                                                                </h4>
-
-                                                                {progress && !isDone && percent > 0 && (
-                                                                    <div className="mt-2 h-1 w-full bg-black/5 rounded-full overflow-hidden">
-                                                                        <div
-                                                                            className="h-full bg-[var(--brand)] opacity-60 transition-all duration-500"
-                                                                            style={{ width: `${percent}%` }}
-                                                                        />
-                                                                    </div>
-                                                                )}
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                )
-                                            })}
+                                        {/* Text Content (Right) */}
+                                        <div className="flex-1 min-w-0 py-1">
+                                            <span className="text-[12px] font-medium text-amber-600 mb-0.5 block">
+                                                Bonus
+                                            </span>
+                                            <h4 className="font-bold text-[15px] text-[#2a2e30] leading-tight mb-1">
+                                                Ritmo Caraibico
+                                            </h4>
+                                            <p className="text-[12px] text-gray-500 leading-tight">
+                                                Lezione extra per sciogliere il bacino
+                                            </p>
                                         </div>
                                     </div>
-                                );
-                            })}
+                                )}
+                            </div>
                         </div>
                     </aside>
                 </div>

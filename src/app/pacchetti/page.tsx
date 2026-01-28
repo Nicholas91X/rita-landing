@@ -75,11 +75,12 @@ export default async function PackagesPage() {
                 Pacchetti coaching
               </p>
               <h1 className="h1 text-[var(--secondary)]">
-                Scegli il tuo percorso
+                Come vuoi affrontare questo viaggio? 🧭
               </h1>
               <p className="text-lg lead text-[var(--secondary)]">
-                Dai primi passi al perfezionamento tecnico.
-                Trova il pacchetto adatto al tuo livello e inizia ad allenarti oggi stesso.
+                Non importa se parti da zero. L&apos;importante è scegliere il bagaglio giusto per te. 🎒<br />
+                Puoi prendere il Passaporto e viaggiare in autonomia ai tuoi ritmi,<br />
+                oppure chiedermi di essere la tua Guida Personale per sentirti protetta passo dopo passo.
               </p>
               <CtaRow>
                 <CtaWhatsApp

@@ -78,7 +78,7 @@ export default function LibrarySection({
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                         {personalizedPackages.map((pkg) => (
-                            <Card key={pkg.id} className="bg-white border-[#846047]/20 shadow-xl overflow-hidden group hover:shadow-2xl hover:border-[var(--brand)]/40 transition-all duration-300 rounded-[32px] flex flex-col">
+                            <Card key={pkg.id} className="bg-white border-[#846047]/10 shadow-[0_0_50px_-10px_rgba(132,96,71,0.2)] overflow-hidden group hover:shadow-[0_0_60px_-5px_rgba(132,96,71,0.3)] transition-all duration-500 rounded-[32px] flex flex-col border-none">
                                 <Link href={`/dashboard/package/${pkg.id}`} className="flex-1 flex flex-col">
                                     <div className="h-56 w-full relative overflow-hidden">
                                         {pkg.image_url ? (
@@ -172,7 +172,7 @@ export default function LibrarySection({
                                                 const isDone = pkgProgress?.isFullyCompleted
 
                                                 return (
-                                                    <Card key={pkg.id} className="bg-white border-[#846047]/10 shadow-sm overflow-hidden group hover:shadow-xl transition-all duration-500 rounded-[32px] flex flex-col border-none">
+                                                    <Card key={pkg.id} className="bg-white border-[#846047]/10 shadow-[0_0_50px_-10px_rgba(132,96,71,0.2)] overflow-hidden group hover:shadow-[0_0_60px_-5px_rgba(132,96,71,0.3)] transition-all duration-500 rounded-[32px] flex flex-col border-none">
                                                         <Link href={`/dashboard/package/${pkg.id}`} className="flex-1 flex flex-col">
                                                             <div className="h-56 w-full relative overflow-hidden">
                                                                 {pkg.image_url ? (

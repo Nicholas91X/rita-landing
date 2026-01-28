@@ -45,7 +45,7 @@ export default function HomeSection({ levels, onShowLibrary, userName }: { level
                             </div>
 
                             <div>
-                                <h3 className="text-3xl md:text-4xl font-black text-[#2a2e30] leading-tight italic uppercase tracking-tighter mb-2">
+                                <h3 className="text-3xl md:text-4xl font-black text-[#345c72] leading-tight italic uppercase tracking-tighter mb-2">
                                     Pronta per la tua prossima tappa?
                                 </h3>
                                 <p className="text-[var(--secondary)]/70 text-lg font-medium">
@@ -87,7 +87,7 @@ export default function HomeSection({ levels, onShowLibrary, userName }: { level
                             ))}
                         </div>
 
-                        <Button asChild size="lg" className="w-full bg-[#e1d5c6] hover:bg-[#e1d5c6]/80 text-[#593e25] font-black py-6 rounded-xl shadow-lg shadow-black/5 group transition-all">
+                        <Button asChild size="lg" className="w-full bg-[#345c72] hover:bg-[#345c72]/90 text-[#f3efec] font-black py-6 rounded-xl shadow-lg shadow-black/5 group transition-all">
                             <Link href={`/dashboard/package/${recentPackage.id}`} className="flex items-center justify-center gap-2">
                                 PARTI ORA <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                             </Link>
