@@ -525,3 +525,21 @@ export async function findEmail(fullName: string) {
 
     return { success: true, maskedEmails }
 }
+
+export async function getPassportStamps() {
+    const supabase = await createClient()
+
+    // Fetch all packages that have a badge type defined to populate the passport slots
+    const { data: packages, error } = await supabase
+        .from('packages')
+        .select('id, name, badge_type')
+        .not('badge_type', 'is', null)
+        .order('name')
+
+    if (error) {
+        console.error('Error fetching passport stamps:', error)
+        return []
+    }
+
+    return packages
+}
