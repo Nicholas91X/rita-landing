@@ -157,6 +157,9 @@ export default async function PackagesPage() {
                     </div>
                     <CardTitle className="text-2xl font-bold text-[var(--foreground)]">
                       {pkg.name}
+                      {pkg.name?.toUpperCase().includes("BALI") && " 🍹"}
+                      {pkg.name?.toUpperCase().includes("NEW YORK") && " 🗽"}
+                      {pkg.name?.toUpperCase().includes("AVANA") && " 🌴"}
                     </CardTitle>
                     <CardDescription className="text-sm text-gray-700 mt-2 line-clamp-3">
                       {pkg.description}

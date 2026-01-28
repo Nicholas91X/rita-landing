@@ -196,3 +196,21 @@ body {
     transform: translateY(0);
   }
 }
+
+@keyframes pulse-subtle {
+
+  0%,
+  100% {
+    transform: scale(1);
+    filter: brightness(100%);
+  }
+
+  50% {
+    transform: scale(1.03);
+    filter: brightness(115%);
+  }
+}
+
+.animate-pulse-cta {
+  animation: pulse-subtle 2s infinite ease-in-out;
+}
