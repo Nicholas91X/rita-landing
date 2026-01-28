@@ -1,126 +1,150 @@
 "use client";
 
-import { useState } from "react";
-import Link from "next/link";
 import Section from "../Section";
-import { Button } from "@/components/ui/button";
-import { Download, Sparkles, HelpCircle } from "lucide-react";
-import confetti from "canvas-confetti";
+import { MoveRight, Sparkles, Shield, Music } from "lucide-react";
+import Link from "next/link";
 
 export default function Metodo() {
-  const [hasPromised, setHasPromised] = useState(false);
+  const pillars = [
+    {
+      id: "noia",
+      Icon: Sparkles,
+      title: "Stop alla Noia!",
+      gate: "01",
+      seat: "1A",
+      class: "VIP",
+      color: "bg-[#345c72] text-white",
+      desc: "Perché si molla la palestra? Perché è sempre uguale. Qui è impossibile: ogni mese cambiamo \"città\", musica e obiettivi. La curiosità di vedere la prossima tappa ti farà essere costante senza nemmeno accorgertene."
+    },
+    {
+      id: "protezione",
+      Icon: Shield,
+      title: "Protezione Totale",
+      gate: "02",
+      seat: "1B",
+      class: "VIP",
+      color: "bg-[#345c72] text-white",
+      desc: "Hai paura di farti male?\nÈ normale.\nQuesto metodo è l'ancora che ti dà stabilità. Zero salti, zero impatti, ma un lavoro profondo per rinforzare ossa e pavimento pelvico in totale sicurezza."
+    },
+    {
+      id: "scintilla",
+      Icon: Music,
+      title: "La Scintilla",
+      gate: "03",
+      seat: "1C",
+      class: "VIP",
+      color: "bg-[#345c72] text-white",
+      desc: "Ginnastica non deve fare rima con sofferenza. Inseriamo passi di Salsa e Bachata perché il tuo corpo va celebrato, non punito. Quando ti diverti, il cervello spegne lo stress e il corpo si sgonfia prima."
+    }
+  ];
 
   return (
-    <Section id="metodo" className="bg-[var(--steel)] text-white">
-      <div className="max-w-2xl mb-16">
-        <div className="inline-flex items-center gap-2 mb-4">
+    <Section id="metodo" className="bg-[#345c72] py-20 px-4">
+      <div className="max-w-4xl mx-auto text-center mb-16 space-y-2">
+        <div className="inline-flex items-center justify-center space-x-2 text-[var(--brand)] font-semibold tracking-[0.3em] uppercase text-[10px]">
           <span className="w-8 h-px bg-[var(--brand)]"></span>
-          <span className="text-[10px] font-bold uppercase tracking-[0.3em] text-[var(--brand)]">Il Metodo</span>
+          <span>Il Mio Metodo</span>
+          <span className="w-8 h-px bg-[var(--brand)]"></span>
         </div>
-        <h2 className="text-4xl md:text-5xl font-bold tracking-tight text-white mb-6">
-          Non siamo qui per correre. <br /> Siamo qui per rinascere.
+        <h2 className="text-3xl md:text-5xl font-black text-white tracking-tight uppercase italic drop-shadow-lg">
+          Perché è diverso?
         </h2>
-        <p className="text-slate-300 font-light text-lg italic">
-          I tuoi primi passi verso il benessere.
-        </p>
       </div>
 
-      {/* Feature Boxes */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-20">
-        <div className="bg-white border border-slate-100 p-8 rounded-3xl shadow-sm hover:shadow-md transition-all duration-300 flex flex-col">
-          <div className="w-10 h-10 rounded-full bg-orange-50 flex items-center justify-center mb-6">
-            <span className="text-orange-400 text-lg">🌿</span>
-          </div>
-          <h4 className="text-lg font-bold text-[var(--foreground)] mb-2">Inizia qui</h4>
-          <p className="text-sm text-slate-500 font-light leading-relaxed mb-6">
-            Scarica la guida gratuita per muovere i tuoi primi passi verso il benessere.
-          </p>
-          <div className="mt-auto">
-            <Button asChild className="w-full rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white transition-all gap-2 group/btn text-xs">
-              <a href="/metodo/Il tuo primo passo verso il benessere 🌿_compressed (1).pdf" download="Il tuo primo passo verso il benessere.pdf">
-                <Download className="w-4 h-4 transition-transform group-hover/btn:-translate-y-1" />
-                Scarica Guida PDF
-              </a>
-            </Button>
-          </div>
-        </div>
+      <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8 justify-items-center">
+        {pillars.map((p) => (
+          <div key={p.id} className="w-full max-w-[350px] bg-[#fdfaf7] rounded-[32px] border border-[#846047]/10 shadow-xl relative flex flex-col overflow-hidden transition-transform duration-300 hover:scale-[1.02]">
+            {/* Cutouts for ticket effect */}
+            <div className="absolute -left-3 top-1/2 -translate-y-1/2 w-6 h-6 bg-[#345c72] rounded-full border border-[#846047]/10 z-10" />
+            <div className="absolute -right-3 top-1/2 -translate-y-1/2 w-6 h-6 bg-[#345c72] rounded-full border border-[#846047]/10 z-10" />
 
-        <div className="bg-white border border-slate-100 p-8 rounded-3xl shadow-sm hover:shadow-md transition-all duration-300 flex flex-col">
-          <div className="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center mb-6">
-            <span className="text-blue-400 text-lg">🤝</span>
-          </div>
-          <h4 className="text-lg font-bold text-[var(--foreground)] mb-2">Il Patto con te stessa</h4>
-          <p className="text-sm text-slate-500 font-light leading-relaxed mb-6">
-            Prometto di dedicare del tempo a me stessa, senza giudicarmi
-          </p>
-          <div className="mt-auto">
-            <Button
-              onClick={() => {
-                confetti({
-                  particleCount: 150,
-                  spread: 70,
-                  origin: { y: 0.6 },
-                  colors: ['#fb923c', '#60a5fa', '#a855f7']
-                });
-                setHasPromised(true);
-              }}
-              className="w-full rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white transition-all active:scale-95 gap-2 text-xs"
-            >
-              {!hasPromised && <Sparkles className="w-4 h-4" />}
-              {hasPromised ? "✨ Promessa Registrata! Brava ✨" : "Sì, oggi scelgo me"}
-            </Button>
-          </div>
-        </div>
+            {/* Top Stub */}
+            <div className="p-6 pb-4 flex-1 flex flex-col">
+              <div className="flex items-center gap-3 mb-6">
+                <p.Icon className="w-8 h-8 text-[#846047] shrink-0" strokeWidth={1.5} />
+                <h3 className="text-xl font-black text-[#2a2e30] italic leading-tight uppercase tracking-tighter">
+                  {p.title}
+                </h3>
+              </div>
 
-        <div className="bg-white border border-slate-100 p-8 rounded-3xl shadow-sm hover:shadow-md transition-all duration-300 flex flex-col">
-          <div className="w-10 h-10 rounded-full bg-purple-50 flex items-center justify-center mb-6">
-            <span className="text-purple-400 text-lg">❓</span>
-          </div>
-          <h4 className="text-lg font-bold text-[var(--foreground)] mb-2">Domande Frequenti</h4>
-          <p className="text-sm text-slate-500 font-light leading-relaxed mb-6">
-            Hai dubbi o curiosità? Trova subito le risposte alle domande più comuni.
-          </p>
-          <div className="mt-auto">
-            <Button asChild variant="secondary" className="w-full rounded-xl bg-blue-50 hover:bg-blue-100 text-blue-900 font-bold border-none transition-all gap-2 text-xs">
-              <Link href="#faq" className="flex items-center gap-2">
-                <HelpCircle className="w-4 h-4" />
-                Vedi tutte le FAQ
-              </Link>
-            </Button>
-          </div>
-        </div>
-      </div>
+              <div className="flex flex-col flex-1">
+                <p className="text-[#345c72] text-sm md:text-[15px] font-bold leading-relaxed whitespace-pre-line flex-1">
+                  {p.desc.replaceAll('. ', '.\n')}
+                </p>
 
-      {/* Interactive Video Section: Il Risveglio del Respiro */}
-      <div className="mb-24 bg-white/5 border border-white/10 rounded-[2.5rem] p-8 md:p-12 overflow-hidden relative group">
-        <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-500/10 rounded-full blur-3xl -mr-32 -mt-32 transition-colors group-hover:bg-emerald-500/20"></div>
-
-        <div className="grid lg:grid-cols-2 gap-12 items-center relative z-10">
-          <div>
-            <div className="inline-flex items-center gap-2 mb-6 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20">
-              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-              <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-400">Prova Subito</span>
+                <div className="flex gap-5 text-[9px] font-mono text-[#846047]/40 mt-6">
+                  <div>
+                    <span className="block font-bold">GATE</span>
+                    <span className="font-bold text-sm text-[#846047]">{p.gate}</span>
+                  </div>
+                  <div>
+                    <span className="block font-bold">SEAT</span>
+                    <span className="font-bold text-sm text-[#846047]">{p.seat}</span>
+                  </div>
+                  <div>
+                    <span className="block font-bold">CLASS</span>
+                    <span className="font-bold text-sm text-[#846047]">{p.class}</span>
+                  </div>
+                </div>
+              </div>
             </div>
-            <h3 className="text-3xl md:text-4xl font-bold tracking-tight text-white mb-4">
-              Il Risveglio del Respiro <span className="text-emerald-400">(2 Min)</span>
-            </h3>
-            <p className="text-slate-200 text-xl font-normal leading-relaxed mb-8 italic">
-              Fallo ora, anche in pigiama. Premi play e sciogliamo insieme le tensioni del collo.
-            </p>
-          </div>
 
-          <div className="relative aspect-video w-full rounded-2xl overflow-hidden bg-slate-900 border border-white/10 group/video shadow-2xl">
-            <video
-              src="https://hel1.your-objectstorage.com/nicholas-bucket/rita-zanicchi/videos/video_respirazione_landing.mp4"
-              controls
-              playsInline
-              className="w-full h-full object-cover"
-              poster="https://hel1.your-objectstorage.com/nicholas-bucket/rita-zanicchi/metodo/step-1.png"
-            />
+            {/* Dashed Separator */}
+            <div className="px-5">
+              <div className="border-t border-dashed border-[#846047]/20 w-full" />
+            </div>
+
+            {/* Bottom Stub */}
+            <div className="p-6 pt-4 flex flex-col items-center gap-4">
+              {/* Barcode-like decoration */}
+              <div className="w-full h-6 flex justify-between items-end opacity-10">
+                {[...Array(12)].map((_, i) => (
+                  <div key={i} className="bg-[#2a2e30]" style={{
+                    height: `${30 + Math.random() * 70}%`,
+                    width: i % 4 === 0 ? '1px' : '3px'
+                  }} />
+                ))}
+              </div>
+
+              <Link href="/pacchetti" className="w-full">
+                <button className={`w-full ${p.color} py-3 rounded-xl shadow-md group transition-all hover:brightness-110 active:scale-95 flex items-center justify-center gap-2 text-[11px] font-black uppercase tracking-widest`}>
+                  PARTI ORA <MoveRight className="w-3.5 h-3.5 transition-transform group-hover:translate-x-1" />
+                </button>
+              </Link>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Video Section (Restored to normal dark theme) */}
+      <div className="mt-32 max-w-5xl mx-auto px-4">
+        <div className="bg-gradient-to-br from-[#2A2E30] to-[#1A1D1F] rounded-[40px] p-8 md:p-16 overflow-hidden relative group shadow-2xl border border-white/5">
+          <div className="absolute top-0 right-0 w-96 h-96 bg-[var(--brand)]/10 rounded-full blur-3xl -mr-48 -mt-48"></div>
+
+          <div className="grid lg:grid-cols-2 gap-12 items-center relative z-10">
+            <div className="space-y-6">
+              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-orange-500/10 border border-orange-500/20 text-orange-400 text-xs font-bold uppercase tracking-widest">
+                Prova Pratica
+              </div>
+              <h3 className="text-3xl md:text-5xl font-black text-white leading-tight">
+                Il Risveglio <br /> del Respiro
+              </h3>
+              <p className="text-slate-400 text-lg md:text-xl italic font-medium leading-relaxed">
+                &ldquo;Fallo ora, anche in pigiama. Premi play e sciogliamo insieme le tensioni del collo.&rdquo;
+              </p>
+            </div>
+
+            <div className="relative aspect-video w-full rounded-[2rem] overflow-hidden bg-black border-4 border-white/5 shadow-2xl">
+              <video
+                src="https://hel1.your-objectstorage.com/nicholas-bucket/rita-zanicchi/videos/video_respirazione_landing.mp4"
+                controls
+                className="w-full h-full object-cover"
+                poster="https://hel1.your-objectstorage.com/nicholas-bucket/rita-zanicchi/metodo/step-1.png"
+              />
+            </div>
           </div>
         </div>
       </div>
-
     </Section>
   );
 }
