@@ -75,61 +75,7 @@ export default function Storia({
         </div>
       </Section>
 
-      {/* Nuova sezione "3 Pilastri" con sfondo pieno */}
-      <Section id="pilastri" className="bg-[var(--steel)] text-white">
-        <div className="rounded-2xl border border-slate-100 bg-white shadow-xl p-6 lg:p-10">
-          <h3 className="text-2xl font-bold text-[var(--secondary)] mb-2">
-            3 Pilastri per una Menopausa Felice
-          </h3>
-          <p className="text-[var(--brand)] mb-8 italic font-medium">
-            Non è solo fitness. È un approccio scientifico per rispettare i tuoi ormoni.
-          </p>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-            {/* Box 1 */}
-            <div className="bg-slate-50/50 border border-slate-100 p-8 rounded-3xl transition-all duration-300 hover:shadow-md group">
-              <div className="w-12 h-12 rounded-2xl bg-rose-100 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
-                <span className="text-2xl">🌸</span>
-              </div>
-              <h4 className="text-lg font-bold text-[var(--secondary)] mb-3">Allenamento &ldquo;Energizzante&rdquo;</h4>
-              <p className="text-sm text-slate-500 leading-relaxed">
-                In menopausa, spingere il corpo oltre il limite può causare infiammazione e stanchezza cronica.<br /><br />
-                Le mie sessioni sono calibrate per tonificare e riattivare il metabolismo, lasciandoti piena di energia invece che esausta.
-              </p>
-            </div>
-
-            {/* Box 2 */}
-            <div className="bg-slate-50/50 border border-slate-100 p-8 rounded-3xl transition-all duration-300 hover:shadow-md group">
-              <div className="w-12 h-12 rounded-2xl bg-indigo-100 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
-                <span className="text-2xl">🛡️</span>
-              </div>
-              <h4 className="text-lg font-bold text-[var(--secondary)] mb-3">Zero Impatti, Tonificazione Profonda</h4>
-              <p className="text-sm text-slate-500 leading-relaxed">
-                Dimentica i salti che fanno male alle ginocchia.<br /><br />
-                Lavoriamo in profondità con Pilates e Total Body controllato per rinforzare le ossa e proteggere il pavimento pelvico.
-              </p>
-            </div>
-
-            {/* Box 3 */}
-            <div className="bg-slate-50/50 border border-slate-100 p-8 rounded-3xl transition-all duration-300 hover:shadow-md group">
-              <div className="w-12 h-12 rounded-2xl bg-amber-100 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
-                <span className="text-2xl">💃</span>
-              </div>
-              <h4 className="text-lg font-bold text-[var(--secondary)] mb-3">Muoversi col Sorriso</h4>
-              <p className="text-sm text-slate-500 leading-relaxed">
-                Il benessere passa dal cervello.<br /><br />
-                Integro lezioni base di <strong>Salsa e Bachata</strong> per migliorare la coordinazione, l&apos;umore e farti dimenticare che ti stai &ldquo;allenando&rdquo;.
-              </p>
-            </div>
-          </div>
-
-          <div className="bg-[var(--steel)]/5 rounded-2xl p-6 border border-[var(--steel)]/10">
-            <p className="text-slate-600 leading-relaxed text-sm md:text-base text-center">
-              Un percorso guidato che permette già in <strong className="text-[var(--brand)]">6 settimane</strong> di vedere i primi cambiamenti concreti!
-            </p>
-          </div>
-        </div>
-      </Section>
 
       {/* Sezione con due card affiancate */}
       <Section id="percorso-dettagli" className="bg-slate-50">
@@ -144,7 +90,7 @@ export default function Storia({
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           {/* Card 1: Subscription */}
-          <Card className="bg-white border-none shadow-xl hover:shadow-2xl transition-all duration-500 rounded-[32px] overflow-hidden flex flex-col group">
+          <Card className="bg-white border border-slate-200 shadow-[0_12px_40px_rgba(0,0,0,0.1)] hover:shadow-[0_12px_40px_rgba(0,0,0,0.15)] transition-all duration-500 rounded-[32px] overflow-hidden flex flex-col group">
             {/* Promo Banner */}
             <div className="bg-[#593e25] text-white py-3 px-6 flex items-center justify-center gap-2">
               <Sparkles className="w-4 h-4 text-white/80" />
@@ -226,7 +172,7 @@ export default function Storia({
                 </div>
               )}
 
-              <Button asChild className="w-full bg-[var(--steel)] hover:bg-[var(--steel)]/90 text-[var(--accent)] rounded-2xl py-6 h-auto text-lg font-bold shadow-lg shadow-blue-900/10 transition-transform active:scale-95">
+              <Button asChild className="w-full bg-[var(--steel)] hover:bg-[var(--steel)]/90 text-[var(--accent)] rounded-2xl py-6 h-auto text-lg font-bold shadow-lg shadow-blue-900/10 transition-transform active:scale-95 animate-pulse-cta">
                 <Link href={isLoggedIn ? "/dashboard?tab=training&packageId=trial" : "/login"} className="cursor-pointer">
                   Inizia la Prova Gratuita
                 </Link>
@@ -235,7 +181,7 @@ export default function Storia({
           </Card>
 
           {/* Card 2: Guided Path */}
-          <Card className="bg-white border-2 border-[var(--brand)] shadow-2xl hover:shadow-2xl transition-all duration-500 rounded-[32px] overflow-hidden flex flex-col group relative">
+          <Card className="bg-white border-2 border-[var(--brand)] shadow-[0_20px_50px_rgba(244,101,48,0.1)] hover:shadow-[0_20px_50px_rgba(244,101,48,0.15)] transition-all duration-500 rounded-[32px] overflow-hidden flex flex-col group relative">
             {/* Promo Banner */}
             <div className="bg-[#593e25] text-white py-3 px-6 flex items-center justify-center gap-2">
               <Sparkles className="w-4 h-4 text-white/80" />
@@ -311,7 +257,7 @@ export default function Storia({
                 </div>
               </div>
 
-              <Button asChild className="w-full bg-[var(--accent)] hover:bg-[var(--accent)]/90 text-white rounded-2xl py-6 h-auto text-lg font-bold shadow-lg shadow-amber-900/10 transition-transform active:scale-95">
+              <Button asChild className="w-full bg-[var(--accent)] hover:bg-[var(--accent)]/90 text-white rounded-2xl py-6 h-auto text-lg font-bold shadow-lg shadow-amber-900/10 transition-transform active:scale-95 animate-pulse-cta">
                 <Link href={isLoggedIn ? "/dashboard?tab=1to1" : "/login"} className="cursor-pointer">
                   Sì, voglio essere guidata
                 </Link>

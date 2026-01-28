@@ -13,7 +13,7 @@ export default function Metodo() {
       gate: "01",
       seat: "1A",
       class: "VIP",
-      color: "bg-[#345c72] text-white",
+      color: "bg-[#345c72] text-[#FBB80F]",
       desc: "Perché si molla la palestra? Perché è sempre uguale. Qui è impossibile: ogni mese cambiamo \"città\", musica e obiettivi. La curiosità di vedere la prossima tappa ti farà essere costante senza nemmeno accorgertene."
     },
     {
@@ -23,7 +23,7 @@ export default function Metodo() {
       gate: "02",
       seat: "1B",
       class: "VIP",
-      color: "bg-[#345c72] text-white",
+      color: "bg-[#345c72] text-[#FBB80F]",
       desc: "Hai paura di farti male?\nÈ normale.\nQuesto metodo è l'ancora che ti dà stabilità. Zero salti, zero impatti, ma un lavoro profondo per rinforzare ossa e pavimento pelvico in totale sicurezza."
     },
     {
@@ -33,7 +33,7 @@ export default function Metodo() {
       gate: "03",
       seat: "1C",
       class: "VIP",
-      color: "bg-[#345c72] text-white",
+      color: "bg-[#345c72] text-[#FBB80F]",
       desc: "Ginnastica non deve fare rima con sofferenza. Inseriamo passi di Salsa e Bachata perché il tuo corpo va celebrato, non punito. Quando ti diverti, il cervello spegne lo stress e il corpo si sgonfia prima."
     }
   ];
@@ -107,7 +107,7 @@ export default function Metodo() {
               </div>
 
               <Link href="/pacchetti" className="w-full">
-                <button className={`w-full ${p.color} py-3 rounded-xl shadow-md group transition-all hover:brightness-110 active:scale-95 flex items-center justify-center gap-2 text-[11px] font-black uppercase tracking-widest`}>
+                <button className={`w-full ${p.color} py-3 rounded-xl shadow-md group transition-all hover:brightness-110 active:scale-95 flex items-center justify-center gap-2 text-[11px] font-black uppercase tracking-widest animate-pulse-cta`}>
                   PARTI ORA <MoveRight className="w-3.5 h-3.5 transition-transform group-hover:translate-x-1" />
                 </button>
               </Link>
@@ -116,25 +116,34 @@ export default function Metodo() {
         ))}
       </div>
 
-      {/* Video Section (Restored to normal dark theme) */}
+      {/* Promise Block */}
+      <div className="mt-20 max-w-3xl mx-auto px-4">
+        <div className="bg-[#fdfaf7]/90 rounded-[40px] p-10 md:p-12 border border-[#846047]/10 shadow-lg text-center backdrop-blur-sm">
+          <p className="text-[#345c72] text-xl md:text-2xl font-black leading-relaxed tracking-tight">
+            Un percorso guidato che permette già in <span className="text-[#F46530]">6 settimane</span> di vedere i primi cambiamenti concreti!
+          </p>
+        </div>
+      </div>
+
+      {/* Video Section */}
       <div className="mt-32 max-w-5xl mx-auto px-4">
-        <div className="bg-gradient-to-br from-[#2A2E30] to-[#1A1D1F] rounded-[40px] p-8 md:p-16 overflow-hidden relative group shadow-2xl border border-white/5">
-          <div className="absolute top-0 right-0 w-96 h-96 bg-[var(--brand)]/10 rounded-full blur-3xl -mr-48 -mt-48"></div>
+        <div className="bg-[#f3efec] rounded-[40px] p-8 md:p-16 overflow-hidden relative group shadow-2xl border border-[#846047]/10">
+          <div className="absolute top-0 right-0 w-96 h-96 bg-[var(--brand)]/5 rounded-full blur-3xl -mr-48 -mt-48"></div>
 
           <div className="grid lg:grid-cols-2 gap-12 items-center relative z-10">
             <div className="space-y-6">
-              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-orange-500/10 border border-orange-500/20 text-orange-400 text-xs font-bold uppercase tracking-widest">
+              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#F46530]/10 border border-[#F46530]/20 text-[#F46530] text-xs font-bold uppercase tracking-widest">
                 Prova Pratica
               </div>
-              <h3 className="text-3xl md:text-5xl font-black text-white leading-tight">
+              <h3 className="text-3xl md:text-5xl font-black text-[#2a2e30] leading-tight uppercase italic tracking-tighter">
                 Il Risveglio <br /> del Respiro
               </h3>
-              <p className="text-slate-400 text-lg md:text-xl italic font-medium leading-relaxed">
+              <p className="text-[#345c72] text-lg md:text-xl italic font-bold leading-relaxed opacity-80">
                 &ldquo;Fallo ora, anche in pigiama. Premi play e sciogliamo insieme le tensioni del collo.&rdquo;
               </p>
             </div>
 
-            <div className="relative aspect-video w-full rounded-[2rem] overflow-hidden bg-black border-4 border-white/5 shadow-2xl">
+            <div className="relative aspect-video w-full rounded-[2rem] overflow-hidden bg-black border-4 border-[#345c72]/10 shadow-2xl">
               <video
                 src="https://hel1.your-objectstorage.com/nicholas-bucket/rita-zanicchi/videos/video_respirazione_landing.mp4"
                 controls

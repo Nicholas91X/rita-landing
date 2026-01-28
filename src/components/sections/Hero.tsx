@@ -94,9 +94,9 @@ export default function Hero() {
             <div className="space-y-10">
               <div className="space-y-6">
                 <div className="space-y-3">
-                  <h3 className="text-xl sm:text-4xl md:text-5xl lg:text-6xl font-black text-[#B3541E] leading-tight tracking-tight flex items-center justify-center gap-x-3 md:gap-x-6 uppercase">
+                  <h3 className="text-xl sm:text-4xl md:text-5xl lg:text-6xl font-black text-[#F46530] leading-tight tracking-tight flex items-center justify-center gap-x-3 md:gap-x-6 uppercase">
                     <span>Destinazione: Te Stessa</span>
-                    <Plane className="w-6 h-6 sm:w-10 sm:h-10 md:w-12 md:h-12 rotate-45 text-[#B3541E] opacity-40" />
+                    <Plane className="w-6 h-6 sm:w-10 sm:h-10 md:w-12 md:h-12 rotate-45 text-[#F46530] opacity-40" />
                   </h3>
                   <p className="text-lg md:text-xl font-bold text-[#4a4a4a] italic max-w-2xl mx-auto">
                     Il metodo Fit & Smile per vivere la Menopausa con gioia
@@ -105,7 +105,7 @@ export default function Hero() {
                 <div className="space-y-4 max-w-2xl mx-auto px-4">
                   <p className="text-lg md:text-2xl text-slate-700 font-medium leading-relaxed">
                     Dimentica le palestre tristi e noiose.<br />
-                    Qui ci alleniamo <span className="text-[#B3541E] font-bold">esplorando il mondo</span>.<br />
+                    Qui ci alleniamo <span className="text-[#F46530] font-bold">esplorando il mondo</span>.<br />
                     Ogni mese una nuova destinazione (Bali, New York, L&apos;Avana...)<br />
                     per ritrovare il sorriso, la forma e te stessa.
                   </p>
@@ -113,19 +113,19 @@ export default function Hero() {
               </div>
 
               <div className="flex flex-wrap justify-center gap-4">
-                <div className="px-6 py-3 rounded-2xl bg-white border border-[#B3541E]/20 text-[11px] font-bold uppercase tracking-widest text-[#B3541E] shadow-sm flex items-center gap-2">
-                  <div className="w-2 h-2 rounded-full bg-[#B3541E]/40" />
+                <div className="px-6 py-3 rounded-2xl bg-white border border-[#F46530]/20 text-[11px] font-bold uppercase tracking-widest text-[#F46530] shadow-sm flex items-center gap-2">
+                  <div className="w-2 h-2 rounded-full bg-[#F46530]/40" />
                   ⌛ 30 Minuti
                 </div>
-                <div className="px-6 py-3 rounded-2xl bg-white border border-[#B3541E]/20 text-[11px] font-bold uppercase tracking-widest text-[#B3541E] shadow-sm flex items-center gap-2">
-                  <div className="w-2 h-2 rounded-full bg-[#B3541E]/40" />
+                <div className="px-6 py-3 rounded-2xl bg-white border border-[#F46530]/20 text-[11px] font-bold uppercase tracking-widest text-[#F46530] shadow-sm flex items-center gap-2">
+                  <div className="w-2 h-2 rounded-full bg-[#F46530]/40" />
                   ✨ Risultati in 6 settimane
                 </div>
               </div>
             </div>
 
             <CtaRow className="justify-center pt-4">
-              <Button asChild className="px-6 py-3 rounded-xl bg-[var(--brand)] text-white hover:bg-[#7f554f] transition-all duration-300 shadow-lg shadow-orange-900/10 hover:-translate-y-0.5 active:scale-95 text-xs font-black uppercase tracking-[0.1em] h-auto group">
+              <Button asChild className="px-6 py-3 rounded-xl bg-[var(--brand)] text-white hover:bg-[#7f554f] transition-all duration-300 shadow-lg shadow-orange-900/10 hover:-translate-y-0.5 active:scale-95 text-xs font-black uppercase tracking-[0.1em] h-auto group animate-pulse-cta">
                 <Link href="/login" className="flex items-center gap-2">
                   Inizia il Viaggio (Prova Gratis)
                   <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
