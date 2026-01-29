@@ -579,6 +579,10 @@ export async function getRefundRequests() {
             user_subscriptions (
                 package_id,
                 packages ( name )
+            ),
+            one_time_purchases (
+                package_id,
+                packages ( name )
             )
         `)
         .order('created_at', { ascending: false })
@@ -613,26 +617,40 @@ export async function handleRefundRequest(requestId: string, status: 'approved' 
     if (reqError || !request) throw new Error('Richiesta non trovata')
 
     // 2. If approved, try to refund on Stripe
-    if (status === 'approved' && request.user_subscriptions?.stripe_subscription_id) {
+    if (status === 'approved') {
         try {
-            // Find the latest charge for this subscription
-            const invoices = await stripe.invoices.list({
-                subscription: request.user_subscriptions.stripe_subscription_id,
-                limit: 1
-            })
+            if (request.subscription_id && request.user_subscriptions?.stripe_subscription_id) {
+                // Find the latest charge for this subscription
+                const invoices = await stripe.invoices.list({
+                    subscription: request.user_subscriptions.stripe_subscription_id,
+                    limit: 1
+                })
 
-            const invoice = invoices.data[0] as unknown as { charge: string | Stripe.Charge | null }
-            const charge = invoice.charge
-            const chargeId = typeof charge === 'string' ? charge : (charge as Stripe.Charge)?.id
-            if (chargeId) {
-                await stripe.refunds.create({ charge: chargeId })
+                const invoice = invoices.data[0] as unknown as { charge: string | Stripe.Charge | null }
+                const charge = invoice.charge
+                const chargeId = typeof charge === 'string' ? charge : (charge as Stripe.Charge)?.id
+                if (chargeId) {
+                    await stripe.refunds.create({ charge: chargeId })
+                }
+
+                // Cancel subscription immediately if it was a refund of the current period
+                await stripe.subscriptions.cancel(request.user_subscriptions.stripe_subscription_id)
+            } else if (request.purchase_id) {
+                // Handle one-time purchase refund
+                const { data: purchase } = await supabase
+                    .from('one_time_purchases')
+                    .select('stripe_payment_intent_id')
+                    .eq('id', request.purchase_id)
+                    .single()
+
+                if (purchase?.stripe_payment_intent_id) {
+                    await stripe.refunds.create({
+                        payment_intent: purchase.stripe_payment_intent_id
+                    })
+                }
             }
-
-            // Cancel subscription immediately if it was a refund of the current period
-            await stripe.subscriptions.cancel(request.user_subscriptions.stripe_subscription_id)
         } catch (err) {
             console.error('Stripe Refund error:', err)
-            // We might want to handle this differently, but for now let's notify admin
             throw new Error('Errore durante il rimborso su Stripe')
         }
     }
@@ -648,16 +666,25 @@ export async function handleRefundRequest(requestId: string, status: 'approved' 
 
     if (updateError) throw new Error('Errore durante l\'aggiornamento della richiesta')
 
-    // 4. Update subscription status if approved
+    // 4. Update status if approved
     if (status === 'approved') {
-        await supabase
-            .from('user_subscriptions')
-            .update({ status: 'refunded' })
-            .eq('id', request.subscription_id)
+        if (request.subscription_id) {
+            await supabase
+                .from('user_subscriptions')
+                .update({ status: 'refunded' })
+                .eq('id', request.subscription_id)
+        } else if (request.purchase_id) {
+            await supabase
+                .from('one_time_purchases')
+                .update({ status: 'refunded' })
+                .eq('id', request.purchase_id)
+        }
     }
 
     // 5. Notify User
-    const packageName = request.user_subscriptions?.packages?.name || 'pacchetto'
+    const packageName = request.user_subscriptions?.packages?.name ||
+        (request as any).one_time_purchases?.packages?.name ||
+        'pacchetto'
     await supabase.from('user_notifications').insert({
         user_id: request.user_id,
         type: status === 'approved' ? 'refund_approved' : 'refund_rejected',

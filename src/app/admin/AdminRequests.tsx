@@ -36,6 +36,10 @@ interface RefundRequest {
         package_id: string
         packages: { name: string } | null
     } | null
+    one_time_purchases: {
+        package_id: string
+        packages: { name: string } | null
+    } | null
 }
 
 export default function AdminRequests() {
@@ -335,7 +339,7 @@ export default function AdminRequests() {
                                                 <div className="space-y-1">
                                                     <label className="text-[9px] uppercase font-black text-white/50 tracking-widest block">Pacchetto</label>
                                                     <p className="text-xs text-white font-black italic uppercase tracking-tight truncate">
-                                                        {req.user_subscriptions?.packages?.name || 'N/A'}
+                                                        {req.user_subscriptions?.packages?.name || req.one_time_purchases?.packages?.name || 'N/A'}
                                                     </p>
                                                 </div>
                                                 <div className="space-y-1">

@@ -75,6 +75,12 @@ export async function getUserSubscriptionInfo() {
                 description,
                 image_url,
                 price
+            ),
+            refund_requests (
+                status,
+                reason,
+                created_at,
+                processed_at
             )
         `)
         .eq('user_id', user.id)
@@ -284,6 +290,7 @@ export async function getUserSubscriptionInfo() {
             amount: purchase.amount,
             packages: Array.isArray(purchase.packages) ? purchase.packages[0] : purchase.packages,
             stripe_payment_intent_id: purchase.stripe_payment_intent_id,
+            refund_requests: (purchaseUnknown as any).refund_requests || [],
             documents
         }
     }))

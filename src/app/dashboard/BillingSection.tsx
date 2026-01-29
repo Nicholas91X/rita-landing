@@ -60,6 +60,12 @@ interface OneTimePurchase {
         price: number;
     } | null;
     stripe_payment_intent_id: string | null;
+    refund_requests: Array<{
+        status: string;
+        reason: string;
+        created_at: string;
+        processed_at: string | null;
+    }>;
     documents: BillingDocument[];
 }
 
@@ -71,7 +77,7 @@ export default function BillingSection() {
     const [actionLoading, setActionLoading] = useState<string | null>(null)
 
     // Modals State
-    const [refundDialog, setRefundDialog] = useState<{ open: boolean, subId: string | null }>({ open: false, subId: null })
+    const [refundDialog, setRefundDialog] = useState<{ open: boolean, id: string | null, type: 'subscription' | 'purchase' }>({ open: false, id: null, type: 'subscription' })
     const [cancelDialog, setCancelDialog] = useState<{ open: boolean, subId: string | null }>({ open: false, subId: null })
     const [refundReason, setRefundReason] = useState('')
     const [isSubmittingRefund, setIsSubmittingRefund] = useState(false)
@@ -169,10 +175,11 @@ export default function BillingSection() {
         if (!refundReason.trim()) return toast.error('Specifica una motivazione')
         try {
             setIsSubmittingRefund(true)
-            await requestRefund(refundDialog.subId!, refundReason)
+            await requestRefund(refundDialog.id!, refundReason, refundDialog.type)
             toast.success('Richiesta di rimborso inviata correttamente')
-            setRefundDialog({ open: false, subId: null })
+            setRefundDialog({ open: false, id: null, type: 'subscription' })
             setRefundReason('')
+            fetchSubs() // Refresh to show status
         } catch (error: unknown) {
             const message = error instanceof Error ? error.message : 'Errore'
             toast.error(message)
@@ -365,7 +372,7 @@ export default function BillingSection() {
                                                     "flex-1 h-10 text-[10px] border-[#846047]/20 hover:bg-[#846047]/5 text-[#846047] gap-2 font-black uppercase tracking-widest rounded-2xl",
                                                     !isRefundAllowed && "opacity-40 cursor-not-allowed border-neutral-100 text-neutral-400"
                                                 )}
-                                                onClick={() => isRefundAllowed && setRefundDialog({ open: true, subId: sub.id })}
+                                                onClick={() => isRefundAllowed && setRefundDialog({ open: true, id: sub.id, type: 'subscription' })}
                                                 title={sub.status === 'trialing' ? "Rimborso non disponibile per prodotti in prova" : !isRefundAllowed ? "Rimborso non disponibile dopo 4 giorni" : ""}
                                             >
                                                 <RefreshCcw className="w-3.5 h-3.5" />
@@ -496,7 +503,52 @@ export default function BillingSection() {
                                     </div>
                                 )}
                             </CardContent>
-                            <CardFooter className="pt-2 pb-6 px-6">
+                            <CardFooter className="pt-2 pb-6 px-6 flex flex-col gap-3">
+                                <div className="flex items-center gap-2 w-full mt-2">
+                                    {(!purchase.refund_requests || purchase.refund_requests.length === 0) && (
+                                        <Button
+                                            variant="outline"
+                                            size="sm"
+                                            className={cn(
+                                                "flex-1 h-10 text-[10px] border-[#846047]/20 hover:bg-[#846047]/5 text-[#846047] gap-2 font-black uppercase tracking-widest rounded-2xl",
+                                                (() => {
+                                                    const createdAt = new Date(purchase.created_at).getTime();
+                                                    const now = new Date().getTime();
+                                                    const diffDays = (now - createdAt) / (1000 * 60 * 60 * 24);
+                                                    return diffDays > 4;
+                                                })() && "opacity-40 cursor-not-allowed border-neutral-100 text-neutral-400"
+                                            )}
+                                            onClick={() => {
+                                                const createdAt = new Date(purchase.created_at).getTime();
+                                                const now = new Date().getTime();
+                                                const diffDays = (now - createdAt) / (1000 * 60 * 60 * 24);
+                                                if (diffDays <= 4) {
+                                                    setRefundDialog({ open: true, id: purchase.id, type: 'purchase' });
+                                                }
+                                            }}
+                                        >
+                                            <RefreshCcw className="w-3.5 h-3.5" />
+                                            Rimborso
+                                        </Button>
+                                    )}
+                                </div>
+                                {purchase.refund_requests && purchase.refund_requests.length > 0 && (
+                                    <div className="w-full">
+                                        <div className={cn(
+                                            "h-10 flex items-center justify-center gap-2 px-3 rounded-2xl border text-[9px] font-black uppercase tracking-tighter",
+                                            purchase.refund_requests[0].status === 'pending' ? "border-amber-500/20 bg-amber-500/5 text-amber-600" :
+                                                purchase.refund_requests[0].status === 'approved' ? "border-emerald-500/20 bg-emerald-500/5 text-emerald-600" :
+                                                    "border-red-500/20 bg-red-500/5 text-red-600"
+                                        )}>
+                                            {purchase.refund_requests[0].status === 'pending' ? <Clock className="w-3 h-3" /> :
+                                                purchase.refund_requests[0].status === 'approved' ? <CheckCircle2 className="w-3 h-3" /> :
+                                                    <XCircle className="w-3 h-3" />}
+                                            {purchase.refund_requests[0].status === 'pending' ? 'In attesa rimborso' :
+                                                purchase.refund_requests[0].status === 'approved' ? 'Rimborso approvato' :
+                                                    'Rimborso rifiutato'}
+                                        </div>
+                                    </div>
+                                )}
                                 <div className="w-full flex items-center justify-center gap-2 text-[8px] text-neutral-400 mt-2 uppercase tracking-[0.2em] font-black">
                                     <CheckCircle2 className="w-2.5 h-2.5 text-brand/50" />
                                     Accesso Permanente Sbloccato
@@ -528,7 +580,7 @@ export default function BillingSection() {
             </div>
 
             {/* Modals are unchanged except for styling/dark text */}
-            <Dialog open={refundDialog.open} onOpenChange={(open) => !open && setRefundDialog({ open: false, subId: null })}>
+            <Dialog open={refundDialog.open} onOpenChange={(open) => !open && setRefundDialog({ open: false, id: null, type: 'subscription' })}>
                 <DialogContent className="bg-white border-neutral-200 text-[#2a2e30] max-w-md rounded-[2.5rem] p-8 shadow-2xl">
                     <DialogHeader>
                         <DialogTitle className="text-2xl font-black italic uppercase tracking-tighter flex items-center gap-3 text-[#593e25]">
@@ -562,7 +614,7 @@ export default function BillingSection() {
                     <DialogFooter className="gap-3 sm:gap-0">
                         <Button
                             variant="ghost"
-                            onClick={() => setRefundDialog({ open: false, subId: null })}
+                            onClick={() => setRefundDialog({ open: false, id: null, type: 'subscription' })}
                             className="rounded-2xl text-neutral-500 font-bold hover:bg-neutral-50"
                         >
                             Annulla

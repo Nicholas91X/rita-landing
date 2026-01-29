@@ -140,36 +140,59 @@ export async function createPortalSession() {
 
     return session.url
 }
-export async function requestRefund(subscriptionId: string, reason: string) {
+export async function requestRefund(id: string, reason: string, type: 'subscription' | 'purchase' = 'subscription') {
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) throw new Error('Unauthorized')
 
-    const { data: subData } = await supabase
-        .from('user_subscriptions')
-        .select('created_at, packages(name)')
-        .eq('id', subscriptionId)
-        .single()
+    let packageName = 'Pacchetto'
+    let createdAt: number
 
-    if (!subData) throw new Error('Abbonamento non trovato')
+    if (type === 'subscription') {
+        const { data: subData } = await supabase
+            .from('user_subscriptions')
+            .select('created_at, packages(name)')
+            .eq('id', id)
+            .single()
+
+        if (!subData) throw new Error('Abbonamento non trovato')
+        createdAt = new Date(subData.created_at).getTime()
+        packageName = (subData.packages as unknown as { name: string })?.name || 'Pacchetto'
+    } else {
+        const { data: purchaseData } = await supabase
+            .from('one_time_purchases')
+            .select('created_at, packages(name)')
+            .eq('id', id)
+            .single()
+
+        if (!purchaseData) throw new Error('Acquisto non trovato')
+        createdAt = new Date(purchaseData.created_at).getTime()
+        packageName = (purchaseData.packages as unknown as { name: string })?.name || 'Pacchetto'
+    }
 
     // 4 days limit logic (4 * 24 * 60 * 60 * 1000 = 345600000 ms)
-    const createdAt = new Date(subData.created_at).getTime()
     const now = new Date().getTime()
     const diffDays = (now - createdAt) / (1000 * 60 * 60 * 24)
 
     if (diffDays > 4) {
-        throw new Error('Non è possibile richiedere un rimborso dopo 4 giorni dalla sottoscrizione.')
+        throw new Error('Non è possibile richiedere un rimborso dopo 4 giorni.')
+    }
+
+    const insertData: any = {
+        user_id: user.id,
+        reason,
+        status: 'pending'
+    }
+
+    if (type === 'subscription') {
+        insertData.subscription_id = id
+    } else {
+        insertData.purchase_id = id
     }
 
     const { error } = await supabase
         .from('refund_requests')
-        .insert({
-            user_id: user.id,
-            subscription_id: subscriptionId,
-            reason,
-            status: 'pending'
-        })
+        .insert(insertData)
 
     if (error) throw new Error('Errore durante la richiesta di rimborso')
 
@@ -178,9 +201,9 @@ export async function requestRefund(subscriptionId: string, reason: string) {
         type: 'refund_request',
         user_id: user.id,
         data: {
-            packageName: (subData?.packages as unknown as { name: string })?.name || 'Pacchetto',
+            packageName,
             reason: reason,
-            subscriptionId: subscriptionId
+            [type === 'subscription' ? 'subscriptionId' : 'purchaseId']: id
         }
     })
 
