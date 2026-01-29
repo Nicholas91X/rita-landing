@@ -41,6 +41,8 @@ export default function PackageClient({ pkg, videos }: { pkg: Package, videos: V
     const [celebrated, setCelebrated] = useState(false)
     const router = useRouter()
 
+    const [initialLoadDone, setInitialLoadDone] = useState(false)
+
     const fetchProgress = useCallback(async () => {
         try {
             const data = await getAllPackageProgress(pkg.id)
@@ -48,13 +50,25 @@ export default function PackageClient({ pkg, videos }: { pkg: Package, videos: V
             data.forEach((item: WatchProgress) => {
                 map[item.video_id] = item
             })
+
+            // Check if all videos were already completed BEFORE updating state
+            // This helps in distinguishing "already completed" from "just completed"
+            const totalVideos = videos.length
+            const completedVideos = videos.filter(v => map[v.id]?.is_completed).length
+            const isAlready100 = totalVideos > 0 && completedVideos === totalVideos
+
             setProgressData(map)
+
+            if (!initialLoadDone && isAlready100) {
+                setCelebrated(true) // Mark as celebrated so the modal doesn't show
+            }
         } catch (error) {
             console.error('Failed to fetch progress:', error)
         } finally {
             setLoadingProgress(false)
+            setInitialLoadDone(true)
         }
-    }, [pkg.id])
+    }, [pkg.id, videos, initialLoadDone])
 
     useEffect(() => {
         fetchProgress()
