@@ -246,7 +246,14 @@ export async function createBunnyVideo(title: string) {
     return await response.json()
 }
 
-export async function saveVideoToDb(videoData: { title: string, bunnyId: string, packageId: string }) {
+export async function saveVideoToDb(videoData: {
+    title: string,
+    bunnyId: string,
+    packageId: string,
+    tappa?: string,
+    videoType?: string,
+    duration?: number
+}) {
     const isSuperAdmin = await isAdmin()
     if (!isSuperAdmin) throw new Error('Unauthorized')
 
@@ -258,7 +265,7 @@ export async function saveVideoToDb(videoData: { title: string, bunnyId: string,
         .eq('package_id', videoData.packageId)
         .order('order_index', { ascending: false })
         .limit(1)
-        .single()
+        .maybeSingle()
 
     const newIndex = (maxOrder?.order_index ?? 0) + 1
 
@@ -268,7 +275,10 @@ export async function saveVideoToDb(videoData: { title: string, bunnyId: string,
             title: videoData.title,
             bunny_video_id: videoData.bunnyId,
             package_id: videoData.packageId,
-            order_index: newIndex
+            order_index: newIndex,
+            tappa: videoData.tappa || null,
+            video_type: videoData.videoType || null,
+            duration_minutes: videoData.duration || null
         })
 
     if (error) throw new Error(error.message)
@@ -288,6 +298,10 @@ export async function getAdminVideos(packageId?: string) {
             title, 
             bunny_video_id, 
             package_id,
+            order_index,
+            tappa,
+            video_type,
+            duration_minutes,
             packages (
                 name
             )
@@ -344,7 +358,14 @@ export async function deleteVideo(videoId: string) {
     return { success: true }
 }
 
-export async function updateVideo(videoId: string, data: { title: string, packageId: string }) {
+export async function updateVideo(videoId: string, data: {
+    title: string,
+    packageId: string,
+    tappa?: string,
+    videoType?: string,
+    duration?: number,
+    orderIndex?: number
+}) {
     const isSuperAdmin = await isAdmin()
     if (!isSuperAdmin) throw new Error('Unauthorized')
 
@@ -354,7 +375,11 @@ export async function updateVideo(videoId: string, data: { title: string, packag
         .from('videos')
         .update({
             title: data.title,
-            package_id: data.packageId
+            package_id: data.packageId,
+            tappa: data.tappa,
+            video_type: data.videoType,
+            duration_minutes: data.duration,
+            order_index: data.orderIndex
         })
         .eq('id', videoId)
 
