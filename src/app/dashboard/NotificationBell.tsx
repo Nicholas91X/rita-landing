@@ -86,7 +86,7 @@ export function NotificationBell() {
                                 onSelect={async () => {
                                     // Mark as read and then redirect
                                     await markUserNotificationAsRead(n.id)
-                                    router.push('/dashboard?tab=profile')
+                                    router.push('/dashboard?tab=profile&profileTab=notifications')
                                     fetchNotifications() // Update locally
                                 }}
                                 className="flex flex-col items-start gap-1 p-3 rounded-xl transition-all cursor-pointer focus:bg-white/10 bg-white/5 border-l-2 border-brand"

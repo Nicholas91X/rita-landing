@@ -919,3 +919,58 @@ export async function updateOneTimePurchaseStatus(id: string, newStatus: string)
     return { success: true }
 }
 
+export async function sendBroadcastNotification(title: string, message: string, audience: 'all' | 'subscribers' | 'one-time') {
+    const isSuperAdmin = await isAdmin()
+    if (!isSuperAdmin) throw new Error('Unauthorized')
+
+    const supabase = await createClient()
+    let userIds: string[] = []
+
+    try {
+        if (audience === 'all') {
+            const { data, error } = await supabase.from('profiles').select('id')
+            if (error) throw error
+            userIds = data.map(u => u.id)
+        } else if (audience === 'subscribers') {
+            const { data, error } = await supabase
+                .from('user_subscriptions')
+                .select('user_id')
+                .in('status', ['active', 'trialing'])
+            if (error) throw error
+            userIds = Array.from(new Set(data.map(u => u.user_id)))
+        } else if (audience === 'one-time') {
+            const { data, error } = await supabase
+                .from('one_time_purchases')
+                .select('user_id')
+                .neq('status', 'refunded')
+            if (error) throw error
+            userIds = Array.from(new Set(data.map(u => u.user_id)))
+        }
+
+        if (userIds.length === 0) return { success: true, count: 0 }
+
+        // Batch insert notifications
+        const notifications = userIds.map(id => ({
+            user_id: id,
+            title,
+            message,
+            type: 'broadcast',
+            is_read: false
+        }))
+
+        // Split into chunks of 1000 for safety (Supabase/Postgres limit)
+        const chunkSize = 1000
+        for (let i = 0; i < notifications.length; i += chunkSize) {
+            const chunk = notifications.slice(i, i + chunkSize)
+            const { error: insertError } = await supabase.from('user_notifications').insert(chunk)
+            if (insertError) throw insertError
+        }
+
+        revalidatePath('/dashboard')
+        return { success: true, count: userIds.length }
+    } catch (error) {
+        console.error('Error in sendBroadcastNotification:', error)
+        throw new Error('Errore durante l\'invio della notifica broadcast')
+    }
+}
+

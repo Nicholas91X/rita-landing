@@ -8,8 +8,9 @@ import AdminStripe from './AdminStripe'
 import AdminRequests from './AdminRequests'
 import AdminUsers from './AdminUsers'
 import OneToOneClients from './OneToOneClients'
+import AdminBroadcasts from './AdminBroadcasts'
 import { Button } from '@/components/ui/button'
-import { Loader2, UploadCloud, CheckCircle, Trash2, Edit2, Save, X, PlayCircle, Video, Package as PackageIcon, CreditCard, Bell, Users, LayoutGrid, List } from 'lucide-react'
+import { Loader2, UploadCloud, CheckCircle, Trash2, Edit2, Save, X, PlayCircle, Video, Package as PackageIcon, CreditCard, Bell, Users, LayoutGrid, List, Megaphone } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import {
     Accordion,
@@ -51,7 +52,7 @@ type AdminStatsData = {
 };
 
 export default function AdminDashboardClient({ packages, libraryId, stats }: { packages: Package[], libraryId?: string, stats?: AdminStatsData }) {
-    const [activeTab, setActiveTab] = useState<'library' | 'packages' | 'payments' | 'requests' | 'users' | 'one-to-one'>('library')
+    const [activeTab, setActiveTab] = useState<'library' | 'packages' | 'payments' | 'requests' | 'users' | 'one-to-one' | 'broadcast'>('library')
 
     // Video State
     const [title, setTitle] = useState('')
@@ -252,6 +253,17 @@ export default function AdminDashboardClient({ packages, libraryId, stats }: { p
                             <Users className={`w-5 h-5 mb-2 transition-all duration-500 ${activeTab === 'users' ? 'text-white scale-110 shadow-[0_0_15px_rgba(255,255,255,0.3)]' : 'group-hover:scale-110'}`} />
                             <span className="text-[10px] font-black uppercase tracking-widest text-center">Utenti</span>
                         </button>
+
+                        <button
+                            onClick={() => setActiveTab('broadcast')}
+                            className={`relative z-10 flex flex-col items-center justify-center py-6 transition-all duration-300 group ${activeTab === 'broadcast' ? 'text-white' : 'text-neutral-400 hover:text-white'}`}
+                        >
+                            {activeTab === 'broadcast' && (
+                                <div className="absolute inset-2 bg-white/10 rounded-3xl z-[-1] animate-in fade-in zoom-in-95 duration-300" />
+                            )}
+                            <Megaphone className={`w-5 h-5 mb-2 transition-all duration-500 ${activeTab === 'broadcast' ? 'text-white scale-110 shadow-[0_0_15px_rgba(255,255,255,0.3)]' : 'group-hover:scale-110'}`} />
+                            <span className="text-[10px] font-black uppercase tracking-widest text-center">Broadcast</span>
+                        </button>
                     </div>
 
                     {activeTab === 'packages' ? (
@@ -273,6 +285,10 @@ export default function AdminDashboardClient({ packages, libraryId, stats }: { p
                     ) : activeTab === 'one-to-one' ? (
                         <div className="w-full animate-in slide-in-from-bottom-4 duration-500">
                             <OneToOneClients />
+                        </div>
+                    ) : activeTab === 'broadcast' ? (
+                        <div className="w-full animate-in slide-in-from-bottom-4 duration-500">
+                            <AdminBroadcasts />
                         </div>
                     ) : (
                         <div className="w-full grid grid-cols-1 lg:grid-cols-12 gap-8 items-start animate-in slide-in-from-bottom-4 duration-500">

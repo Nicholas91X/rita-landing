@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import Image from 'next/image'
 import { getUserProfile, updateProfile, updateEmail, updatePassword, getPassportStamps } from '@/app/actions/user'
+import UserProfileNotifications from './UserProfileNotifications'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -41,7 +42,7 @@ interface UserProfileData {
 
 interface ProfileSectionProps {
     onProfileUpdate?: () => void | Promise<void>
-    activeSubTab?: 'info' | 'badges'
+    activeSubTab?: 'info' | 'badges' | 'notifications'
 }
 
 export default function ProfileSection({ onProfileUpdate, activeSubTab = 'info' }: ProfileSectionProps) {
@@ -168,8 +169,9 @@ export default function ProfileSection({ onProfileUpdate, activeSubTab = 'info' 
 
     return (
         <div className="max-w-4xl space-y-10 animate-in fade-in duration-500">
-            {activeSubTab === 'info' ? (
+            {activeSubTab === 'info' && (
                 <div className="space-y-10 animate-in slide-in-from-left-4 duration-500">
+                    {/* ... existing info content ... */}
                     <div className="flex items-center justify-between">
                         <div>
                             <h2 className="text-2xl font-bold text-[#593e25] tracking-tight">Dati Personali</h2>
@@ -364,13 +366,16 @@ export default function ProfileSection({ onProfileUpdate, activeSubTab = 'info' 
                             </Card>
                         </div>
                     </div>
-                </div >
-            ) : (
+                </div>
+            )}
+            {activeSubTab === 'badges' && (
                 <div className="space-y-10 animate-in slide-in-from-right-4 duration-500 perspective-[2000px]">
                     <PassportBook userBadges={userData?.badges || []} userProfile={userData?.profile} />
                 </div>
-            )
-            }
+            )}
+            {activeSubTab === 'notifications' && (
+                <UserProfileNotifications />
+            )}
         </div >
     )
 }

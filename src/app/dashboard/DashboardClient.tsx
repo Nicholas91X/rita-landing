@@ -54,7 +54,7 @@ interface DashboardProfile {
 export default function DashboardClient({ levels }: { levels: Level[] }) {
     const [activeTab, setActiveTab] = useState<TabType>('home')
     const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false)
-    const [profileSubTab, setProfileSubTab] = useState<'info' | 'badges'>('info')
+    const [profileSubTab, setProfileSubTab] = useState<'info' | 'badges' | 'notifications'>('info')
     const [libraryProgress, setLibraryProgress] = useState<LibraryProgress[]>([])
     const [userProfile, setUserProfile] = useState<DashboardProfile | null>(null)
     const searchParams = useSearchParams()
@@ -81,9 +81,13 @@ export default function DashboardClient({ levels }: { levels: Level[] }) {
         const pkgId = searchParams.get('packageId')
         const success = searchParams.get('success')
         const tab = searchParams.get('tab') as TabType
+        const pTab = searchParams.get('profileTab')
 
         if (tab && ['home', 'training', 'billing', 'profile', '1to1'].includes(tab)) {
             setActiveTab(tab)
+            if (tab === 'profile' && pTab && ['info', 'badges', 'notifications'].includes(pTab)) {
+                setProfileSubTab(pTab as any)
+            }
         } else if (success === 'true') {
             setActiveTab('training')
         } else if (pkgId) {
@@ -199,12 +203,12 @@ export default function DashboardClient({ levels }: { levels: Level[] }) {
                                 </div>
 
                                 {/* Header / Tabs - Styled to match previous design aesthetics */}
-                                <div className="flex justify-center md:justify-start">
-                                    <div className="bg-white rounded-full p-1.5 flex gap-1 shadow-sm border border-[#846047]/10 w-full md:w-auto">
+                                <div className="flex justify-center md:justify-start w-full overflow-hidden">
+                                    <div className="bg-white rounded-2xl md:rounded-full p-1 flex md:p-1.5 gap-1 shadow-sm border border-[#846047]/10 w-full md:w-auto overflow-x-auto scrollbar-none">
                                         <button
                                             onClick={() => setProfileSubTab('info')}
                                             className={cn(
-                                                "px-6 py-3 rounded-full text-sm font-bold transition-all duration-300 flex-1 md:flex-none text-center whitespace-nowrap",
+                                                "px-4 md:px-6 py-2.5 md:py-3 rounded-full text-[11px] md:text-sm font-bold transition-all duration-300 flex-1 md:flex-none text-center whitespace-nowrap",
                                                 profileSubTab === 'info'
                                                     ? "bg-[#846047] text-white shadow-md"
                                                     : "text-[#846047]/70 hover:bg-[#846047]/5 hover:text-[#846047]"
@@ -215,13 +219,24 @@ export default function DashboardClient({ levels }: { levels: Level[] }) {
                                         <button
                                             onClick={() => setProfileSubTab('badges')}
                                             className={cn(
-                                                "px-6 py-3 rounded-full text-sm font-bold transition-all duration-300 flex-1 md:flex-none text-center whitespace-nowrap",
+                                                "px-4 md:px-6 py-2.5 md:py-3 rounded-full text-[11px] md:text-sm font-bold transition-all duration-300 flex-1 md:flex-none text-center whitespace-nowrap",
                                                 profileSubTab === 'badges'
                                                     ? "bg-[#846047] text-white shadow-md"
                                                     : "text-[#846047]/70 hover:bg-[#846047]/5 hover:text-[#846047]"
                                             )}
                                         >
                                             Le mie conquiste
+                                        </button>
+                                        <button
+                                            onClick={() => setProfileSubTab('notifications')}
+                                            className={cn(
+                                                "px-4 md:px-6 py-2.5 md:py-3 rounded-full text-[11px] md:text-sm font-bold transition-all duration-300 flex-1 md:flex-none text-center whitespace-nowrap",
+                                                profileSubTab === 'notifications'
+                                                    ? "bg-[#846047] text-white shadow-md"
+                                                    : "text-[#846047]/70 hover:bg-[#846047]/5 hover:text-[#846047]"
+                                            )}
+                                        >
+                                            Notifiche
                                         </button>
                                     </div>
                                 </div>
