@@ -329,7 +329,7 @@ export default function AdminPackages() {
                                         <option value="bali">🏝️ Bali (Relax/Natura)</option>
                                         <option value="new_york">🗽 New York (Energy/City)</option>
                                         <option value="rinascita">🦋 Rinascita (Transformation)</option>
-                                        <option value="lavana">🇨🇺 L'Avana (Passione/Vitalità)</option>
+                                        <option value="lavana">🇨🇺 L&apos;Avana (Passione/Vitalità)</option>
                                         <option value="siviglia">💃 Siviglia (Passion/Dance)</option>
                                         <option value="generic">🏅 Generic (Medal)</option>
                                     </select>

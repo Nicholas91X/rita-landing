@@ -5,6 +5,32 @@ import { isAdmin } from '@/utils/supabase/admin'
 import { revalidatePath } from 'next/cache'
 import { createClient as createSupabaseClient } from '@supabase/supabase-js'
 
+interface SubscriptionRecord {
+    id: string
+    status: string
+    created_at: string
+    packages: { name: string; price: number } | null
+}
+
+interface PurchaseRecord {
+    id: string
+    created_at: string
+    item_type?: string
+}
+
+interface RefundRecord {
+    id: string
+    status: string
+    created_at: string
+    packages: { packages: { name: string } | null } | null
+}
+
+interface PurchaseUpdateResult {
+    user_id: string
+    package_id: string
+    packages: { name: string; badge_type: string | null } | { name: string; badge_type: string | null }[] | null
+}
+
 export async function getAdminUsers(page: number = 1, pageSize: number = 10, search: string = '') {
     const isSuperAdmin = await isAdmin()
     if (!isSuperAdmin) throw new Error('Unauthorized')
@@ -69,7 +95,7 @@ export async function getUserHistory(userId: string) {
     ])
 
     const history = [
-        ...(subscriptions || []).map((s: any) => ({
+        ...((subscriptions || []) as SubscriptionRecord[]).map((s) => ({
             id: s.id,
             type: 'subscription',
             title: `Abbonamento: ${s.packages?.name || 'N/A'}`,
@@ -77,7 +103,7 @@ export async function getUserHistory(userId: string) {
             date: s.created_at,
             amount: s.status === 'trialing' ? 0 : s.packages?.price || 0
         })),
-        ...(purchases || []).map((p: any) => ({
+        ...((purchases || []) as PurchaseRecord[]).map((p) => ({
             id: p.id,
             type: 'purchase',
             title: `Acquisto Singolo: ${p.item_type || 'Pacchetto'}`,
@@ -85,7 +111,7 @@ export async function getUserHistory(userId: string) {
             date: p.created_at,
             amount: 0
         })),
-        ...(refunds || []).map((r: any) => ({
+        ...((refunds || []) as RefundRecord[]).map((r) => ({
             id: r.id,
             type: 'refund_request',
             title: `Richiesta Rimborso: ${r.packages?.packages?.name || 'Percorso'}`,
@@ -239,7 +265,7 @@ export async function updateOneTimePurchaseStatus(id: string, newStatus: string)
 
     if (error) throw new Error('Errore durante l\'aggiornamento')
 
-    const purchase = purchaseData as any
+    const purchase = purchaseData as PurchaseUpdateResult
     const pkg = Array.isArray(purchase.packages) ? purchase.packages[0] : purchase.packages
 
     if (newStatus === 'delivered' && pkg?.badge_type) {

@@ -262,6 +262,7 @@ export async function getUserSubscriptionInfo() {
             image_url: string | null
             price: number
         }[] | null
+        refund_requests?: unknown[]
     }
 
     const oneTimePurchasesWithDocs = await Promise.all((oneTime || []).map(async (purchaseUnknown) => {
@@ -302,7 +303,7 @@ export async function getUserSubscriptionInfo() {
             amount: purchase.amount,
             packages: Array.isArray(purchase.packages) ? purchase.packages[0] : purchase.packages,
             stripe_payment_intent_id: purchase.stripe_payment_intent_id,
-            refund_requests: (purchaseUnknown as any).refund_requests || [],
+            refund_requests: purchase.refund_requests || [],
             documents
         }
     }))

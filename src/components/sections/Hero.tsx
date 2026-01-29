@@ -6,7 +6,7 @@ import { site } from "@/content/it";
 import Typewriter from "@/components/Typewriter";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { ArrowRight, Plane, Globe } from "lucide-react";
+import { ArrowRight, Plane } from "lucide-react";
 
 export default function Hero() {
   return (

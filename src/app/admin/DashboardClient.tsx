@@ -10,7 +10,7 @@ import AdminUsers from './AdminUsers'
 import OneToOneClients from './OneToOneClients'
 import AdminBroadcasts from './AdminBroadcasts'
 import { Button } from '@/components/ui/button'
-import { Loader2, UploadCloud, CheckCircle, Trash2, Edit2, Save, X, PlayCircle, Video, Package as PackageIcon, CreditCard, Bell, Users, LayoutGrid, List, Megaphone } from 'lucide-react'
+import { Loader2, UploadCloud, CheckCircle, Trash2, Edit2, Video, Package as PackageIcon, CreditCard, Bell, Users, LayoutGrid, List, Megaphone } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { logger } from '@/lib/logger'
 import {
@@ -67,7 +67,8 @@ export default function AdminDashboardClient({ packages, libraryId, stats }: { p
     const [loadingVideos, setLoadingVideos] = useState(true)
     const [filterPackage, setFilterPackage] = useState('')
     const [viewMode, setViewMode] = useState<'list' | 'weeks'>('list')
-    const [editingVideo, setEditingVideo] = useState<string | null>(null)
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const [_editingVideo, setEditingVideo] = useState<string | null>(null)
     const [editForm, setEditForm] = useState({
         title: '',
         packageId: '',
@@ -149,10 +150,12 @@ export default function AdminDashboardClient({ packages, libraryId, stats }: { p
         })
     }
 
-    const cancelEdit = () => {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const _cancelEdit = () => {
         setEditingVideo(null)
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const handleUpdate = async (videoId: string) => {
         try {
             await updateVideo(videoId, {

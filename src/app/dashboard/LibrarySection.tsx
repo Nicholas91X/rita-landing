@@ -1,6 +1,6 @@
 'use client'
 
-import { Level, Package } from '@/app/actions/content'
+import { Level } from '@/app/actions/content'
 import { Card, CardContent, CardFooter } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
@@ -12,13 +12,11 @@ export default function LibrarySection({
     levels,
     progress = [],
     onShowDiscover,
-    userName,
     oneTimePurchases = []
 }: {
     levels: Level[],
     progress?: LibraryProgress[],
     onShowDiscover: () => void,
-    userName?: string,
     oneTimePurchases?: Array<{
         id: string;
         created_at: string;
@@ -32,7 +30,7 @@ export default function LibrarySection({
     }>
 }) {
     // 1. IDs of one-time purchases to exclude from main list
-    const oneTimeIds = new Set(oneTimePurchases.map(p => p.packages?.name || '')); // Mapping by name might be risky if ids don't match level ids. 
+
     // Wait, level package id vs purchase id?
     // oneTimePurchases.id is the purchase ID. oneTimePurchases.packages is the package info.
     // We don't have the package ID in oneTimePurchases logic in user.ts?

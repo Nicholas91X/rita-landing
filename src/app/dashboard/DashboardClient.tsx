@@ -87,7 +87,7 @@ export default function DashboardClient({ levels }: { levels: Level[] }) {
         if (tab && ['home', 'training', 'billing', 'profile', '1to1'].includes(tab)) {
             setActiveTab(tab)
             if (tab === 'profile' && pTab && ['info', 'badges', 'notifications'].includes(pTab)) {
-                setProfileSubTab(pTab as any)
+                setProfileSubTab(pTab as 'info' | 'badges' | 'notifications')
             }
         } else if (success === 'true') {
             setActiveTab('training')

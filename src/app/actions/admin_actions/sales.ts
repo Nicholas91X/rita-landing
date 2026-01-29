@@ -9,6 +9,18 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || 'sk_test_placeholder'
     apiVersion: '2025-12-15.clover' as unknown as Stripe.LatestApiVersion,
 })
 
+interface DBPayment {
+    id: string
+    amount: number
+    currency: string
+    status: string
+    created_at: string
+    receipt_url: string | null
+    card_brand: string | null
+    card_last4: string | null
+    profiles: { email: string } | null
+}
+
 export async function getAdminStats(userId?: string) {
     const isSuperAdmin = await isAdmin(userId)
     if (!isSuperAdmin) throw new Error('Unauthorized')
@@ -106,8 +118,8 @@ export async function getStripeDashboardData() {
             })
         ])
 
-        const dbPayments = dbResult.data || []
-        const subscriptions = (subResult as any).data || []
+        const dbPayments = (dbResult.data || []) as DBPayment[]
+        const subscriptions = subResult.data || []
 
         return {
             balance: {
@@ -115,7 +127,7 @@ export async function getStripeDashboardData() {
                 pending: balanceResult.pending.reduce((acc, b) => acc + b.amount, 0) / 100,
                 currency: balanceResult.available[0]?.currency || 'eur'
             },
-            payments: dbPayments.map((p: any) => ({
+            payments: dbPayments.map((p) => ({
                 id: p.id,
                 amount: p.amount,
                 currency: p.currency,
@@ -129,16 +141,16 @@ export async function getStripeDashboardData() {
                     last4: p.card_last4
                 }
             })),
-            subscriptions: (subscriptions as Stripe.Subscription[]).map(s => {
-                const customer = s.customer as any
+            subscriptions: subscriptions.map(s => {
+                const customer = s.customer as Stripe.Customer | Stripe.DeletedCustomer | string
                 const price = s.items?.data?.[0]?.price
                 return {
                     id: s.id,
                     status: s.status,
                     amount: price?.unit_amount ? price.unit_amount / 100 : 0,
                     interval: price?.recurring?.interval || 'month',
-                    email: customer?.email || (typeof customer === 'string' ? customer : ''),
-                    next_invoice: (s as any).current_period_end || s.ended_at || s.created
+                    email: (typeof customer === 'object' && 'email' in customer) ? customer.email || '' : (typeof customer === 'string' ? customer : ''),
+                    next_invoice: ('current_period_end' in s ? s.current_period_end : null) || s.ended_at || s.created
                 }
             })
         }
@@ -286,6 +298,9 @@ export async function handleRefundRequest(requestId: string, status: 'approved' 
             user_subscriptions (
                 stripe_subscription_id,
                 packages ( name )
+            ),
+            one_time_purchases (
+                packages ( name )
             )
         `)
         .eq('id', requestId)
@@ -353,7 +368,7 @@ export async function handleRefundRequest(requestId: string, status: 'approved' 
     }
 
     const packageName = request.user_subscriptions?.packages?.name ||
-        (request as any).one_time_purchases?.packages?.name ||
+        request.one_time_purchases?.packages?.name ||
         'pacchetto'
     await supabase.from('user_notifications').insert({
         user_id: request.user_id,

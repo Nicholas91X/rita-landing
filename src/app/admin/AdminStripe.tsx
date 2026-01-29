@@ -396,7 +396,7 @@ export default function AdminStripe() {
                                             <td colSpan={3} className="px-6 py-12 text-center">
                                                 <div className="flex flex-col items-center justify-center space-y-2">
                                                     <p className="text-white font-bold italic">Nessuna transazione trovata nel database locale</p>
-                                                    <p className="text-neutral-400 text-xs">Usa il tasto "Sincronizza" in alto per importare i dati da Stripe</p>
+                                                    <p className="text-neutral-400 text-xs">Usa il tasto &quot;Sincronizza&quot; in alto per importare i dati da Stripe</p>
                                                 </div>
                                             </td>
                                         </tr>

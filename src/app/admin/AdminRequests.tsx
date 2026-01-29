@@ -77,6 +77,7 @@ export default function AdminRequests() {
 
     useEffect(() => {
         loadData()
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [currentPageNotifs, currentPageRefunds])
 
     useEffect(() => {
@@ -110,6 +111,7 @@ export default function AdminRequests() {
             supabase.removeChannel(refundChannel)
             supabase.removeChannel(notifChannel)
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [])
 
     const handleAction = async (requestId: string, status: 'approved' | 'rejected') => {

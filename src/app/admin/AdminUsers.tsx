@@ -70,11 +70,13 @@ export default function AdminUsers() {
             loadUsers(1, searchTerm)
         }, 300) // Debounce search
         return () => clearTimeout(timer)
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [searchTerm])
 
     // Reload when page changes
     useEffect(() => {
         loadUsers(currentPage, searchTerm)
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [currentPage])
 
     // Reset history pagination when changing user

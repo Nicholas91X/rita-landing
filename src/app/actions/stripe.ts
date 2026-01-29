@@ -9,6 +9,14 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || 'sk_test_placeholder'
     apiVersion: '2025-12-15.clover' as unknown as Stripe.LatestApiVersion,
 })
 
+interface RefundInsertData {
+    user_id: string
+    reason: string
+    status: string
+    subscription_id?: string
+    purchase_id?: string
+}
+
 export async function createCheckoutSession(packageId: string) {
     const supabase = await createClient()
 
@@ -178,7 +186,7 @@ export async function requestRefund(id: string, reason: string, type: 'subscript
         throw new Error('Non è possibile richiedere un rimborso dopo 4 giorni.')
     }
 
-    const insertData: any = {
+    const insertData: RefundInsertData = {
         user_id: user.id,
         reason,
         status: 'pending'

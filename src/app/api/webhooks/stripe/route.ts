@@ -185,7 +185,7 @@ export async function POST(req: Request) {
         }
     }
     else if (event.type === 'invoice.payment_succeeded') {
-        const invoice = event.data.object as any
+        const invoice = event.data.object as Stripe.Invoice & { charge: string | Stripe.Charge | null }
         if (invoice.charge) {
             const supabaseAdmin = createClient(
                 process.env.NEXT_PUBLIC_SUPABASE_URL!,
