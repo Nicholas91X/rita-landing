@@ -2,6 +2,7 @@
 
 import { createClient } from '@/utils/supabase/server'
 import { redirect } from 'next/navigation'
+import { unstable_cache } from 'next/cache'
 import Stripe from 'stripe'
 import { reconcileUserBadges } from './video'
 
@@ -25,6 +26,69 @@ interface ProfileUpdates {
     full_name?: string
     avatar_url?: string
 }
+
+/**
+ * Cached function to fetch Stripe documents (invoices + credit notes) for a customer.
+ * Cache TTL: 5 minutes. Revalidates on billing-related tags.
+ */
+const getCachedStripeDocuments = unstable_cache(
+    async (customerId: string, subscriptionId?: string): Promise<UserDocument[]> => {
+        try {
+            const invoiceFetchOptions: Stripe.InvoiceListParams = {
+                customer: customerId,
+                limit: 20,
+            }
+
+            if (subscriptionId) {
+                invoiceFetchOptions.subscription = subscriptionId
+            }
+
+            const [invoices, creditNotes] = await Promise.all([
+                stripe.invoices.list(invoiceFetchOptions),
+                stripe.creditNotes.list({ customer: customerId, limit: 20 })
+            ])
+
+            const invoiceIds = invoices.data.map(i => i.id)
+
+            // Map invoices to documents
+            const invoiceDocs: UserDocument[] = invoices.data.map((inv) => ({
+                id: inv.id,
+                type: 'invoice' as const,
+                number: inv.number || '',
+                date: inv.created,
+                amount: inv.total / 100,
+                currency: inv.currency,
+                url: inv.hosted_invoice_url || inv.invoice_pdf || null,
+                status: inv.status
+            }))
+
+            // Map credit notes to documents
+            const creditNoteDocs: UserDocument[] = creditNotes.data
+                .filter(cn => cn.invoice && invoiceIds.includes(cn.invoice as string))
+                .map(cn => ({
+                    id: cn.id,
+                    type: 'credit_note' as const,
+                    number: cn.number,
+                    date: cn.created,
+                    amount: cn.amount / 100,
+                    currency: cn.currency,
+                    url: cn.pdf,
+                    status: cn.status
+                }))
+
+            // Combine and sort by date descending
+            return [...invoiceDocs, ...creditNoteDocs].sort((a, b) => b.date - a.date)
+        } catch (err) {
+            console.error('Error fetching Stripe documents:', err)
+            return []
+        }
+    },
+    ['stripe-documents'],
+    {
+        revalidate: 300, // 5 minutes cache
+        tags: ['billing', 'stripe-documents']
+    }
+)
 
 export async function getUserSubscriptionInfo() {
     const supabase = await createClient()
@@ -159,60 +223,8 @@ export async function getUserSubscriptionInfo() {
         }
 
         if (customerId) {
-            try {
-                // Fetch invoices for this specific subscription if available
-                const invoiceFetchOptions: Stripe.InvoiceListParams = {
-                    customer: customerId,
-                    limit: 20,
-                }
-
-                if (sub.stripe_subscription_id) {
-                    invoiceFetchOptions.subscription = sub.stripe_subscription_id
-                }
-
-                const invoices = await stripe.invoices.list(invoiceFetchOptions)
-
-                // Fetch all credit notes for this customer (Stripe doesn't support direct subscription filter)
-                const creditNotes = await stripe.creditNotes.list({
-                    customer: customerId,
-                    limit: 20,
-                })
-
-                const invoiceIds = invoices.data.map(i => i.id)
-
-                // Map invoices to documents
-                const invoiceDocs: UserDocument[] = invoices.data.map((inv) => ({
-                    id: inv.id,
-                    type: 'invoice' as const,
-                    number: inv.number || '',
-                    date: inv.created,
-                    amount: inv.total / 100,
-                    currency: inv.currency,
-                    url: inv.hosted_invoice_url || inv.invoice_pdf || null,
-                    status: inv.status
-                }))
-
-                // Map credit notes to documents, filtering those that belong to the relevant invoices
-                // or have the same subscription metadata if applicable (usually CNs are tied to invoices)
-                const creditNoteDocs: UserDocument[] = creditNotes.data
-                    .filter(cn => cn.invoice && invoiceIds.includes(cn.invoice as string))
-                    .map(cn => ({
-                        id: cn.id,
-                        type: 'credit_note' as const,
-                        number: cn.number,
-                        date: cn.created,
-                        amount: cn.amount / 100,
-                        currency: cn.currency,
-                        url: cn.pdf,
-                        status: cn.status
-                    }))
-
-                // Combine and sort by date descending
-                documents = [...invoiceDocs, ...creditNoteDocs].sort((a, b) => b.date - a.date)
-
-            } catch (err) {
-                console.error('Error fetching documentation for customer:', sub.stripe_customer_id, err)
-            }
+            // Use cached function to fetch Stripe documents
+            documents = await getCachedStripeDocuments(customerId, sub.stripe_subscription_id || undefined)
         }
 
         const pkg = (Array.isArray(sub.packages) ? sub.packages[0] : sub.packages) as { name: string; description: string; price: number; image_url: string | null } | null
