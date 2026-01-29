@@ -327,11 +327,33 @@ export async function getUserProfile() {
         .select('*, packages(name)')
         .eq('user_id', user.id)
 
+    const { data: oneTimePurchases } = await supabase
+        .from('one_time_purchases')
+        .select(`
+            id,
+            created_at,
+            status,
+            packages (
+                id,
+                name,
+                description,
+                image_url
+            )
+        `)
+        .eq('user_id', user.id)
+        .neq('status', 'refunded') // We only want valid purchases
+
+    const normalizedPurchases = (oneTimePurchases || []).map(p => ({
+        ...p,
+        packages: Array.isArray(p.packages) ? p.packages[0] : p.packages
+    }))
+
     return {
         user,
         profile,
         activeSubscriptions: activeSubs || [],
-        badges: badges || []
+        badges: badges || [],
+        oneTimePurchases: normalizedPurchases
     }
 }
 

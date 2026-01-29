@@ -13,12 +13,24 @@ export default function HomeSection({
     levels,
     progress,
     onShowLibrary,
-    userName
+    userName,
+    oneTimePurchases = []
 }: {
     levels: Level[],
     progress: LibraryProgress[],
     onShowLibrary: () => void,
-    userName?: string
+    userName?: string,
+    oneTimePurchases?: Array<{
+        id: string;
+        created_at: string;
+        status: string;
+        packages: {
+            id: string;
+            name: string;
+            description: string;
+            image_url: string | null;
+        } | null;
+    }>
 }) {
     // Determine the "Boarding Pass" package:
     // 1. Find the first purchased package that is NOT fully completed.
@@ -178,39 +190,24 @@ export default function HomeSection({
                 </div>
             </div>
 
-            {/* Personalized Section */}
-            {(() => {
-                const personalizedPackages = []
-                for (const level of levels) {
-                    for (const course of level.courses) {
-                        // Check if this is a "Personalizzato" course
-                        const isPersonalized = course.name.toLowerCase().includes('personalizzato')
-                        if (isPersonalized) {
-                            for (const pkg of course.packages) {
-                                if (pkg.isPurchased) {
-                                    personalizedPackages.push(pkg)
-                                }
-                            }
-                        }
-                    }
-                }
+            {/* Personalized Section - Now Single Purchases */}
+            {oneTimePurchases.length > 0 && (
+                <div className="space-y-6">
+                    <h4 className="text-xl md:text-2xl font-bold text-[#593e25] tracking-tight uppercase">
+                        Il tuo percorso personalizzato
+                    </h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        {oneTimePurchases.map((purchase) => {
+                            if (purchase.status === 'refunded' || !purchase.packages) return null
 
-                if (personalizedPackages.length === 0) return null
-
-                return (
-                    <div className="space-y-6">
-                        <h4 className="text-xl md:text-2xl font-bold text-[#593e25] tracking-tight uppercase">
-                            Il tuo percorso personalizzato
-                        </h4>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            {personalizedPackages.map((pkg) => (
-                                <Link key={pkg.id} href={`/dashboard/package/${pkg.id}`}>
-                                    <div className="bg-white rounded-[24px] overflow-hidden border border-[#846047]/20 shadow-lg hover:shadow-xl transition-all duration-300 group">
-                                        <div className="relative h-48">
-                                            {pkg.image_url ? (
+                            return (
+                                <Link key={purchase.id} href={`/dashboard/package/${purchase.packages.id}?purchaseId=${purchase.id}`}>
+                                    <div className="bg-white rounded-[24px] overflow-hidden border border-[#846047]/20 shadow-lg hover:shadow-xl transition-all duration-300 group flex flex-col h-full">
+                                        <div className="relative h-48 shrink-0">
+                                            {purchase.packages.image_url ? (
                                                 <Image
-                                                    src={pkg.image_url}
-                                                    alt={pkg.name}
+                                                    src={purchase.packages.image_url}
+                                                    alt={purchase.packages.name}
                                                     fill
                                                     className="object-cover group-hover:scale-105 transition-transform duration-700"
                                                 />
@@ -220,82 +217,45 @@ export default function HomeSection({
                                                 </div>
                                             )}
                                             <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-                                            <div className="absolute bottom-4 left-6">
-                                                <h5 className="text-white text-xl font-black italic uppercase tracking-tight">{pkg.name}</h5>
+                                            <div className="absolute bottom-4 left-6 right-6">
+                                                <h5 className="text-white text-xl font-black italic uppercase tracking-tight line-clamp-2">{purchase.packages.name}</h5>
+                                            </div>
+                                            <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-sm px-3 py-1 rounded-full text-[10px] font-black uppercase text-[#846047] shadow-sm">
+                                                {new Date(purchase.created_at).toLocaleDateString('it-IT')}
                                             </div>
                                         </div>
-                                        <div className="p-6 flex justify-between items-center">
-                                            <span className="text-xs font-bold text-[#846047] uppercase tracking-widest">Vai al percorso</span>
-                                            <div className="w-8 h-8 rounded-full bg-[#f3efec] flex items-center justify-center group-hover:bg-[#846047] group-hover:text-white transition-colors">
-                                                <ArrowRight className="w-4 h-4" />
+                                        <div className="p-6 flex justify-between items-center mt-auto">
+                                            <div className="flex flex-col">
+                                                <span className="text-[10px] text-neutral-400 font-bold uppercase tracking-wider mb-0.5">Stato</span>
+                                                <span className={`
+                                                    inline-block text-xs font-bold uppercase tracking-widest flex items-center gap-1
+                                                    ${purchase.status === 'delivered' ? 'text-emerald-600' :
+                                                        purchase.status === 'processing_plan' ? 'text-amber-600' :
+                                                            purchase.status === 'pending_appointment' ? 'text-blue-600' : 'text-[#846047]'}
+                                                 `}>
+                                                    <div className={`w-1.5 h-1.5 rounded-full animate-pulse
+                                                        ${purchase.status === 'delivered' ? 'bg-emerald-500' :
+                                                            purchase.status === 'processing_plan' ? 'bg-amber-500' :
+                                                                purchase.status === 'pending_appointment' ? 'bg-blue-500' : 'bg-[#846047]'}
+                                                    `} />
+                                                    {purchase.status === 'delivered' ? 'Pronto' :
+                                                        purchase.status === 'processing_plan' ? 'In Lavorazione' :
+                                                            purchase.status === 'pending_appointment' ? 'Da Prenotare' : 'Attivo'}
+                                                </span>
                                             </div>
-                                        </div>
-                                    </div>
-                                </Link>
-                            ))}
-                        </div>
-                    </div>
-                )
-            })()}
-
-            {/* Other One-Time Purchases Section */}
-            {(() => {
-                const oneTimePurchases = []
-                for (const level of levels) {
-                    for (const course of level.courses) {
-                        // Exclude personalized from this generic list
-                        if (course.name.toLowerCase().includes('personalizzato')) continue
-
-                        for (const pkg of course.packages) {
-                            if (pkg.isPurchased && pkg.payment_mode === 'payment') {
-                                oneTimePurchases.push(pkg)
-                            }
-                        }
-                    }
-                }
-
-                if (oneTimePurchases.length === 0) return null
-
-                return (
-                    <div className="space-y-6">
-                        <h4 className="text-xl md:text-2xl font-bold text-[#593e25] tracking-tight uppercase">
-                            Altri Percorsi Esclusivi
-                        </h4>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            {oneTimePurchases.map((pkg) => (
-                                <Link key={pkg.id} href={`/dashboard/package/${pkg.id}`}>
-                                    <div className="bg-white rounded-[24px] overflow-hidden border border-[#846047]/20 shadow-lg hover:shadow-xl transition-all duration-300 group">
-                                        <div className="relative h-48">
-                                            {pkg.image_url ? (
-                                                <Image
-                                                    src={pkg.image_url}
-                                                    alt={pkg.name}
-                                                    fill
-                                                    className="object-cover group-hover:scale-105 transition-transform duration-700"
-                                                />
-                                            ) : (
-                                                <div className="w-full h-full bg-[#f3efec] flex items-center justify-center">
-                                                    <span className="text-4xl">✨</span>
-                                                </div>
-                                            )}
-                                            <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-                                            <div className="absolute bottom-4 left-6">
-                                                <h5 className="text-white text-xl font-black italic uppercase tracking-tight">{pkg.name}</h5>
-                                            </div>
-                                        </div>
-                                        <div className="p-6 flex justify-between items-center">
-                                            <span className="text-xs font-bold text-[#846047] uppercase tracking-widest">Vai al percorso</span>
-                                            <div className="w-8 h-8 rounded-full bg-[#f3efec] flex items-center justify-center group-hover:bg-[#846047] group-hover:text-white transition-colors">
-                                                <ArrowRight className="w-4 h-4" />
+                                            <div className="w-10 h-10 rounded-full bg-[#f3efec] flex items-center justify-center group-hover:bg-[#846047] group-hover:text-white transition-colors shadow-sm">
+                                                <ArrowRight className="w-5 h-5" />
                                             </div>
                                         </div>
                                     </div>
                                 </Link>
-                            ))}
-                        </div>
+                            )
+                        })}
                     </div>
-                )
-            })()}
+                </div>
+            )}
+
+
         </div>
     )
 }

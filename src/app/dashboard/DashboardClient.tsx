@@ -38,6 +38,17 @@ interface DashboardProfile {
             name: string;
         };
     }>;
+    oneTimePurchases: Array<{
+        id: string;
+        created_at: string;
+        status: string;
+        packages: {
+            id: string;
+            name: string;
+            description: string;
+            image_url: string | null;
+        } | null;
+    }>;
 }
 
 export default function DashboardClient({ levels }: { levels: Level[] }) {
@@ -91,7 +102,7 @@ export default function DashboardClient({ levels }: { levels: Level[] }) {
 
         switch (activeTab) {
             case 'home':
-                return <HomeSection levels={levels} progress={libraryProgress} onShowLibrary={() => setActiveTab('training')} userName={firstName} />
+                return <HomeSection levels={levels} progress={libraryProgress} onShowLibrary={() => setActiveTab('training')} userName={firstName} oneTimePurchases={userProfile?.oneTimePurchases || []} />
             case 'training':
                 return <TrainingSection
                     levels={levels}
@@ -106,7 +117,7 @@ export default function DashboardClient({ levels }: { levels: Level[] }) {
             case 'profile':
                 return <ProfileSection onProfileUpdate={fetchUserProfile} activeSubTab={profileSubTab} />
             default:
-                return <HomeSection levels={levels} progress={libraryProgress} onShowLibrary={() => setActiveTab('training')} />
+                return <HomeSection levels={levels} progress={libraryProgress} onShowLibrary={() => setActiveTab('training')} oneTimePurchases={userProfile?.oneTimePurchases || []} />
         }
     }
 

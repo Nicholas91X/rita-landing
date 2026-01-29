@@ -29,6 +29,17 @@ interface DashboardProfile {
             name: string;
         };
     }>;
+    oneTimePurchases: Array<{
+        id: string;
+        created_at: string;
+        status: string;
+        packages: {
+            id: string;
+            name: string;
+            description: string;
+            image_url: string | null;
+        } | null;
+    }>;
 }
 
 interface TrainingSectionProps {
@@ -87,6 +98,7 @@ export default function TrainingSection({ levels, progress, userProfile, userNam
                             progress={progress}
                             onShowDiscover={() => setSubTab('new-trainings')}
                             userName={userName}
+                            oneTimePurchases={userProfile?.oneTimePurchases || []}
                         />
                     </div>
                 ) : (
