@@ -44,6 +44,7 @@ export default function PackageClient({ pkg, videos }: { pkg: Package, videos: V
     const [loadingProgress, setLoadingProgress] = useState(true)
     const [showCelebration, setShowCelebration] = useState(false)
     const [celebrated, setCelebrated] = useState(false)
+    const [imageErrors, setImageErrors] = useState<Record<string, boolean>>({})
     const router = useRouter()
 
     const [initialLoadDone, setInitialLoadDone] = useState(false)
@@ -196,13 +197,23 @@ export default function PackageClient({ pkg, videos }: { pkg: Package, videos: V
                                                 </span>
                                             )}
                                         </div>
-                                        <h1 className="text-3xl lg:text-5xl font-black text-[var(--foreground)] tracking-tight ts-white flex items-center gap-3 flex-wrap">
-                                            <Footprints className="w-8 h-8 lg:w-12 lg:h-12 shrink-0" />
-                                            <span className="break-words">
-                                                {activeVideo.tappa || `Tappa ${activeVideo.order_index || (videos.indexOf(activeVideo) + 1)}`}
+                                        <div className="flex flex-col">
+                                            <span className="text-xs font-black uppercase tracking-[0.3em] text-[#846047] mb-2">
+                                                {activeVideo.video_type?.replace('_', ' ') || 'Lezione'} • TAPPA {activeVideo.order_index || (videos.indexOf(activeVideo) + 1)}
                                             </span>
-                                        </h1>
-                                        <div className="flex items-center gap-6 text-sm text-[var(--foreground)]/60 font-medium">
+                                            <h1 className="text-3xl lg:text-5xl font-black text-[var(--foreground)] tracking-tight ts-white flex items-center gap-3 flex-wrap">
+                                                <Footprints className="w-8 h-8 lg:w-12 lg:h-12 shrink-0" />
+                                                <span className="break-words">
+                                                    {activeVideo.tappa || activeVideo.title}
+                                                </span>
+                                            </h1>
+                                            {activeVideo.tappa && (
+                                                <p className="text-sm font-medium text-[var(--foreground)]/40 mt-2">
+                                                    {activeVideo.title}
+                                                </p>
+                                            )}
+                                        </div>
+                                        <div className="flex items-center gap-6 text-sm text-[var(--foreground)]/60 font-medium mt-2">
                                             <div className="flex items-center gap-2">
                                                 <Clock className="w-4 h-4 text-[var(--brand)]" />
                                                 <span>
@@ -348,7 +359,7 @@ export default function PackageClient({ pkg, videos }: { pkg: Package, videos: V
                                                         <>
                                                             <div className="absolute inset-0 bg-neutral-100" />
                                                             <Image
-                                                                src={`https://${process.env.NEXT_PUBLIC_BUNNY_CDN_HOSTNAME}/${v.bunny_video_id}/preview.webp`}
+                                                                src={imageErrors[v.id] ? "/images/video-placeholder.png" : `https://${process.env.NEXT_PUBLIC_BUNNY_CDN_HOSTNAME}/${v.bunny_video_id}/preview.webp`}
                                                                 alt={v.title}
                                                                 className={cn(
                                                                     "w-full h-full object-cover transition-opacity duration-300",
@@ -357,6 +368,7 @@ export default function PackageClient({ pkg, videos }: { pkg: Package, videos: V
                                                                 loading="lazy"
                                                                 fill
                                                                 sizes="96px"
+                                                                onError={() => setImageErrors(prev => ({ ...prev, [v.id]: true }))}
                                                             />
                                                         </>
                                                     )}
@@ -365,27 +377,30 @@ export default function PackageClient({ pkg, videos }: { pkg: Package, videos: V
 
                                             {/* Text Content (Right) */}
                                             <div className="flex-1 min-w-0 py-1">
-                                                <div className="flex items-center gap-2 mb-0.5">
+                                                <div className="flex flex-col gap-0.5 mb-1">
                                                     <span className={cn(
-                                                        "text-[12px] font-medium",
+                                                        "text-[10px] font-black uppercase tracking-wider",
                                                         isBonus ? "text-amber-600" : "text-[#c49285]"
                                                     )}>
-                                                        {isBonus ? "Bonus" : (v.tappa || `Tappa ${globalIndex + 1}`)}
+                                                        {isBonus ? "Bonus" : `Tappa ${v.order_index || globalIndex + 1}`}
                                                     </span>
-                                                    {v.video_type && !isBonus && (
-                                                        <span className="text-[10px] bg-[#846047]/10 text-[#846047] px-1.5 py-0.5 rounded uppercase font-black tracking-wider">
-                                                            {v.video_type.replace('_', ' ')}
-                                                        </span>
+                                                    {v.tappa && (
+                                                        <h4 className="font-bold text-[15px] leading-tight text-[#2a2e30]">
+                                                            {v.tappa}
+                                                        </h4>
                                                     )}
                                                 </div>
-                                                <h4 className="font-bold text-[15px] leading-tight line-clamp-2 mb-1 text-[#2a2e30]">
-                                                    {v.title}
-                                                </h4>
                                                 <div className="flex items-center gap-2 opacity-60">
-                                                    <Clock className="w-3.5 h-3.5 text-gray-400" />
-                                                    <span className="text-[12px] font-medium text-gray-500">
-                                                        {v.duration_minutes || 31} minuti
+                                                    <span className="text-[11px] font-medium text-gray-400 truncate max-w-[120px]">
+                                                        {v.title}
                                                     </span>
+                                                    <span className="w-0.5 h-0.5 rounded-full bg-gray-300" />
+                                                    <div className="flex items-center gap-1 shrink-0">
+                                                        <Clock className="w-3 h-3 text-gray-400" />
+                                                        <span className="text-[11px] font-medium text-gray-400">
+                                                            {v.duration_minutes || 31}m
+                                                        </span>
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
