@@ -10,18 +10,23 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Button } from '@/components/ui/button'
 import { useRouter } from 'next/navigation'
 import confetti from 'canvas-confetti'
+import { cn } from '@/lib/utils'
 
 type Video = {
     id: string
     title: string
     bunny_video_id: string
     order_index?: number
+    video_type?: string
+    tappa?: string
+    duration_minutes?: number
 }
 
 type Package = {
     id: string
     name: string
     description: string
+    subtitle?: string | null
 }
 
 type WatchProgress = {
@@ -142,7 +147,7 @@ export default function PackageClient({ pkg, videos }: { pkg: Package, videos: V
                             <div className="flex flex-col">
                                 <h2 className="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--brand)] mb-0.5 leading-none">Corso in corso</h2>
                                 <h1 className="text-sm md:text-base font-bold text-[#2a2e30] truncate max-w-[150px] sm:max-w-[200px] lg:max-w-md">
-                                    {pkg.name.toLowerCase().includes('pilates') && pkg.name.toLowerCase().includes('principiante') ? 'Destinazione Bali' : pkg.name}
+                                    {pkg.name}
                                 </h1>
                             </div>
                         </div>
@@ -159,7 +164,7 @@ export default function PackageClient({ pkg, videos }: { pkg: Package, videos: V
                                 {/* Immersive Video Container */}
                                 <h2 className="text-xl md:text-2xl font-black uppercase tracking-tight mb-10">
                                     <span className="text-[#846047]">MESE 1: </span>
-                                    <span className="text-[#2a2e30]">BALI</span> <span className="font-black text-gray-500">(equilibrio & drenaggio)</span> 🌿
+                                    <span className="text-[#2a2e30]">{pkg.name}</span> {pkg.subtitle && <span className="font-black text-gray-500">({pkg.subtitle})</span>} {pkg.name.toLowerCase().includes('bali') ? '🌿' : pkg.name.toLowerCase().includes('avana') ? '🇨🇺' : pkg.name.toLowerCase().includes('new york') ? '🗽' : '✨'}
                                 </h2>
                                 <div className="relative group flex-none">
                                     <div className="absolute -inset-4 bg-[var(--brand)]/20 blur-3xl rounded-full opacity-40 group-hover:opacity-60 transition-opacity duration-1000 hidden md:block" />
@@ -194,7 +199,7 @@ export default function PackageClient({ pkg, videos }: { pkg: Package, videos: V
                                         <h1 className="text-3xl lg:text-5xl font-black text-[var(--foreground)] tracking-tight ts-white flex items-center gap-3 flex-wrap">
                                             <Footprints className="w-8 h-8 lg:w-12 lg:h-12 shrink-0" />
                                             <span className="break-words">
-                                                Tappa {activeVideo.order_index ?? (videos.indexOf(activeVideo) + 1)}
+                                                {activeVideo.tappa || `Tappa ${activeVideo.order_index || (videos.indexOf(activeVideo) + 1)}`}
                                             </span>
                                         </h1>
                                         <div className="flex items-center gap-6 text-sm text-[var(--foreground)]/60 font-medium">
@@ -206,9 +211,15 @@ export default function PackageClient({ pkg, videos }: { pkg: Package, videos: V
                                                         : 'Prima visualizzazione'}
                                                 </span>
                                             </div>
+                                            {activeVideo.duration_minutes && (
+                                                <div className="flex items-center gap-2">
+                                                    <Clock className="w-4 h-4 text-[var(--brand)]" />
+                                                    <span>{activeVideo.duration_minutes} minuti</span>
+                                                </div>
+                                            )}
                                         </div>
                                         <p className="text-lg text-[var(--foreground)]/70 max-w-3xl leading-relaxed mt-4">
-                                            {pkg.name.toLowerCase().includes('pilates') && pkg.name.toLowerCase().includes('principiante') ? '🌸 Mese 1: Destinazione Bali (Equilibrio)' : pkg.description}
+                                            {pkg.description}
                                         </p>
                                     </div>
                                 </div>
@@ -282,12 +293,12 @@ export default function PackageClient({ pkg, videos }: { pkg: Package, videos: V
                                     if (activeWeek === 3) return index >= 7 && index <= 9;
                                     if (activeWeek === 4) return index >= 10 && index <= 12;
                                     return false;
-                                }).map((v, i, mappedArr) => {
+                                }).map((v, i) => {
                                     const globalIndex = videos.indexOf(v);
                                     const isActive = v.id === activeVideo.id
                                     const progress = progressData[v.id]
-                                    const percent = progress ? (progress.progress_seconds / progress.duration_seconds) * 100 : 0
                                     const isDone = progress?.is_completed
+                                    const isBonus = v.video_type === 'salsa' || v.video_type === 'bachata';
 
                                     return (
                                         <div
@@ -297,10 +308,11 @@ export default function PackageClient({ pkg, videos }: { pkg: Package, videos: V
                                                 else itemRefs.current.delete(v.id)
                                             }}
                                             onClick={() => setActiveVideo(v)}
-                                            className={`relative p-4 transition-all duration-300 cursor-pointer group flex items-center gap-4 border-b border-[var(--brand)]/10 last:border-0 ${isActive
-                                                ? 'bg-white/80'
-                                                : 'hover:bg-white/40'
-                                                }`}
+                                            className={cn(
+                                                "relative p-4 transition-all duration-300 cursor-pointer group flex items-center gap-4 border-b border-[var(--brand)]/10 last:border-0",
+                                                isActive ? "bg-white/80" : "hover:bg-white/40",
+                                                isBonus && !isActive && "bg-amber-50/30"
+                                            )}
                                         >
                                             {/* Status Indicator (Left) */}
                                             <div className="shrink-0">
@@ -308,8 +320,15 @@ export default function PackageClient({ pkg, videos }: { pkg: Package, videos: V
                                                     <div className="w-8 h-8 rounded-full bg-[#e8e2d9] flex items-center justify-center">
                                                         <CheckCircle2 className="w-5 h-5 text-[#846047]" />
                                                     </div>
+                                                ) : isBonus ? (
+                                                    <div className="w-8 h-8 rounded-full border-2 border-amber-200 bg-amber-50 flex items-center justify-center">
+                                                        <span className="text-[10px]">✨</span>
+                                                    </div>
                                                 ) : (
-                                                    <div className={`w-8 h-8 rounded-full border-2 flex items-center justify-center ${isActive ? 'border-[#846047] bg-[#846047]/10' : 'border-[#e8e2d9]'}`}>
+                                                    <div className={cn(
+                                                        "w-8 h-8 rounded-full border-2 flex items-center justify-center",
+                                                        isActive ? "border-[#846047] bg-[#846047]/10" : "border-[#e8e2d9]"
+                                                    )}>
                                                         {isActive && <div className="w-2.5 h-2.5 rounded-full bg-[#846047]" />}
                                                     </div>
                                                 )}
@@ -317,69 +336,61 @@ export default function PackageClient({ pkg, videos }: { pkg: Package, videos: V
 
                                             {/* Thumbnail (Middle) */}
                                             <div className="relative shrink-0">
-                                                <div className="relative h-16 w-24 rounded-lg overflow-hidden border border-black/5">
-                                                    <div className="absolute inset-0 bg-neutral-100" />
-                                                    <Image
-                                                        src={`https://${process.env.NEXT_PUBLIC_BUNNY_CDN_HOSTNAME}/${v.bunny_video_id}/preview.webp`}
-                                                        alt={v.title}
-                                                        className={`w-full h-full object-cover transition-opacity duration-300 ${isDone ? 'opacity-80' : 'opacity-100'}`}
-                                                        loading="lazy"
-                                                        fill
-                                                        sizes="96px"
-                                                    />
+                                                <div className={cn(
+                                                    "relative h-16 w-24 rounded-lg overflow-hidden border border-black/5",
+                                                    isBonus && "bg-amber-100/50"
+                                                )}>
+                                                    {isBonus ? (
+                                                        <div className="w-full h-full flex items-center justify-center text-2xl">
+                                                            {v.video_type === 'salsa' ? '💃' : '🔥'}
+                                                        </div>
+                                                    ) : (
+                                                        <>
+                                                            <div className="absolute inset-0 bg-neutral-100" />
+                                                            <Image
+                                                                src={`https://${process.env.NEXT_PUBLIC_BUNNY_CDN_HOSTNAME}/${v.bunny_video_id}/preview.webp`}
+                                                                alt={v.title}
+                                                                className={cn(
+                                                                    "w-full h-full object-cover transition-opacity duration-300",
+                                                                    isDone ? "opacity-80" : "opacity-100"
+                                                                )}
+                                                                loading="lazy"
+                                                                fill
+                                                                sizes="96px"
+                                                            />
+                                                        </>
+                                                    )}
                                                 </div>
                                             </div>
 
                                             {/* Text Content (Right) */}
                                             <div className="flex-1 min-w-0 py-1">
-                                                <span className="text-[12px] font-medium text-[#c49285] mb-0.5 block">
-                                                    Tappa {globalIndex + 1}
-                                                </span>
-                                                <h4 className={`font-bold text-[15px] leading-tight line-clamp-2 mb-1 ${isActive ? 'text-[#2a2e30]' : 'text-[#2a2e30]'}`}>
-                                                    {globalIndex === 0 ? "Tirta Empul 🛕" :
-                                                        globalIndex === 1 ? "Le Risaie di Tegalalang 🌾" : v.title}
+                                                <div className="flex items-center gap-2 mb-0.5">
+                                                    <span className={cn(
+                                                        "text-[12px] font-medium",
+                                                        isBonus ? "text-amber-600" : "text-[#c49285]"
+                                                    )}>
+                                                        {isBonus ? "Bonus" : (v.tappa || `Tappa ${globalIndex + 1}`)}
+                                                    </span>
+                                                    {v.video_type && !isBonus && (
+                                                        <span className="text-[10px] bg-[#846047]/10 text-[#846047] px-1.5 py-0.5 rounded uppercase font-black tracking-wider">
+                                                            {v.video_type.replace('_', ' ')}
+                                                        </span>
+                                                    )}
+                                                </div>
+                                                <h4 className="font-bold text-[15px] leading-tight line-clamp-2 mb-1 text-[#2a2e30]">
+                                                    {v.title}
                                                 </h4>
                                                 <div className="flex items-center gap-2 opacity-60">
                                                     <Clock className="w-3.5 h-3.5 text-gray-400" />
-                                                    <span className="text-[12px] font-medium text-gray-500">31 minuti</span>
+                                                    <span className="text-[12px] font-medium text-gray-500">
+                                                        {v.duration_minutes || 31} minuti
+                                                    </span>
                                                 </div>
                                             </div>
                                         </div>
                                     )
-
                                 })}
-
-                                {/* BONUS ITEM for Week 2 & 4 */}
-                                {(activeWeek === 2 || activeWeek === 4) && (
-                                    <div className="relative p-4 flex items-center gap-4 border-b border-[var(--brand)]/10 cursor-default opacity-80 hover:opacity-100 transition-opacity">
-                                        {/* Status Indicator (Left) - Decorative for Bonus */}
-                                        <div className="shrink-0">
-                                            <div className="w-8 h-8 rounded-full border-2 border-amber-200 bg-amber-50 flex items-center justify-center">
-                                                <span className="text-[10px]">✨</span>
-                                            </div>
-                                        </div>
-
-                                        {/* Thumbnail (Middle) */}
-                                        <div className="relative shrink-0">
-                                            <div className="h-16 w-24 rounded-lg bg-amber-100/50 flex items-center justify-center shrink-0 border border-amber-200/50">
-                                                <span className="text-2xl">🍹</span>
-                                            </div>
-                                        </div>
-
-                                        {/* Text Content (Right) */}
-                                        <div className="flex-1 min-w-0 py-1">
-                                            <span className="text-[12px] font-medium text-amber-600 mb-0.5 block">
-                                                Bonus
-                                            </span>
-                                            <h4 className="font-bold text-[15px] text-[#2a2e30] leading-tight mb-1">
-                                                Ritmo Caraibico
-                                            </h4>
-                                            <p className="text-[12px] text-gray-500 leading-tight">
-                                                Lezione extra per sciogliere il bacino
-                                            </p>
-                                        </div>
-                                    </div>
-                                )}
                             </div>
                         </div>
                     </aside>

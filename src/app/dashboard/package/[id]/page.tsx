@@ -47,7 +47,7 @@ export default async function PackagePage(props: { params: Promise<{ id: string 
     // 4. Recupera info Pacchetto
     const { data: pkg } = await supabase
         .from('packages')
-        .select('id, name, description, payment_mode')
+        .select('id, name, description, subtitle, payment_mode')
         .eq('id', packageId)
         .single()
 
@@ -76,7 +76,7 @@ export default async function PackagePage(props: { params: Promise<{ id: string 
     // Altrimenti -> Standard Video View
     const { data: videos } = await supabase
         .from('videos')
-        .select('id, title, bunny_video_id, order_index')
+        .select('id, title, bunny_video_id, order_index, video_type, tappa, duration_minutes')
         .eq('package_id', packageId)
         .order('order_index', { ascending: true })
 

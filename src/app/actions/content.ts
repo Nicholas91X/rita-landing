@@ -8,6 +8,7 @@ export type Package = {
     id: string
     name: string
     title?: string | null
+    subtitle?: string | null
     description: string
     course_id: string
     stripe_price_id: string
@@ -68,6 +69,7 @@ export async function getContentHierarchy() {
                     id, 
                     name,
                     title, 
+                    subtitle,
                     description, 
                     stripe_price_id,
                     price,
@@ -132,6 +134,7 @@ export async function getPublicContentHierarchy() {
                     id, 
                     name,
                     title, 
+                    subtitle,
                     description, 
                     stripe_price_id,
                     price,
