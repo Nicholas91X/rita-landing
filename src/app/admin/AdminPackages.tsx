@@ -138,11 +138,11 @@ export default function AdminPackages() {
 
     return (
         <div className="space-y-6">
-            <div className="flex justify-between items-center">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <h2 className="text-2xl font-bold text-white">
                     Gestione Pacchetti
                 </h2>
-                <Button onClick={() => handleOpenDialog()} className="bg-white text-black hover:bg-neutral-200">
+                <Button onClick={() => handleOpenDialog()} className="bg-white text-black hover:bg-neutral-200 w-full sm:w-auto">
                     <Plus className="w-4 h-4 mr-2" />
                     Nuovo Pacchetto
                 </Button>
