@@ -29,7 +29,7 @@ type OneTimeClient = {
     id: string
     user_id: string
     package_id: string
-    status: 'pending_appointment' | 'processing_plan' | 'delivered'
+    status: 'pending_appointment' | 'processing_plan' | 'delivered' | 'refunded'
     created_at: string
     admin_notes: string | null
     document_url: string | null
@@ -61,6 +61,7 @@ export default function OneToOneClients() {
                     profiles:user_id (full_name, email),
                     packages:package_id (name)
                 `)
+                .neq('status', 'refunded')
                 .order('created_at', { ascending: false })
 
             if (error) throw error
