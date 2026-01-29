@@ -128,12 +128,17 @@ export default function HomeSection({
 
                         {/* Barcode decoration */}
                         <div className="w-full h-8 flex justify-between items-end opacity-20 mb-2">
-                            {[...Array(20)].map((_, i) => (
-                                <div key={i} className="bg-[#2a2e30]" style={{
-                                    width: Math.random() > 0.5 ? '2px' : '4px',
-                                    height: Math.random() > 0.5 ? '100%' : '70%'
-                                }} />
-                            ))}
+                            {[...Array(20)].map((_, i) => {
+                                // Deterministic pattern to avoid hydration mismatch
+                                const pattern = [2, 4, 2, 4, 4, 4, 4, 2, 4, 2, 4, 2, 4, 4, 2, 4, 2, 4, 4, 2];
+                                const heights = ['100%', '70%', '100%', '70%', '100%', '70%', '70%', '100%', '70%', '70%', '100%', '100%', '70%', '70%', '100%', '70%', '100%', '70%', '100%', '70%'];
+                                return (
+                                    <div key={i} className="bg-[#2a2e30]" style={{
+                                        width: `${pattern[i]}px`,
+                                        height: heights[i]
+                                    }} />
+                                );
+                            })}
                         </div>
 
                         <Button asChild size="lg" className="w-full bg-[#345c72] hover:bg-[#345c72]/90 text-[#f3efec] font-black py-6 rounded-xl shadow-lg shadow-black/5 group transition-all">
