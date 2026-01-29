@@ -54,14 +54,16 @@ export default function OneToOneSection() {
                     .neq('status', 'refunded')
                     .order('created_at', { ascending: false })
 
-                // Map purchases to package-like items
-                const purchaseItems: OneTimePackage[] = (purchases || []).map(p => ({
-                    ...p.packages,
-                    id: p.package_id,
-                    purchaseId: p.id,
-                    isPurchased: true,
-                    status: p.status
-                }))
+                // Map purchases to package-like items (filter out null packages)
+                const purchaseItems: OneTimePackage[] = (purchases || [])
+                    .filter(p => p.packages) // Only include purchases with valid package data
+                    .map(p => ({
+                        ...p.packages,
+                        id: p.package_id,
+                        purchaseId: p.id,
+                        isPurchased: true,
+                        status: p.status
+                    }))
 
                 // Template packages that are available to buy (only if NOT purchased)
                 const templatePackages: OneTimePackage[] = (pkgs || [])
@@ -127,7 +129,7 @@ export default function OneToOneSection() {
             ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                     {packages.map((pkg) => (
-                        <Card key={pkg.id} className="overflow-hidden border-none shadow-xl bg-white rounded-3xl flex flex-col h-full hover:shadow-2xl transition-all duration-300 group">
+                        <Card key={pkg.purchaseId || pkg.id} className="overflow-hidden border-none shadow-xl bg-white rounded-3xl flex flex-col h-full hover:shadow-2xl transition-all duration-300 group">
                             <div className="relative h-56 w-full overflow-hidden">
                                 {pkg.image_url ? (
                                     <Image
