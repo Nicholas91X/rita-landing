@@ -2,6 +2,7 @@ import { headers } from 'next/headers'
 import { NextResponse } from 'next/server'
 import Stripe from 'stripe'
 import { createClient } from '@supabase/supabase-js'
+import { revalidateTag } from 'next/cache'
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || 'sk_test_placeholder', {
     apiVersion: '2025-12-15.clover' as unknown as Stripe.LatestApiVersion,
@@ -66,9 +67,30 @@ export async function POST(req: Request) {
                     if (oneTimeError) {
                         console.error('CRITICAL: Error inserting one_time_purchase:', oneTimeError)
                         throw oneTimeError
-                    } else {
-                        console.log('Successfully inserted one_time_purchase record')
                     }
+
+                    // Mirror to stripe_payments (for mirroring/dashboard speed)
+                    if (session.payment_intent) {
+                        const pi = await stripe.paymentIntents.retrieve(session.payment_intent as string, {
+                            expand: ['latest_charge']
+                        })
+                        const charge = pi.latest_charge as Stripe.Charge
+                        if (charge) {
+                            await supabaseAdmin.from('stripe_payments').upsert({
+                                id: charge.id,
+                                user_id: userId,
+                                customer_id: session.customer as string,
+                                amount: (session.amount_total || 0) / 100,
+                                currency: session.currency || 'eur',
+                                status: 'succeeded',
+                                receipt_url: charge.receipt_url,
+                                card_brand: charge.payment_method_details?.card?.brand,
+                                card_last4: charge.payment_method_details?.card?.last4,
+                                created_at: new Date(charge.created * 1000).toISOString()
+                            })
+                        }
+                    }
+                    console.log('Successfully inserted one_time_purchase record')
                 } else if (session.subscription) {
                     // Subscription Logic
                     const stripeSub = await stripe.subscriptions.retrieve(session.subscription as string)
@@ -147,6 +169,8 @@ export async function POST(req: Request) {
                     type: isTrial ? 'trial_start' : 'purchase_confirmation'
                 })
 
+                revalidateTag('admin-stats')
+
                 console.log(`Successfully processed checkout for User ${userId}`)
 
             } catch (err: unknown) {
@@ -158,6 +182,39 @@ export async function POST(req: Request) {
         } else {
             console.warn('Skipping webhook: Missing userId or packageId in session metadata')
             console.log('Session metadata found:', session.metadata)
+        }
+    }
+    else if (event.type === 'invoice.payment_succeeded') {
+        const invoice = event.data.object as any
+        if (invoice.charge) {
+            const supabaseAdmin = createClient(
+                process.env.NEXT_PUBLIC_SUPABASE_URL!,
+                process.env.SUPABASE_SERVICE_ROLE_KEY!
+            )
+
+            // Find user_id from profiles using stripe_customer_id
+            const { data: profile } = await supabaseAdmin
+                .from('profiles')
+                .select('id')
+                .eq('stripe_customer_id', invoice.customer as string)
+                .single()
+
+            const charge = await stripe.charges.retrieve(invoice.charge as string)
+
+            await supabaseAdmin.from('stripe_payments').upsert({
+                id: charge.id,
+                user_id: profile?.id || null,
+                customer_id: invoice.customer as string,
+                amount: invoice.amount_paid / 100,
+                currency: invoice.currency,
+                status: 'succeeded',
+                receipt_url: charge.receipt_url,
+                card_brand: charge.payment_method_details?.card?.brand,
+                card_last4: charge.payment_method_details?.card?.last4,
+                created_at: new Date(charge.created * 1000).toISOString()
+            })
+
+            revalidateTag('admin-stats')
         }
     }
     else if (event.type === 'customer.subscription.updated' || event.type === 'customer.subscription.deleted') {

@@ -23,7 +23,13 @@ export async function getAdminUsers(page: number = 1, pageSize: number = 10, sea
         `, { count: 'exact' })
 
     if (search) {
-        query = query.or(`full_name.ilike.%${search}%,email.ilike.%${search}%`)
+        if (search.includes('@') || search.length > 3 && !search.includes(' ')) {
+            // Optimize for email or unambiguous single-word search (prefix matching)
+            query = query.or(`email.ilike.${search}%,full_name.ilike.${search}%`)
+        } else {
+            // Fallback to broad search
+            query = query.or(`full_name.ilike.%${search}%,email.ilike.%${search}%`)
+        }
     }
 
     const { data: users, error, count } = await query

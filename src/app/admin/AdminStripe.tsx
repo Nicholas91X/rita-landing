@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { getStripeDashboardData, cancelSubscription, refundPayment } from '@/app/actions/admin_actions/sales'
+import { getStripeDashboardData, cancelSubscription, refundPayment, syncStripePayments } from '@/app/actions/admin_actions/sales'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import {
     Dialog,
@@ -54,6 +54,7 @@ export default function AdminStripe() {
     const [isCancelDialogOpen, setIsCancelDialogOpen] = useState(false)
     const [isRefundDialogOpen, setIsRefundDialogOpen] = useState(false)
     const [submitting, setSubmitting] = useState(false)
+    const [syncing, setSyncing] = useState(false)
 
     // Pagination & Filter State
     const ITEMS_PER_PAGE = 8
@@ -111,6 +112,19 @@ export default function AdminStripe() {
             toast.error('Errore durante il rimborso')
         } finally {
             setSubmitting(false)
+        }
+    }
+
+    const handleSync = async () => {
+        setSyncing(true)
+        try {
+            const res = await syncStripePayments()
+            toast.success(`Sincronizzazione completata: ${res.count} transazioni importate`)
+            loadData()
+        } catch {
+            toast.error('Errore durante la sincronizzazione')
+        } finally {
+            setSyncing(false)
         }
     }
 
@@ -220,7 +234,7 @@ export default function AdminStripe() {
                 <h2 className="text-2xl font-bold text-white">
                     Pannello Stripe
                 </h2>
-                <div className="flex items-center gap-3 w-full sm:w-auto">
+                <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
                     <div className="relative w-full sm:w-64">
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400" />
                         <Input
@@ -230,10 +244,31 @@ export default function AdminStripe() {
                             className="pl-9 bg-neutral-900 border-neutral-800 focus:ring-emerald-500/20 text-white placeholder:text-neutral-400"
                         />
                     </div>
-                    <Button variant="outline" size="sm" onClick={loadData} className="border-neutral-700 bg-neutral-900 h-10 text-white hover:bg-neutral-800">
-                        <RefreshCcw className="w-4 h-4 mr-2" />
-                        Aggiorna
-                    </Button>
+                    <div className="flex items-center gap-2 w-full sm:w-auto">
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={handleSync}
+                            disabled={syncing}
+                            className="flex-1 sm:flex-initial border-neutral-700 bg-neutral-900 h-10 text-white hover:bg-neutral-800"
+                        >
+                            {syncing ? (
+                                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                            ) : (
+                                <RotateCcw className="w-4 h-4 mr-2" />
+                            )}
+                            Sincronizza
+                        </Button>
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={loadData}
+                            className="flex-1 sm:flex-initial border-neutral-700 bg-neutral-900 h-10 text-white hover:bg-neutral-800"
+                        >
+                            <RefreshCcw className="w-4 h-4 mr-2" />
+                            Aggiorna
+                        </Button>
+                    </div>
                 </div>
             </div>
 
@@ -358,8 +393,11 @@ export default function AdminStripe() {
                                     ))}
                                     {filteredPayments.length === 0 && (
                                         <tr>
-                                            <td colSpan={3} className="px-6 py-12 text-center text-white font-bold italic">
-                                                Nessuna transazione trovata
+                                            <td colSpan={3} className="px-6 py-12 text-center">
+                                                <div className="flex flex-col items-center justify-center space-y-2">
+                                                    <p className="text-white font-bold italic">Nessuna transazione trovata nel database locale</p>
+                                                    <p className="text-neutral-400 text-xs">Usa il tasto "Sincronizza" in alto per importare i dati da Stripe</p>
+                                                </div>
                                             </td>
                                         </tr>
                                     )}

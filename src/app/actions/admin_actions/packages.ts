@@ -3,6 +3,7 @@
 import { createClient } from '@/utils/supabase/server'
 import { isAdmin } from '@/utils/supabase/admin'
 import Stripe from 'stripe'
+import { revalidateTag } from 'next/cache'
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || 'sk_test_placeholder', {
     apiVersion: '2025-12-15.clover' as unknown as Stripe.LatestApiVersion,
@@ -110,6 +111,7 @@ export async function createPackage(formData: FormData) {
         })
 
     if (error) throw new Error(error.message)
+    revalidateTag('admin-stats')
     return { success: true }
 }
 
@@ -203,5 +205,6 @@ export async function updatePackage(id: string, formData: FormData) {
         .eq('id', id)
 
     if (error) throw new Error(error.message)
+    revalidateTag('admin-stats')
     return { success: true }
 }

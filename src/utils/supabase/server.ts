@@ -1,5 +1,6 @@
 import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
+import { createClient as createBaseClient } from '@supabase/supabase-js'
 
 export async function createClient(options?: { preventVerifierDeletion?: boolean }) {
     const cookieStore = await cookies()
@@ -30,5 +31,12 @@ export async function createClient(options?: { preventVerifierDeletion?: boolean
                 },
             },
         }
+    )
+}
+
+export async function createServiceRoleClient() {
+    return createBaseClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co',
+        process.env.SUPABASE_SERVICE_ROLE_KEY || 'placeholder'
     )
 }

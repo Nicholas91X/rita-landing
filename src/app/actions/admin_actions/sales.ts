@@ -1,125 +1,210 @@
 'use server'
 
-import { createClient } from '@/utils/supabase/server'
+import { createClient, createServiceRoleClient } from '@/utils/supabase/server'
 import { isAdmin } from '@/utils/supabase/admin'
-import { revalidatePath } from 'next/cache'
+import { revalidatePath, unstable_cache } from 'next/cache'
 import Stripe from 'stripe'
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || 'sk_test_placeholder', {
     apiVersion: '2025-12-15.clover' as unknown as Stripe.LatestApiVersion,
 })
 
-export async function getAdminStats() {
-    const isSuperAdmin = await isAdmin()
+export async function getAdminStats(userId?: string) {
+    const isSuperAdmin = await isAdmin(userId)
     if (!isSuperAdmin) throw new Error('Unauthorized')
 
-    const supabase = await createClient()
-
-    const { count: totalUsers } = await supabase
-        .from('profiles')
-        .select('*', { count: 'exact', head: true })
-
-    const { count: activeSubscriptions } = await supabase
-        .from('user_subscriptions')
-        .select('*', { count: 'exact', head: true })
-        .eq('status', 'active')
-
-    const { count: totalOneTimePurchases } = await supabase
-        .from('one_time_purchases')
-        .select('*', { count: 'exact', head: true })
-        .neq('status', 'refunded')
-
-    const libraryId = process.env.BUNNY_LIBRARY_ID?.trim()
-    const apiKey = process.env.BUNNY_LIBRARY_API_KEY?.trim()
-
-    let totalVideos = 0
-    let totalViews = 0
-    let bandwidthUsed = 0
-
-    if (libraryId && apiKey) {
-        try {
-            const videoRes = await fetch(`https://video.bunnycdn.com/library/${libraryId}/videos?itemsPerPage=1`, {
-                headers: { 'AccessKey': apiKey }
-            })
-            if (videoRes.ok) {
-                const videoData = await videoRes.json()
-                totalVideos = videoData.totalItems || 0
-            }
-
-            const dateTo = new Date().toISOString().split('T')[0]
-            const dateFrom = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
-
-            const statsRes = await fetch(`https://video.bunnycdn.com/library/${libraryId}/statistics?dateFrom=${dateFrom}&dateTo=${dateTo}`, {
-                headers: { 'AccessKey': apiKey }
-            })
-
-            if (statsRes.ok) {
-                const statsData = await statsRes.json()
-                totalViews = statsData.views || 0
-                bandwidthUsed = statsData.bandwidthUsed || 0
-            }
-        } catch (e) {
-            console.error('Failed to fetch Bunny stats:', e)
-        }
-    }
-
-    return {
-        supabase: {
-            totalUsers: totalUsers || 0,
-            activeSubscriptions: activeSubscriptions || 0,
-            totalOneTimePurchases: totalOneTimePurchases || 0
-        },
-        bunny: {
-            totalVideos,
-            totalViews,
-            bandwidthUsed
-        }
-    }
+    return await cachedAdminStats()
 }
+
+const cachedAdminStats = unstable_cache(
+    async () => {
+        const supabase = await createServiceRoleClient()
+
+        const { count: totalUsers } = await supabase
+            .from('profiles')
+            .select('*', { count: 'exact', head: true })
+
+        const { count: activeSubscriptions } = await supabase
+            .from('user_subscriptions')
+            .select('*', { count: 'exact', head: true })
+            .eq('status', 'active')
+
+        const { count: totalOneTimePurchases } = await supabase
+            .from('one_time_purchases')
+            .select('*', { count: 'exact', head: true })
+            .neq('status', 'refunded')
+
+        const libraryId = process.env.BUNNY_LIBRARY_ID?.trim()
+        const apiKey = process.env.BUNNY_LIBRARY_API_KEY?.trim()
+
+        let totalVideos = 0
+        let totalViews = 0
+        let bandwidthUsed = 0
+
+        if (libraryId && apiKey) {
+            try {
+                const videoRes = await fetch(`https://video.bunnycdn.com/library/${libraryId}/videos?itemsPerPage=1`, {
+                    headers: { 'AccessKey': apiKey }
+                })
+                if (videoRes.ok) {
+                    const videoData = await videoRes.json()
+                    totalVideos = videoData.totalItems || 0
+                }
+
+                const dateTo = new Date().toISOString().split('T')[0]
+                const dateFrom = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
+
+                const statsRes = await fetch(`https://video.bunnycdn.com/library/${libraryId}/statistics?dateFrom=${dateFrom}&dateTo=${dateTo}`, {
+                    headers: { 'AccessKey': apiKey }
+                })
+
+                if (statsRes.ok) {
+                    const statsData = await statsRes.json()
+                    totalViews = statsData.views || 0
+                    bandwidthUsed = statsData.bandwidthUsed || 0
+                }
+            } catch (e) {
+                console.error('Failed to fetch Bunny stats:', e)
+            }
+        }
+
+        return {
+            supabase: {
+                totalUsers: totalUsers || 0,
+                activeSubscriptions: activeSubscriptions || 0,
+                totalOneTimePurchases: totalOneTimePurchases || 0
+            },
+            bunny: {
+                totalVideos,
+                totalViews,
+                bandwidthUsed
+            }
+        }
+    },
+    ['admin-stats'],
+    { tags: ['admin-stats'], revalidate: 600 }
+)
 
 export async function getStripeDashboardData() {
     const isSuperAdmin = await isAdmin()
     if (!isSuperAdmin) throw new Error('Unauthorized')
 
+    const supabase = await createServiceRoleClient()
+
     try {
-        const [balance, charges, subscriptions] = await Promise.all([
+        const [balanceResult, dbResult, subResult] = await Promise.all([
             stripe.balance.retrieve(),
-            stripe.charges.list({ limit: 15, expand: ['data.customer'] }),
-            stripe.subscriptions.list({ limit: 15, status: 'all', expand: ['data.customer'] })
+            supabase
+                .from('stripe_payments')
+                .select('*, profiles(email)')
+                .order('created_at', { ascending: false })
+                .limit(25),
+            stripe.subscriptions.list({
+                limit: 15,
+                expand: ['data.customer'],
+                status: 'all' // Trying to put it back as it might be needed to see everything
+            })
         ])
+
+        const dbPayments = dbResult.data || []
+        const subscriptions = (subResult as any).data || []
 
         return {
             balance: {
-                available: balance.available.reduce((acc, b) => acc + b.amount, 0) / 100,
-                pending: balance.pending.reduce((acc, b) => acc + b.amount, 0) / 100,
-                currency: balance.available[0]?.currency || 'eur'
+                available: balanceResult.available.reduce((acc, b) => acc + b.amount, 0) / 100,
+                pending: balanceResult.pending.reduce((acc, b) => acc + b.amount, 0) / 100,
+                currency: balanceResult.available[0]?.currency || 'eur'
             },
-            payments: charges.data.map(c => ({
-                id: c.id,
-                amount: c.amount / 100,
-                currency: c.currency,
-                status: c.refunded ? 'refunded' : (c.status === 'succeeded' ? 'succeeded' : c.status),
-                email: c.billing_details?.email || (c.customer && typeof c.customer !== 'string' ? (c.customer as Stripe.Customer).email : ''),
-                created: c.created,
-                refunded: c.refunded,
-                receipt_url: c.receipt_url,
-                card: c.payment_method_details?.card ? {
-                    brand: c.payment_method_details.card.brand,
-                    last4: c.payment_method_details.card.last4
-                } : null
+            payments: dbPayments.map((p: any) => ({
+                id: p.id,
+                amount: p.amount,
+                currency: p.currency,
+                status: p.status,
+                email: p.profiles?.email || '',
+                created: new Date(p.created_at).getTime() / 1000,
+                refunded: p.status === 'refunded',
+                receipt_url: p.receipt_url,
+                card: {
+                    brand: p.card_brand,
+                    last4: p.card_last4
+                }
             })),
-            subscriptions: (subscriptions.data as Stripe.Subscription[]).map(s => ({
-                id: s.id,
-                status: s.status,
-                amount: s.items.data[0]?.price.unit_amount ? s.items.data[0].price.unit_amount / 100 : 0,
-                interval: s.items.data[0]?.price.recurring?.interval || 'month',
-                email: (s.customer as Stripe.Customer)?.email || '',
-                next_invoice: (s as unknown as { current_period_end: number }).current_period_end || s.ended_at || s.created
-            }))
+            subscriptions: (subscriptions as Stripe.Subscription[]).map(s => {
+                const customer = s.customer as any
+                const price = s.items?.data?.[0]?.price
+                return {
+                    id: s.id,
+                    status: s.status,
+                    amount: price?.unit_amount ? price.unit_amount / 100 : 0,
+                    interval: price?.recurring?.interval || 'month',
+                    email: customer?.email || (typeof customer === 'string' ? customer : ''),
+                    next_invoice: (s as any).current_period_end || s.ended_at || s.created
+                }
+            })
         }
+    }
+    catch (error) {
+        console.error('Stripe Mirror Error:', error)
+        return {
+            balance: { available: 0, pending: 0, currency: 'eur' },
+            payments: [],
+            subscriptions: []
+        }
+    }
+}
+
+export async function syncStripePayments() {
+    const isSuperAdmin = await isAdmin()
+    if (!isSuperAdmin) throw new Error('Unauthorized')
+
+    const supabase = await createServiceRoleClient()
+
+    try {
+        const charges = await stripe.charges.list({ limit: 100, expand: ['data.customer'] })
+
+        // 1. Collect all stripe_customer_ids from charges to find corresponding user_ids
+        const customerIds = Array.from(new Set(charges.data.map(c => typeof c.customer === 'string' ? c.customer : (c.customer as Stripe.Customer)?.id).filter(Boolean)))
+
+        // 2. Fetch profiles to map customer_id -> user_id
+        const { data: profiles } = await supabase
+            .from('profiles')
+            .select('id, stripe_customer_id')
+            .in('stripe_customer_id', customerIds)
+
+        const profileMap = new Map(profiles?.map(p => [p.stripe_customer_id, p.id]) || [])
+
+        // 3. Upsert into stripe_payments
+        const paymentsToUpsert = charges.data.map(charge => {
+            const customerId = typeof charge.customer === 'string'
+                ? charge.customer
+                : (charge.customer as Stripe.Customer)?.id
+
+            return {
+                id: charge.id,
+                user_id: customerId ? profileMap.get(customerId) || null : null,
+                customer_id: customerId || null,
+                amount: charge.amount / 100,
+                currency: charge.currency,
+                status: charge.refunded ? 'refunded' : (charge.status === 'succeeded' ? 'succeeded' : charge.status),
+                receipt_url: charge.receipt_url,
+                card_brand: charge.payment_method_details?.card?.brand || null,
+                card_last4: charge.payment_method_details?.card?.last4 || null,
+                created_at: new Date(charge.created * 1000).toISOString()
+            }
+        })
+
+        if (paymentsToUpsert.length > 0) {
+            const { error: upsertError } = await supabase.from('stripe_payments').upsert(paymentsToUpsert, { onConflict: 'id' })
+            if (upsertError) {
+                console.error('Upsert Error details:', upsertError)
+                throw upsertError
+            }
+        }
+
+        return { success: true, count: paymentsToUpsert.length }
     } catch (error) {
-        console.error('Stripe Error:', error)
-        throw new Error('Failed to fetch Stripe data')
+        console.error('Sync Error:', error)
+        throw new Error('Failed to sync payments')
     }
 }
 
