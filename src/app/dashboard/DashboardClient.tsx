@@ -91,7 +91,7 @@ export default function DashboardClient({ levels }: { levels: Level[] }) {
 
         switch (activeTab) {
             case 'home':
-                return <HomeSection levels={levels} onShowLibrary={() => setActiveTab('training')} userName={firstName} />
+                return <HomeSection levels={levels} progress={libraryProgress} onShowLibrary={() => setActiveTab('training')} userName={firstName} />
             case 'training':
                 return <TrainingSection
                     levels={levels}
@@ -106,7 +106,7 @@ export default function DashboardClient({ levels }: { levels: Level[] }) {
             case 'profile':
                 return <ProfileSection onProfileUpdate={fetchUserProfile} activeSubTab={profileSubTab} />
             default:
-                return <HomeSection levels={levels} onShowLibrary={() => setActiveTab('training')} />
+                return <HomeSection levels={levels} progress={libraryProgress} onShowLibrary={() => setActiveTab('training')} />
         }
     }
 

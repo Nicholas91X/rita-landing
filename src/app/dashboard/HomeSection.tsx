@@ -7,21 +7,58 @@ import { ArrowRight } from 'lucide-react'
 import Link from 'next/link'
 import Image from 'next/image'
 
-export default function HomeSection({ levels, onShowLibrary, userName }: { levels: Level[], onShowLibrary: () => void, userName?: string }) {
-    // Find the first purchased package as "Recent" (simplified logic)
-    let recentPackage = null
+import { LibraryProgress } from '@/app/actions/video'
+
+export default function HomeSection({
+    levels,
+    progress,
+    onShowLibrary,
+    userName
+}: {
+    levels: Level[],
+    progress: LibraryProgress[],
+    onShowLibrary: () => void,
+    userName?: string
+}) {
+    // Determine the "Boarding Pass" package:
+    // 1. Find the first purchased package that is NOT fully completed.
+    // 2. If all purchased packages are completed, fallback to the first purchased package.
+
+    let boardingPackage = null
+    const purchasedPackages = []
+
+    // Flatten all purchased packages from levels
     for (const level of levels) {
         for (const course of level.courses) {
             for (const pkg of course.packages) {
-                if (pkg.isPurchased) {
-                    recentPackage = pkg
-                    break
+                // Focus only on subscription packages for the Boarding Pass
+                if (pkg.isPurchased && pkg.payment_mode === 'subscription') {
+                    purchasedPackages.push(pkg)
                 }
             }
-            if (recentPackage) break
         }
-        if (recentPackage) break
     }
+
+    // Find first incomplete
+    boardingPackage = purchasedPackages.find(pkg => {
+        const pkgProgress = progress.find(p => p.packageId === pkg.id)
+        return pkgProgress ? !pkgProgress.isFullyCompleted : true
+    })
+
+    // Fallback to first purchased if none found or all completed
+    if (!boardingPackage && purchasedPackages.length > 0) {
+        boardingPackage = purchasedPackages[0]
+    }
+
+    // Fallback variable for the UI
+    const recentPackage = boardingPackage
+
+    // Get all subscription packages for the history section
+    const allSubscriptionPackages = levels.flatMap(level =>
+        level.courses.flatMap(course =>
+            course.packages.filter(p => p.isPurchased && p.payment_mode === 'subscription')
+        )
+    )
 
     return (
         <div className="space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-500">
@@ -49,8 +86,8 @@ export default function HomeSection({ levels, onShowLibrary, userName }: { level
                                     Pronta per la tua prossima tappa?
                                 </h3>
                                 <p className="text-[var(--secondary)]/70 text-lg font-medium">
-                                    <span className="font-bold">🌸 Mese 1:</span><br />
-                                    Destinazione Bali (Equilibrio)
+                                    <span className="font-bold">✨ Prossima Destinazione:</span><br />
+                                    {recentPackage.name}
                                 </p>
                             </div>
 
@@ -97,35 +134,45 @@ export default function HomeSection({ levels, onShowLibrary, userName }: { level
             )}
 
             <div className="bg-white rounded-[32px] p-8 md:p-12 space-y-8 text-[var(--secondary)] shadow-sm border border-[var(--secondary)]/5">
-                <div className="flex items-center justify-between">
-                    <h4 className="text-xl font-bold text-[var(--secondary)] tracking-tight">Le tue precedenti destinazioni</h4>
-                    <button onClick={onShowLibrary} className="text-brand font-bold text-sm flex items-center gap-2 hover:gap-3 transition-all">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6">
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
+                        <h4 className="text-xl font-bold text-[var(--secondary)] tracking-tight">
+                            Le tue precedenti destinazioni
+                        </h4>
+                        {allSubscriptionPackages.length > 0 && (
+                            <span className="bg-[#345c72]/10 text-[#345c72] px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-tight w-fit whitespace-nowrap">
+                                {allSubscriptionPackages.length} {allSubscriptionPackages.length === 1 ? 'Abbonamento attivo' : 'Abbonamenti attivi'}
+                            </span>
+                        )}
+                    </div>
+                    <button
+                        onClick={onShowLibrary}
+                        className="text-brand font-bold text-sm flex items-center gap-2 hover:gap-3 transition-all whitespace-nowrap w-fit self-end sm:self-auto"
+                    >
                         VEDI TUTTE <ArrowRight className="w-4 h-4" />
                     </button>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {levels.map((level) => {
-                        const purchasedCount = level.courses.reduce((acc, course) => {
-                            return acc + course.packages.filter(p => p.isPurchased && p.payment_mode === 'subscription').length
-                        }, 0)
-
-                        if (purchasedCount === 0) return null
-
+                    {allSubscriptionPackages.map((pkg) => {
                         return (
-                            <div key={level.id} className="p-6 bg-white border border-[#7f554f] rounded-2xl hover:shadow-lg transition-all cursor-pointer group" onClick={onShowLibrary}>
+                            <Link
+                                key={pkg.id}
+                                href={`/dashboard/package/${pkg.id}`}
+                                className="p-6 bg-white border border-[#7f554f] rounded-2xl hover:shadow-lg transition-all cursor-pointer group"
+                            >
                                 <div className="flex justify-between items-center">
                                     <div>
-                                        <h5 className="text-[var(--secondary)] font-bold">{level.name === 'Principiante' ? '🌸 Bali' : level.name}</h5>
+                                        <h5 className="text-[var(--secondary)] font-bold">{pkg.name}</h5>
                                         <p className="text-[var(--secondary)]/60 text-xs mt-1 uppercase tracking-widest font-bold">
-                                            {purchasedCount} {purchasedCount === 1 ? 'Corso disponibile' : 'Corsi disponibili'}
+                                            Vedi corso
                                         </p>
                                     </div>
                                     <div className="w-10 h-10 rounded-full bg-[#f3efec] flex items-center justify-center group-hover:bg-[#f3efec]/80 transition-colors">
                                         <ArrowRight className="w-5 h-5 text-[#7f554f] group-hover:scale-105 transition-transform" />
                                     </div>
                                 </div>
-                            </div>
+                            </Link>
                         )
                     })}
                 </div>
