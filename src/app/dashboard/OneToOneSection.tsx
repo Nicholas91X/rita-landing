@@ -9,9 +9,11 @@ import Image from 'next/image'
 import { createCheckoutSession } from '@/app/actions/stripe'
 import { toast } from 'sonner'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 
 type OneTimePackage = {
     id: string
+    purchaseId?: string // Link to specific one_time_purchases record
     name: string
     title: string | null
     description: string
@@ -44,28 +46,33 @@ export default function OneToOneSection() {
                 const { data: { user } } = await supabase.auth.getUser()
                 if (!user) return
 
+                // Get all user purchases
                 const { data: purchases } = await supabase
                     .from('one_time_purchases')
-                    .select('package_id, status')
+                    .select('*, packages(*)')
                     .eq('user_id', user.id)
+                    .neq('status', 'refunded')
+                    .order('created_at', { ascending: false })
 
-                const { data: subs } = await supabase
-                    .from('user_subscriptions')
-                    .select('package_id, status')
-                    .eq('user_id', user.id)
-
-                // Map of package_id -> status
-                const purchaseStatusMap = new Map<string, string>();
-                purchases?.forEach(p => purchaseStatusMap.set(p.package_id, p.status || 'purchased'));
-                subs?.forEach(s => purchaseStatusMap.set(s.package_id, s.status));
-
-                const mappedPackages = (pkgs || []).map(p => ({
-                    ...p,
-                    isPurchased: purchaseStatusMap.has(p.id),
-                    status: purchaseStatusMap.get(p.id)
+                // Map purchases to package-like items
+                const purchaseItems: OneTimePackage[] = (purchases || []).map(p => ({
+                    ...p.packages,
+                    id: p.package_id,
+                    purchaseId: p.id,
+                    isPurchased: true,
+                    status: p.status
                 }))
 
-                setPackages(mappedPackages)
+                // Template packages that are available to buy (only if NOT purchased)
+                const templatePackages: OneTimePackage[] = (pkgs || [])
+                    .filter(p => !purchaseItems.some(item => item.id === p.id))
+                    .map(p => ({
+                        ...p,
+                        isPurchased: false
+                    }))
+
+                // Combine: Purchases first, then templates
+                setPackages([...purchaseItems, ...templatePackages])
             } catch (error) {
                 console.error('Error fetching generic packages:', error)
                 toast.error('Impossibile caricare i pacchetti')
@@ -137,6 +144,11 @@ export default function OneToOneSection() {
                                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-60" />
                                 <div className="absolute bottom-4 left-6 right-6 text-white">
                                     <h3 className="text-2xl font-black italic uppercase tracking-tight leading-none mb-1">{pkg.name}</h3>
+                                    {pkg.isPurchased && (
+                                        <p className="text-[10px] font-bold uppercase tracking-widest text-[#e1d5c6]">
+                                            Acquisto: {pkg.purchaseId?.substring(0, 8)}
+                                        </p>
+                                    )}
                                     {pkg.title && <p className="text-xs font-bold uppercase tracking-widest opacity-90">{pkg.title}</p>}
                                 </div>
                             </div>
@@ -164,22 +176,25 @@ export default function OneToOneSection() {
                                 )}
                                 {pkg.isPurchased ? (
                                     <div className="w-full space-y-3">
-                                        <Button className="w-full bg-emerald-50 text-emerald-600 hover:bg-emerald-50 border border-emerald-100 font-bold h-12 rounded-xl shadow-sm" disabled>
-                                            <Check className="w-4 h-4 mr-2" />
-                                            Già Acquistato
+                                        <Button asChild className="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-bold h-12 rounded-xl shadow-lg shadow-emerald-500/10">
+                                            <Link href={`/dashboard/package/${pkg.id}${pkg.purchaseId ? `?purchaseId=${pkg.purchaseId}` : ''}`}>
+                                                Vai al percorso
+                                            </Link>
                                         </Button>
-                                        <Button
-                                            onClick={() => handlePurchase(pkg.id)}
-                                            disabled={purchasingId === pkg.id}
-                                            variant="outline"
-                                            className="w-full border-[#593e25]/20 text-[#593e25] hover:bg-[#593e25]/5 font-bold h-12 rounded-xl transition-all"
-                                        >
-                                            {purchasingId === pkg.id ? (
-                                                <Loader2 className="w-4 h-4 animate-spin" />
-                                            ) : (
-                                                "Acquista di nuovo"
-                                            )}
-                                        </Button>
+                                        {pkg.status === 'delivered' && (
+                                            <Button
+                                                onClick={() => handlePurchase(pkg.id)}
+                                                disabled={purchasingId === pkg.id}
+                                                variant="outline"
+                                                className="w-full border-[#593e25]/20 text-[#593e25] hover:bg-[#593e25]/5 font-bold h-12 rounded-xl transition-all"
+                                            >
+                                                {purchasingId === pkg.id ? (
+                                                    <Loader2 className="w-4 h-4 animate-spin" />
+                                                ) : (
+                                                    "Acquista di nuovo"
+                                                )}
+                                            </Button>
+                                        )}
                                     </div>
                                 ) : (
                                     <Button

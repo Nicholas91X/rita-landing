@@ -5,10 +5,15 @@ import Link from 'next/link'
 import PackageClient from './PackageClient'
 import PersonalView from './PersonalView'
 
-export default async function PackagePage(props: { params: Promise<{ id: string }> }) {
-    // 1. Attendi i parametri
+export default async function PackagePage(props: {
+    params: Promise<{ id: string }>,
+    searchParams: Promise<{ purchaseId?: string }>
+}) {
+    // 1. Attendi i parametri e searchParams
     const params = await props.params;
+    const searchParams = await props.searchParams;
     const packageId = params.id;
+    const purchaseId = searchParams.purchaseId;
 
     const supabase = await createClient()
 
@@ -29,14 +34,21 @@ export default async function PackagePage(props: { params: Promise<{ id: string 
     let oneTimePurchase = null;
 
     if (!sub) {
-        const { data: otp } = await supabase
+        let otpQuery = supabase
             .from('one_time_purchases')
             .select('id, user_id, package_id, status, document_url')
             .eq('user_id', user.id)
             .eq('package_id', packageId)
-            .maybeSingle()
 
-        oneTimePurchase = otp;
+        if (purchaseId) {
+            otpQuery = otpQuery.eq('id', purchaseId)
+        } else {
+            // Se non specificato, prendi l'ultimo acquisto non rimborsato
+            otpQuery = otpQuery.neq('status', 'refunded').order('created_at', { ascending: false }).limit(1)
+        }
+
+        const { data: otpData } = await otpQuery.maybeSingle()
+        oneTimePurchase = otpData;
     }
 
     // Se non è né abbonamento né one-time, redirect
