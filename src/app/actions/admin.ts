@@ -405,6 +405,7 @@ export async function getAdminStats() {
     const { count: totalOneTimePurchases } = await supabase
         .from('one_time_purchases')
         .select('*', { count: 'exact', head: true })
+        .neq('status', 'refunded')
 
     const libraryId = process.env.BUNNY_LIBRARY_ID?.trim()
     const apiKey = process.env.BUNNY_LIBRARY_API_KEY?.trim()
