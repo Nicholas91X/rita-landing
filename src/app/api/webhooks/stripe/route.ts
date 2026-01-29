@@ -134,6 +134,19 @@ export async function POST(req: Request) {
                     }
                 })
 
+                // Create User Notification for Confirmation
+                const confirmationTitle = isTrial ? '✨ Prova Gratuita Attivata!' : '🛍️ Conferma di Acquisto'
+                const confirmationMessage = isTrial
+                    ? `Benvenuta! La tua prova per "${pkg?.name || 'il pacchetto'}" è ora attiva.`
+                    : `Grazie per il tuo acquisto! "${pkg?.name || 'il pacchetto'}" è stato aggiunto al tuo account.`
+
+                await supabaseAdmin.from('user_notifications').insert({
+                    user_id: userId,
+                    title: confirmationTitle,
+                    message: confirmationMessage,
+                    type: isTrial ? 'trial_start' : 'purchase_confirmation'
+                })
+
                 console.log(`Successfully processed checkout for User ${userId}`)
 
             } catch (err: unknown) {

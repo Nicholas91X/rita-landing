@@ -911,6 +911,24 @@ export async function updateOneTimePurchaseStatus(id: string, newStatus: string)
                 type: 'achievement'
             })
         }
+    } else {
+        // Notify about general status change (ordered, shipped, etc.)
+        const statusMap: Record<string, string> = {
+            'ordered': 'Preso in carico',
+            'shipped': 'In spedizione / In preparazione',
+            'delivered': 'Consegnato',
+            'paid': 'Pagato',
+            'canceled': 'Annullato'
+        }
+
+        const friendlyStatus = statusMap[newStatus] || newStatus
+
+        await supabase.from('user_notifications').insert({
+            user_id: purchase.user_id,
+            title: '📦 Aggiornamento Ordine',
+            message: `Lo stato del tuo pacchetto "${pkg.name}" è ora: ${friendlyStatus}.`,
+            type: 'status_update'
+        })
     }
 
     revalidatePath('/admin')
