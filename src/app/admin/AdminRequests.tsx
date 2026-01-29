@@ -1,7 +1,8 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { getAdminNotifications, getRefundRequests, handleRefundRequest, markNotificationAsRead } from '@/app/actions/admin'
+import { getAdminNotifications, markNotificationAsRead } from '@/app/actions/admin_actions/users'
+import { getRefundRequests, handleRefundRequest } from '@/app/actions/admin_actions/sales'
 import { createClient } from '@/utils/supabase/client'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -50,17 +51,21 @@ export default function AdminRequests() {
 
     // Pagination states
     const [currentPageNotifs, setCurrentPageNotifs] = useState(1)
+    const [totalNotifs, setTotalNotifs] = useState(0)
     const [currentPageRefunds, setCurrentPageRefunds] = useState(1)
+    const [totalRefunds, setTotalRefunds] = useState(0)
 
     const loadData = async (silent = false) => {
         try {
             if (!silent) setLoading(true)
-            const [notifs, refunds] = await Promise.all([
-                getAdminNotifications(),
-                getRefundRequests()
+            const [notifsResult, refundsResult] = await Promise.all([
+                getAdminNotifications(currentPageNotifs, ITEMS_PER_PAGE),
+                getRefundRequests(currentPageRefunds, ITEMS_PER_PAGE)
             ])
-            setNotifications(notifs)
-            setRefundRequests(refunds)
+            setNotifications(notifsResult.data as AdminNotification[])
+            setTotalNotifs(notifsResult.totalCount)
+            setRefundRequests(refundsResult.data as RefundRequest[])
+            setTotalRefunds(refundsResult.totalCount)
         } catch (error) {
             console.error('Failed to load admin billing data', error)
             if (!silent) toast.error('Errore nel caricamento dei dati')
@@ -71,7 +76,9 @@ export default function AdminRequests() {
 
     useEffect(() => {
         loadData()
+    }, [currentPageNotifs, currentPageRefunds])
 
+    useEffect(() => {
         const supabase = createClient()
 
         // Listen for changes in refund_requests
@@ -148,18 +155,12 @@ export default function AdminRequests() {
     const unreadCount = notifications.filter(n => !n.is_read).length
 
     // Pagination logic for Notifications
-    const totalPagesNotifs = Math.ceil(notifications.length / ITEMS_PER_PAGE)
-    const paginatedNotifs = notifications.slice(
-        (currentPageNotifs - 1) * ITEMS_PER_PAGE,
-        currentPageNotifs * ITEMS_PER_PAGE
-    )
+    const totalPagesNotifs = Math.ceil(totalNotifs / ITEMS_PER_PAGE)
+    const paginatedNotifs = notifications
 
     // Pagination logic for Refund Requests
-    const totalPagesRefunds = Math.ceil(refundRequests.length / ITEMS_PER_PAGE)
-    const paginatedRefunds = refundRequests.slice(
-        (currentPageRefunds - 1) * ITEMS_PER_PAGE,
-        currentPageRefunds * ITEMS_PER_PAGE
-    )
+    const totalPagesRefunds = Math.ceil(totalRefunds / ITEMS_PER_PAGE)
+    const paginatedRefunds = refundRequests
 
     return (
         <div className="bg-black space-y-8 max-w-6xl mx-auto px-4 md:px-8 py-8 md:py-12">

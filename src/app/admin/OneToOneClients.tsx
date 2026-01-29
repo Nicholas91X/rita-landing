@@ -22,7 +22,7 @@ import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import { Loader2, ExternalLink, Search, FileText, UploadCloud } from 'lucide-react'
 import { toast } from 'sonner'
-import { uploadClientDocument, updateOneTimePurchaseStatus } from '@/app/actions/admin'
+import { uploadClientDocument, updateOneTimePurchaseStatus } from '@/app/actions/admin_actions/users'
 import Link from 'next/link'
 
 type OneTimeClient = {

@@ -5,7 +5,7 @@ import { Bell, Send, Users, Megaphone, Loader2, Info } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { toast } from 'sonner'
-import { sendBroadcastNotification } from '@/app/actions/admin'
+import { sendBroadcastNotification } from '@/app/actions/admin_actions/users'
 import {
     Dialog,
     DialogContent,

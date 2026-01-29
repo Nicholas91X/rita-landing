@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { getStripeDashboardData, cancelSubscription, refundPayment } from '@/app/actions/admin'
+import { getStripeDashboardData, cancelSubscription, refundPayment } from '@/app/actions/admin_actions/sales'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import {
     Dialog,

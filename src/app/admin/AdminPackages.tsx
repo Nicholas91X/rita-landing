@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { createPackage, updatePackage, getAdminPackages, getAdminCourses } from '@/app/actions/admin'
+import { createPackage, updatePackage, getAdminPackages, getAdminCourses } from '@/app/actions/admin_actions/packages'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
