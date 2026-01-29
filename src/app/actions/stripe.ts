@@ -238,10 +238,10 @@ export async function cancelSubscription(subscriptionId: string) {
         }
     }
 
-    // 3. Update status in DB
+    // 3. Update flag in DB (don't set status to 'canceled' yet, Stripe will tell us when it's truly over)
     await supabase
         .from('user_subscriptions')
-        .update({ status: 'canceled' })
+        .update({ cancel_at_period_end: true })
         .eq('id', subscriptionId)
 
     // 4. Create Admin Notification
