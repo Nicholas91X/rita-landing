@@ -865,3 +865,56 @@ export async function uploadClientDocument(formData: FormData) {
     revalidatePath('/admin')
     return { success: true, url: publicUrl }
 }
+
+export async function updateOneTimePurchaseStatus(id: string, newStatus: string) {
+    const isSuperAdmin = await isAdmin()
+    if (!isSuperAdmin) throw new Error('Unauthorized')
+
+    const supabase = await createClient()
+
+    // 1. Update status
+    const { data: purchaseData, error } = await supabase
+        .from('one_time_purchases')
+        .update({ status: newStatus })
+        .eq('id', id)
+        .select('user_id, package_id, packages(name, badge_type)')
+        .single()
+
+    if (error) {
+        console.error('Error updating purchase status:', error)
+        throw new Error('Errore durante l\'aggiornamento dello stato')
+    }
+
+    const purchase = purchaseData as any
+    const pkg = Array.isArray(purchase.packages) ? purchase.packages[0] : purchase.packages
+
+    // 2. Award Badge if status is 'delivered'
+    if (newStatus === 'delivered' && pkg?.badge_type) {
+        // Upsert badge (protected by unique constraint user_id, package_id)
+        const { error: badgeError } = await supabase
+            .from('user_badges')
+            .upsert({
+                user_id: purchase.user_id,
+                package_id: purchase.package_id,
+                badge_type: pkg.badge_type
+            }, {
+                onConflict: 'user_id,package_id'
+            })
+
+        // 3. Send Notification iff it's a new achievement
+        if (!badgeError) {
+            await supabase.from('user_notifications').insert({
+                user_id: purchase.user_id,
+                title: '🎉 Nuovo Badge Sbloccato!',
+                message: `Complimenti! Il tuo percorso "${pkg.name}" è pronto e hai ottenuto il badge ${pkg.badge_type.toUpperCase()}.`,
+                type: 'achievement'
+            })
+        }
+    }
+
+    revalidatePath('/admin')
+    revalidatePath('/dashboard')
+
+    return { success: true }
+}
+

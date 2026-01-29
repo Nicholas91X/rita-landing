@@ -22,7 +22,7 @@ import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import { Loader2, ExternalLink, Search, FileText, UploadCloud } from 'lucide-react'
 import { toast } from 'sonner'
-import { uploadClientDocument } from '@/app/actions/admin'
+import { uploadClientDocument, updateOneTimePurchaseStatus } from '@/app/actions/admin'
 import Link from 'next/link'
 
 type OneTimeClient = {
@@ -77,13 +77,8 @@ export default function OneToOneClients() {
     async function updateStatus(id: string, newStatus: string) {
         setUpdatingId(id)
         try {
-            const supabase = createClient()
-            const { error } = await supabase
-                .from('one_time_purchases')
-                .update({ status: newStatus })
-                .eq('id', id)
-
-            if (error) throw error
+            const res = await updateOneTimePurchaseStatus(id, newStatus)
+            if (!res.success) throw new Error()
 
             setClients(clients.map(c => c.id === id ? { ...c, status: newStatus as OneTimeClient['status'] } : c))
             toast.success('Stato aggiornato')
