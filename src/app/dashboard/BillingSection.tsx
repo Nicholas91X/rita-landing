@@ -81,7 +81,13 @@ export default function BillingSection() {
     const [cancelDialog, setCancelDialog] = useState<{ open: boolean, subId: string | null }>({ open: false, subId: null })
     const [refundReason, setRefundReason] = useState('')
     const [isSubmittingRefund, setIsSubmittingRefund] = useState(false)
+
+    // Filters and Pagination State
     const [filter, setFilter] = useState<'all' | 'active' | 'ended'>('all')
+    const [purchaseFilter, setPurchaseFilter] = useState<'all' | 'delivered' | 'refunded'>('all')
+    const [subPage, setSubPage] = useState(1)
+    const [purchasePage, setPurchasePage] = useState(1)
+    const ITEMS_PER_PAGE = 3
 
     const filteredSubscriptions = subscriptions.filter(sub => {
         if (filter === 'all') return true;
@@ -89,6 +95,20 @@ export default function BillingSection() {
         if (filter === 'ended') return ['canceled', 'unpaid', 'refunded', 'past_due', 'incomplete_expired'].includes(sub.status);
         return true;
     });
+
+    const filteredOneTimePurchases = oneTimePurchases.filter(purchase => {
+        if (purchaseFilter === 'all') return true;
+        if (purchaseFilter === 'delivered') return purchase.status === 'delivered';
+        if (purchaseFilter === 'refunded') return purchase.status === 'refunded';
+        return true;
+    });
+
+    // Paginated lists
+    const totalSubPages = Math.ceil(filteredSubscriptions.length / ITEMS_PER_PAGE);
+    const paginatedSubs = filteredSubscriptions.slice((subPage - 1) * ITEMS_PER_PAGE, subPage * ITEMS_PER_PAGE);
+
+    const totalPurchasePages = Math.ceil(filteredOneTimePurchases.length / ITEMS_PER_PAGE);
+    const paginatedPurchases = filteredOneTimePurchases.slice((purchasePage - 1) * ITEMS_PER_PAGE, purchasePage * ITEMS_PER_PAGE);
 
     const fetchSubs = async () => {
         try {
@@ -224,14 +244,14 @@ export default function BillingSection() {
                     <div className="flex items-center gap-2">
                         <Button
                             variant={filter === 'all' ? 'secondary' : 'ghost'}
-                            onClick={() => setFilter('all')}
+                            onClick={() => { setFilter('all'); setSubPage(1); }}
                             className="h-8 text-xs font-bold rounded-lg text-[#593e25]"
                         >
                             Tutti
                         </Button>
                         <Button
                             variant={filter === 'active' ? 'secondary' : 'ghost'}
-                            onClick={() => setFilter('active')}
+                            onClick={() => { setFilter('active'); setSubPage(1); }}
                             className={cn(
                                 "h-8 text-xs font-bold rounded-lg gap-2",
                                 filter === 'active' && "bg-emerald-500/10 text-emerald-600 hover:bg-emerald-500/20"
@@ -244,7 +264,7 @@ export default function BillingSection() {
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {filteredSubscriptions.length > 0 ? filteredSubscriptions.map((sub) => {
+                    {paginatedSubs.length > 0 ? paginatedSubs.map((sub) => {
                         const createdAt = new Date(sub.created_at).getTime();
                         const now = new Date().getTime();
                         const diffDays = (now - createdAt) / (1000 * 60 * 60 * 24);
@@ -405,23 +425,67 @@ export default function BillingSection() {
                             </Card>
                         );
                     }) : (
-                        <div className="col-span-full py-16 text-center border-2 border-dashed border-[#846047]/10 rounded-[2.5rem] bg-neutral-50/50">
+                        <div className="col-span-full py-16 text-center border-2 border-dashed border-[#846047]/10 rounded-[2.5rem] bg-neutral-50/50 w-full">
                             <CreditCard className="w-12 h-12 text-neutral-200 mx-auto mb-4" />
-                            <h3 className="text-xl font-black text-[#593e25] italic uppercase tracking-tighter mb-2">Nessun abbonamento attivo</h3>
-                            <p className="text-neutral-500 max-w-sm mx-auto font-medium">Inizia il tuo percorso scegliendo il piano più adatto a te.</p>
+                            <h3 className="text-xl font-black text-[#593e25] italic uppercase tracking-tighter mb-2">Nessun abbonamento trovato</h3>
+                            <p className="text-neutral-500 max-w-sm mx-auto font-medium">I record filtrati appariranno qui.</p>
                         </div>
                     )}
                 </div>
+
+                {totalSubPages > 1 && (
+                    <div className="flex justify-center items-center gap-4 mt-8">
+                        <Button
+                            variant="ghost"
+                            disabled={subPage === 1}
+                            onClick={() => setSubPage(p => p - 1)}
+                            className="rounded-xl font-bold text-[#593e25]"
+                        >
+                            Indietro
+                        </Button>
+                        <span className="text-sm font-bold text-[#846047]">
+                            Pagina {subPage} di {totalSubPages}
+                        </span>
+                        <Button
+                            variant="ghost"
+                            disabled={subPage === totalSubPages}
+                            onClick={() => setSubPage(p => p + 1)}
+                            className="rounded-xl font-bold text-[#593e25]"
+                        >
+                            Avanti
+                        </Button>
+                    </div>
+                )}
             </div>
 
             {/* One-Time Purchases Section */}
             <div className="space-y-8">
                 <div className="flex items-center justify-between border-b border-[#846047]/10 pb-4">
                     <h3 className="text-xl font-bold text-[#2a2e30]">Acquisti Singoli</h3>
+                    <div className="flex items-center gap-2">
+                        <Button
+                            variant={purchaseFilter === 'all' ? 'secondary' : 'ghost'}
+                            onClick={() => { setPurchaseFilter('all'); setPurchasePage(1); }}
+                            className="h-8 text-xs font-bold rounded-lg text-[#593e25]"
+                        >
+                            Tutti
+                        </Button>
+                        <Button
+                            variant={purchaseFilter === 'delivered' ? 'secondary' : 'ghost'}
+                            onClick={() => { setPurchaseFilter('delivered'); setPurchasePage(1); }}
+                            className={cn(
+                                "h-8 text-xs font-bold rounded-lg gap-2",
+                                purchaseFilter === 'delivered' && "bg-emerald-500/10 text-emerald-600 hover:bg-emerald-500/20"
+                            )}
+                        >
+                            <div className="w-2 h-2 rounded-full bg-emerald-500" />
+                            Completati
+                        </Button>
+                    </div>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {oneTimePurchases.length > 0 ? oneTimePurchases.map((purchase) => (
+                    {paginatedPurchases.length > 0 ? paginatedPurchases.map((purchase) => (
                         <Card key={purchase.id} className="bg-white border-[#846047]/20 shadow-xl overflow-hidden group rounded-[2rem]">
                             <div className="h-32 w-full relative overflow-hidden">
                                 {purchase.packages?.image_url ? (
@@ -556,13 +620,37 @@ export default function BillingSection() {
                             </CardFooter>
                         </Card>
                     )) : (
-                        <div className="col-span-full py-16 text-center border-2 border-dashed border-[#846047]/10 rounded-[2.5rem] bg-neutral-50/50">
+                        <div className="col-span-full py-16 text-center border-2 border-dashed border-[#846047]/10 rounded-[2.5rem] bg-neutral-50/50 w-full">
                             <PackageIcon className="w-12 h-12 text-neutral-200 mx-auto mb-4" />
-                            <h3 className="text-xl font-black text-[#593e25] italic uppercase tracking-tighter mb-2">Nessun acquisto singolo</h3>
-                            <p className="text-neutral-500 max-w-sm mx-auto font-medium">I tuoi contenuti acquistati una tantum appariranno qui.</p>
+                            <h3 className="text-xl font-black text-[#593e25] italic uppercase tracking-tighter mb-2">Nessun acquisto trovato</h3>
+                            <p className="text-neutral-500 max-w-sm mx-auto font-medium">I record filtrati appariranno qui.</p>
                         </div>
                     )}
                 </div>
+
+                {totalPurchasePages > 1 && (
+                    <div className="flex justify-center items-center gap-4 mt-8">
+                        <Button
+                            variant="ghost"
+                            disabled={purchasePage === 1}
+                            onClick={() => setPurchasePage(p => p - 1)}
+                            className="rounded-xl font-bold text-[#593e25]"
+                        >
+                            Indietro
+                        </Button>
+                        <span className="text-sm font-bold text-[#846047]">
+                            Pagina {purchasePage} di {totalPurchasePages}
+                        </span>
+                        <Button
+                            variant="ghost"
+                            disabled={purchasePage === totalPurchasePages}
+                            onClick={() => setPurchasePage(p => p + 1)}
+                            className="rounded-xl font-bold text-[#593e25]"
+                        >
+                            Avanti
+                        </Button>
+                    </div>
+                )}
             </div>
 
             <div className="p-8 bg-[#846047]/5 border border-[#846047]/10 rounded-[2.5rem] flex items-start gap-5 shadow-sm">
@@ -579,7 +667,7 @@ export default function BillingSection() {
                 </div>
             </div>
 
-            {/* Modals are unchanged except for styling/dark text */}
+            {/* Modals */}
             <Dialog open={refundDialog.open} onOpenChange={(open) => !open && setRefundDialog({ open: false, id: null, type: 'subscription' })}>
                 <DialogContent className="bg-white border-neutral-200 text-[#2a2e30] max-w-md rounded-[2.5rem] p-8 shadow-2xl">
                     <DialogHeader>
