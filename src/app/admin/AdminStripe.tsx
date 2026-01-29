@@ -412,8 +412,8 @@ export default function AdminStripe() {
                                             )}
                                         </div>
                                         <div>
-                                            <div className="text-sm font-bold text-white truncate max-w-[180px]">{s.email}</div>
-                                            <div className="text-[10px] text-neutral-200 font-mono tracking-tighter uppercase font-bold">{s.id}</div>
+                                            <div className="text-sm font-bold text-white truncate max-w-[120px] sm:max-w-[180px]">{s.email}</div>
+                                            <div className="text-[10px] text-neutral-200 font-mono tracking-tighter uppercase font-bold truncate max-w-[120px] sm:max-w-[180px]">{s.id}</div>
                                         </div>
                                     </div>
                                     <div className="flex flex-col items-end gap-2">
@@ -425,16 +425,6 @@ export default function AdminStripe() {
                                             }`}>
                                             {s.status}
                                         </span>
-                                        {s.status === 'active' && (
-                                            <Button
-                                                variant="ghost"
-                                                size="sm"
-                                                onClick={() => handleCancelClick(s)}
-                                                className="h-7 px-2 text-[10px] text-rose-500 hover:text-white hover:bg-rose-600 transition-all"
-                                            >
-                                                Annulla
-                                            </Button>
-                                        )}
                                     </div>
                                 </div>
                                 <div className="flex justify-between items-end pt-3 border-t border-white/5">
@@ -447,6 +437,16 @@ export default function AdminStripe() {
                                             <span className="text-xs text-neutral-300 font-bold ml-1">/ {s.interval === 'month' ? 'mese' : s.interval}</span>
                                         </div>
                                     </div>
+                                    {s.status === 'active' && (
+                                        <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            onClick={() => handleCancelClick(s)}
+                                            className="h-8 px-3 text-[10px] text-rose-500 hover:text-white hover:bg-rose-600 transition-all bg-rose-500/5 hover:bg-rose-600/20"
+                                        >
+                                            Annulla
+                                        </Button>
+                                    )}
                                 </div>
                             </div>
                         ))}

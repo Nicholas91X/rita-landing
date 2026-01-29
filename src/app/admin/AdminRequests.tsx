@@ -172,8 +172,8 @@ export default function AdminRequests() {
 
             <Tabs defaultValue="notifications" className="space-y-6">
                 <TabsList className="bg-neutral-900 border border-white/10 p-1 rounded-2xl w-full md:w-auto h-auto grid grid-cols-2 md:inline-flex">
-                    <TabsTrigger value="notifications" className="rounded-xl data-[state=active]:bg-white data-[state=active]:text-black data-[state=inactive]:text-white gap-2 py-2 md:py-1 transition-all">
-                        <Bell className="w-4 h-4" />
+                    <TabsTrigger value="notifications" className="rounded-xl data-[state=active]:bg-white data-[state=active]:text-black data-[state=inactive]:text-white gap-2 py-2 md:py-1 transition-all text-xs md:text-sm">
+                        <Bell className="w-3.5 h-3.5 md:w-4 md:h-4" />
                         Notifiche
                         {unreadCount > 0 && (
                             <Badge variant="destructive" className="h-5 px-1.5 min-w-[20px] justify-center text-[10px]">
@@ -181,8 +181,8 @@ export default function AdminRequests() {
                             </Badge>
                         )}
                     </TabsTrigger>
-                    <TabsTrigger value="refunds" className="rounded-xl data-[state=active]:bg-white data-[state=active]:text-black data-[state=inactive]:text-white gap-2 py-2 md:py-1 transition-all">
-                        <RefreshCcw className="w-4 h-4" />
+                    <TabsTrigger value="refunds" className="rounded-xl data-[state=active]:bg-white data-[state=active]:text-black data-[state=inactive]:text-white gap-2 py-2 md:py-1 transition-all text-xs md:text-sm">
+                        <RefreshCcw className="w-3.5 h-3.5 md:w-4 md:h-4" />
                         Richieste Rimborso
                     </TabsTrigger>
                 </TabsList>
@@ -238,8 +238,8 @@ export default function AdminRequests() {
                                                 </div>
                                             </div>
 
-                                            <div className="w-full md:w-auto md:text-right flex flex-row md:flex-col justify-between md:justify-start items-center md:items-end gap-2 shrink-0 pt-2 md:pt-0 border-t md:border-t-0 border-white/5">
-                                                <div className="text-[10px] text-white flex items-center gap-1.5 uppercase font-black tracking-widest whitespace-nowrap">
+                                            <div className="w-full md:w-auto md:text-right flex flex-col justify-between items-end gap-2 shrink-0 pt-2 md:pt-0 border-t md:border-t-0 border-white/5">
+                                                <div className="text-[10px] text-white flex items-center gap-1.5 uppercase font-black tracking-widest whitespace-nowrap self-start md:self-end">
                                                     <Clock className="w-3 h-3 text-brand" />
                                                     {new Date(n.created_at).toLocaleString('it-IT', { day: '2-digit', month: '2-digit', year: '2-digit', hour: '2-digit', minute: '2-digit' })}
                                                 </div>
@@ -247,7 +247,7 @@ export default function AdminRequests() {
                                                     <Button
                                                         variant="outline"
                                                         size="sm"
-                                                        className="text-[10px] text-white border-white/20 hover:bg-brand hover:text-white hover:border-brand transition-all uppercase font-black tracking-wider px-3 h-7 rounded-lg"
+                                                        className="text-[10px] text-white border-white/20 hover:bg-brand hover:text-white hover:border-brand transition-all uppercase font-black tracking-wider px-3 h-7 rounded-lg w-full md:w-auto"
                                                         onClick={() => handleMarkAsRead(n.id)}
                                                     >
                                                         Segna come letta
