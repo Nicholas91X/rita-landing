@@ -9,7 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
-import { User, Mail, Shield, LogOut, Loader2, Camera, Globe, ChevronLeft, ChevronRight } from 'lucide-react'
+import { User, Mail, Shield, LogOut, Loader2, Camera, ChevronLeft, ChevronRight } from 'lucide-react'
 import { createClient } from '@/utils/supabase/client'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
@@ -27,6 +27,14 @@ interface Badge {
     packages: {
         name: string
     }
+}
+
+
+
+interface PassportStamp {
+    id: string
+    name: string
+    badge_type: string
 }
 
 interface UserProfileData {
@@ -371,7 +379,7 @@ export default function ProfileSection({ onProfileUpdate, activeSubTab = 'info' 
             )}
             {activeSubTab === 'badges' && (
                 <div className="space-y-10 animate-in slide-in-from-right-4 duration-500 perspective-[2000px]">
-                    <PassportBook userBadges={userData?.badges || []} userProfile={userData?.profile} />
+                    <PassportBook userBadges={userData?.badges || []} userProfile={userData?.profile || null} />
                 </div>
             )}
             {activeSubTab === 'notifications' && (
@@ -381,8 +389,8 @@ export default function ProfileSection({ onProfileUpdate, activeSubTab = 'info' 
     )
 }
 
-function PassportBook({ userBadges, userProfile }: { userBadges: any[], userProfile: any }) {
-    const [allStamps, setAllStamps] = useState<any[]>([])
+function PassportBook({ userBadges, userProfile }: { userBadges: Badge[], userProfile: Profile | null }) {
+    const [allStamps, setAllStamps] = useState<PassportStamp[]>([])
     const [currentPage, setCurrentPage] = useState(0)
     const [isFlipping, setIsFlipping] = useState(false)
     const firstName = userProfile?.full_name?.split(' ')[0] || 'Citizen'

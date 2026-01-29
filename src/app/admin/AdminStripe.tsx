@@ -30,9 +30,10 @@ type StripeData = {
         email: string
         created: number
         receipt_url: string | null
+        refunded?: boolean
         card: {
-            brand: string
-            last4: string
+            brand: string | null
+            last4: string | null
         } | null
     }>
     subscriptions: Array<{

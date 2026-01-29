@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
-import { ChevronLeft, PlayCircle, CheckCircle2, Clock, Loader2, Footprints, Plane, Stamp, Luggage } from 'lucide-react'
+import { ChevronLeft, CheckCircle2, Clock, Loader2, Footprints, Luggage } from 'lucide-react'
 import VideoPlayer from '@/components/video/VideoPlayer'
 import { getAllPackageProgress } from '@/app/actions/video'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
@@ -305,7 +305,7 @@ export default function PackageClient({ pkg, videos }: { pkg: Package, videos: V
                                     if (activeWeek === 3) return index >= 7 && index <= 9;
                                     if (activeWeek === 4) return index >= 10 && index <= 12;
                                     return false;
-                                }).map((v, i) => {
+                                }).map((v) => {
                                     const globalIndex = videos.indexOf(v);
                                     const isActive = v.id === activeVideo.id
                                     const progress = progressData[v.id]

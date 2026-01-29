@@ -294,7 +294,7 @@ export async function updateOneTimePurchaseStatus(id: string, newStatus: string)
         await supabase.from('user_notifications').insert({
             user_id: purchase.user_id,
             title: '📦 Aggiornamento Ordine',
-            message: `Lo stato del tuo pacchetto "${pkg.name}" è ora: ${friendlyStatus}.`,
+            message: `Lo stato del tuo pacchetto "${pkg?.name || 'Sconosciuto'}" è ora: ${friendlyStatus}.`,
             type: 'status_update'
         })
     }

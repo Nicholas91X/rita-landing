@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Bell, CheckCircle2, XCircle, Clock, Trophy, Loader2, Megaphone } from 'lucide-react'
+import { Bell, CheckCircle2, Trophy, Loader2, Megaphone } from 'lucide-react'
 import { getUserNotifications, markUserNotificationAsRead } from '@/app/actions/user'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
@@ -43,7 +43,7 @@ export default function UserProfileNotifications() {
         try {
             const { success } = await markUserNotificationAsRead(id)
             if (!success) fetchNotifications()
-        } catch (error) {
+        } catch {
             fetchNotifications()
         }
     }
@@ -58,7 +58,7 @@ export default function UserProfileNotifications() {
         try {
             await Promise.all(unreadIds.map(id => markUserNotificationAsRead(id)))
             toast.success('Tutte le notifiche segnate come lette')
-        } catch (error) {
+        } catch {
             fetchNotifications()
         }
     }

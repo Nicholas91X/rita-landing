@@ -49,7 +49,7 @@ interface TrainingSectionProps {
     userName: string
 }
 
-export default function TrainingSection({ levels, progress, userProfile, userName }: TrainingSectionProps) {
+export default function TrainingSection({ levels, progress, userProfile, userName: _userName }: TrainingSectionProps) {
     const searchParams = useSearchParams()
     const [subTab, setSubTab] = useState<'my-trainings' | 'new-trainings'>('my-trainings')
 
@@ -97,7 +97,6 @@ export default function TrainingSection({ levels, progress, userProfile, userNam
                             levels={levels}
                             progress={progress}
                             onShowDiscover={() => setSubTab('new-trainings')}
-                            userName={userName}
                             oneTimePurchases={userProfile?.oneTimePurchases || []}
                         />
                     </div>

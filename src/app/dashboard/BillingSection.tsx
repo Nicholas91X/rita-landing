@@ -116,7 +116,7 @@ export default function BillingSection() {
             const data = await getUserSubscriptionInfo()
             if (data && 'subscriptions' in data) {
                 setSubscriptions(data.subscriptions)
-                setOneTimePurchases(data.oneTimePurchases)
+                setOneTimePurchases(data.oneTimePurchases as unknown as OneTimePurchase[])
             } else if (Array.isArray(data)) {
                 setSubscriptions(data)
             }
