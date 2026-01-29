@@ -13,6 +13,7 @@ import { getLibraryProgress, LibraryProgress } from '@/app/actions/video'
 import { getUserProfile } from '@/app/actions/user'
 import { Loader2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { logger } from '@/lib/logger'
 import Image from 'next/image'
 
 import { NotificationBell } from './NotificationBell'
@@ -70,7 +71,7 @@ export default function DashboardClient({ levels }: { levels: Level[] }) {
                 setLibraryProgress(progress)
                 setUserProfile(profile as DashboardProfile)
             } catch (error) {
-                console.error('Failed to fetch dashboard data:', error)
+                logger.error('Failed to fetch dashboard data:', error)
             }
         }
         fetchData()

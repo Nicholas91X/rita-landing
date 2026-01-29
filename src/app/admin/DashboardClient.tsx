@@ -12,6 +12,7 @@ import AdminBroadcasts from './AdminBroadcasts'
 import { Button } from '@/components/ui/button'
 import { Loader2, UploadCloud, CheckCircle, Trash2, Edit2, Save, X, PlayCircle, Video, Package as PackageIcon, CreditCard, Bell, Users, LayoutGrid, List, Megaphone } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { logger } from '@/lib/logger'
 import {
     Accordion,
     AccordionContent,
@@ -82,7 +83,7 @@ export default function AdminDashboardClient({ packages, libraryId, stats }: { p
             const data = await getAdminVideos(filterPackage || undefined)
             setVideos(data as unknown as VideoRecord[])
         } catch (error) {
-            console.error('Failed to fetch videos', error)
+            logger.error('Failed to fetch videos', error)
         } finally {
             setLoadingVideos(false)
         }
@@ -121,7 +122,7 @@ export default function AdminDashboardClient({ packages, libraryId, stats }: { p
             setTitle('')
             setTappa('')
         } catch (error) {
-            console.error(error)
+            logger.error('Upload error:', error)
             setStatus('error')
         }
     }
@@ -132,7 +133,7 @@ export default function AdminDashboardClient({ packages, libraryId, stats }: { p
             await deleteVideo(videoId)
             fetchVideos()
         } catch (error) {
-            console.error(error)
+            logger.error('Delete video error:', error)
         }
     }
 
@@ -165,7 +166,7 @@ export default function AdminDashboardClient({ packages, libraryId, stats }: { p
             setEditingVideo(null)
             fetchVideos()
         } catch (error) {
-            console.error(error)
+            logger.error('Update video error:', error)
         }
     }
 

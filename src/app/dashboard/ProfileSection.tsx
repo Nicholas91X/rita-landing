@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import Image from 'next/image'
 import { getUserProfile, updateProfile, updateEmail, updatePassword, getPassportStamps } from '@/app/actions/user'
+import { logger } from '@/lib/logger'
 import UserProfileNotifications from './UserProfileNotifications'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -73,7 +74,7 @@ export default function ProfileSection({ onProfileUpdate, activeSubTab = 'info' 
                 setUserData(data)
                 setFormData(prev => ({ ...prev, fullName: data.profile?.full_name || '' }))
             } catch (error) {
-                console.error('Failed to fetch profile', error)
+                logger.error('Failed to fetch profile', error)
             } finally {
                 setLoading(false)
             }
@@ -112,7 +113,7 @@ export default function ProfileSection({ onProfileUpdate, activeSubTab = 'info' 
             setFormData(prev => ({ ...prev, avatar: null })) // Clear file input
             toast.success('Profilo aggiornato con successo')
         } catch (error) {
-            console.error('Failed to update profile', error)
+            logger.error('Failed to update profile', error)
             toast.error('Errore durante il salvataggio del profilo')
         } finally {
             setSaving(false)

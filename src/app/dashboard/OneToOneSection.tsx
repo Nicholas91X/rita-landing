@@ -10,6 +10,7 @@ import { createCheckoutSession } from '@/app/actions/stripe'
 import { toast } from 'sonner'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import { logger } from '@/lib/logger'
 
 type OneTimePackage = {
     id: string
@@ -76,7 +77,7 @@ export default function OneToOneSection() {
                 // Combine: Purchases first, then templates
                 setPackages([...purchaseItems, ...templatePackages])
             } catch (error) {
-                console.error('Error fetching generic packages:', error)
+                logger.error('Error fetching generic packages:', error)
                 toast.error('Impossibile caricare i pacchetti')
             } finally {
                 setLoading(false)
@@ -94,7 +95,7 @@ export default function OneToOneSection() {
                 router.push(url)
             }
         } catch (error) {
-            console.error('Purchase error:', error)
+            logger.error('Purchase error:', error)
             toast.error('Errore durante l\'inizializzazione dell\'acquisto')
         } finally {
             setPurchasingId(null)

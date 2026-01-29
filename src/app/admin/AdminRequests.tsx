@@ -10,6 +10,7 @@ import { Loader2, Bell, RefreshCcw, XCircle, User, Clock, AlertTriangle, Chevron
 import { toast } from 'sonner'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Badge } from "@/components/ui/badge"
+import { logger } from '@/lib/logger'
 
 const ITEMS_PER_PAGE = 6
 
@@ -67,7 +68,7 @@ export default function AdminRequests() {
             setRefundRequests(refundsResult.data as RefundRequest[])
             setTotalRefunds(refundsResult.totalCount)
         } catch (error) {
-            console.error('Failed to load admin billing data', error)
+            logger.error('Failed to load admin billing data', error)
             if (!silent) toast.error('Errore nel caricamento dei dati')
         } finally {
             if (!silent) setLoading(false)
@@ -139,7 +140,7 @@ export default function AdminRequests() {
             await markNotificationAsRead(id)
             setNotifications(notifications.map(n => n.id === id ? { ...n, is_read: true } : n))
         } catch (error) {
-            console.error(error)
+            logger.error('Mark as read error:', error)
         }
     }
 

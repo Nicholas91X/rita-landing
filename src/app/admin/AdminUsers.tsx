@@ -29,6 +29,7 @@ import {
     DialogDescription,
 } from "@/components/ui/dialog"
 import { Badge } from '@/components/ui/badge'
+import { logger } from '@/lib/logger'
 
 interface AdminUser {
     id: string
@@ -88,7 +89,7 @@ export default function AdminUsers() {
             setUsers((result.data as AdminUser[]) || [])
             setTotalCount(result.totalCount)
         } catch (error) {
-            console.error('Failed to load users:', error)
+            logger.error('Failed to load users:', error)
         } finally {
             setLoading(false)
         }
@@ -101,7 +102,7 @@ export default function AdminUsers() {
             const data = await getUserHistory(user.id)
             setHistory((data as HistoryOperation[]) || [])
         } catch (error) {
-            console.error('Failed to load history:', error)
+            logger.error('Failed to load history:', error)
         } finally {
             setLoadingHistory(false)
         }

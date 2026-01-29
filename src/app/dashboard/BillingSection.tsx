@@ -5,6 +5,7 @@ import { getUserSubscriptionInfo } from '@/app/actions/user'
 import Image from 'next/image'
 import { createClient } from '@/utils/supabase/client'
 import { cn } from '@/lib/utils'
+import { logger } from '@/lib/logger'
 import { createPortalSession, cancelSubscription, requestRefund } from '@/app/actions/stripe'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -120,7 +121,7 @@ export default function BillingSection() {
                 setSubscriptions(data)
             }
         } catch (error: unknown) {
-            console.error('Failed to fetch subscriptions', error)
+            logger.error('Failed to fetch subscriptions', error)
             toast.error('Errore nel caricamento dei dati di fatturazione')
         } finally {
             setLoading(false)

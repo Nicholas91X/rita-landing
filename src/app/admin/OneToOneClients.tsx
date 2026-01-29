@@ -24,6 +24,7 @@ import { Loader2, ExternalLink, Search, FileText, UploadCloud } from 'lucide-rea
 import { toast } from 'sonner'
 import { uploadClientDocument, updateOneTimePurchaseStatus } from '@/app/actions/admin_actions/users'
 import Link from 'next/link'
+import { logger } from '@/lib/logger'
 
 type OneTimeClient = {
     id: string
@@ -67,7 +68,7 @@ export default function OneToOneClients() {
             if (error) throw error
             setClients(data as unknown as OneTimeClient[])
         } catch (error: unknown) {
-            console.error('Error loading clients:', error)
+            logger.error('Error loading clients:', error)
             toast.error('Errore nel caricamento clienti')
         } finally {
             setLoading(false)

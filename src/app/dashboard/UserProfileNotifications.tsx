@@ -6,6 +6,7 @@ import { getUserNotifications, markUserNotificationAsRead } from '@/app/actions/
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { toast } from 'sonner'
+import { logger } from '@/lib/logger'
 
 interface UserNotification {
     id: string
@@ -25,7 +26,7 @@ export default function UserProfileNotifications() {
             const data = await getUserNotifications()
             setNotifications(data)
         } catch (error) {
-            console.error('Failed to fetch notifications', error)
+            logger.error('Failed to fetch notifications', error)
         } finally {
             setLoading(false)
         }
@@ -106,9 +107,9 @@ export default function UserProfileNotifications() {
                             <CardContent className="p-5">
                                 <div className="flex items-start gap-4">
                                     <div className={`p-3 rounded-xl shrink-0 ${n.type === 'achievement' ? 'bg-yellow-50 text-yellow-600' :
-                                            n.type === 'broadcast' ? 'bg-[#846047]/10 text-[#846047]' :
-                                                n.type === 'refund_approved' ? 'bg-emerald-50 text-emerald-600' :
-                                                    'bg-blue-50 text-blue-600'
+                                        n.type === 'broadcast' ? 'bg-[#846047]/10 text-[#846047]' :
+                                            n.type === 'refund_approved' ? 'bg-emerald-50 text-emerald-600' :
+                                                'bg-blue-50 text-blue-600'
                                         }`}>
                                         {n.type === 'achievement' ? <Trophy className="w-5 h-5" /> :
                                             n.type === 'broadcast' ? <Megaphone className="w-5 h-5" /> :

@@ -14,6 +14,7 @@ import {
     DialogHeader,
     DialogTitle,
 } from "@/components/ui/dialog"
+import { logger } from '@/lib/logger'
 
 export default function AdminBroadcasts() {
     const [title, setTitle] = useState('')
@@ -44,7 +45,7 @@ export default function AdminBroadcasts() {
                 toast.error('Errore durante l\'invio della notifica')
             }
         } catch (error) {
-            console.error('Broadcast error:', error)
+            logger.error('Broadcast error:', error)
             toast.error('Errore durante l\'invio della notifica')
         } finally {
             setLoading(false)

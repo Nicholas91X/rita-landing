@@ -11,6 +11,7 @@ import { Button } from '@/components/ui/button'
 import { useRouter } from 'next/navigation'
 import confetti from 'canvas-confetti'
 import { cn } from '@/lib/utils'
+import { logger } from '@/lib/logger'
 
 type Video = {
     id: string
@@ -69,7 +70,7 @@ export default function PackageClient({ pkg, videos }: { pkg: Package, videos: V
                 setCelebrated(true) // Mark as celebrated so the modal doesn't show
             }
         } catch (error) {
-            console.error('Failed to fetch progress:', error)
+            logger.error('Failed to fetch progress:', error)
         } finally {
             setLoadingProgress(false)
             setInitialLoadDone(true)
