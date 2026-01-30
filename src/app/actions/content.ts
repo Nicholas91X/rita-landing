@@ -7,11 +7,14 @@ import { redirect } from 'next/navigation'
 export type Package = {
     id: string
     name: string
+    title?: string | null
+    subtitle?: string | null
     description: string
     course_id: string
     stripe_price_id: string
     price: number;
     image_url: string | null;
+    payment_mode?: 'subscription' | 'payment';
     isPurchased?: boolean
 }
 
@@ -35,13 +38,23 @@ export async function getContentHierarchy() {
     if (!user) redirect('/login')
 
     // 1. Recupera gli ID dei pacchetti acquistati (inclusi quelli in prova)
+    // 1a. Recupera gli ID degli abbonamenti attivi
     const { data: subs } = await supabase
         .from('user_subscriptions')
         .select('package_id')
         .eq('user_id', user.id)
         .in('status', ['active', 'trialing'])
 
-    const purchasedIds = subs?.map(s => s.package_id) || []
+    // 1b. Recupera gli ID degli acquisti una tantum
+    const { data: oneTime } = await supabase
+        .from('one_time_purchases')
+        .select('package_id')
+        .eq('user_id', user.id)
+
+    const purchasedIds = [
+        ...(subs?.map(s => s.package_id) || []),
+        ...(oneTime?.map(p => p.package_id) || [])
+    ]
 
     // 2. Query con i nomi colonne corretti (name invece di title)
     const { data, error } = await supabase
@@ -54,11 +67,14 @@ export async function getContentHierarchy() {
                 name,
                 packages ( 
                     id, 
-                    name, 
+                    name,
+                    title, 
+                    subtitle,
                     description, 
                     stripe_price_id,
                     price,
-                    image_url
+                    image_url,
+                    payment_mode
                 )
             )
         `)
@@ -78,10 +94,12 @@ export async function getContentHierarchy() {
             packages: Array<{
                 id: string;
                 name: string;
+                title: string | null;
                 description: string;
                 stripe_price_id: string;
                 price: number;
                 image_url: string | null;
+                payment_mode: 'subscription' | 'payment';
             }>;
         }>;
     }>;
@@ -114,11 +132,14 @@ export async function getPublicContentHierarchy() {
                 name,
                 packages ( 
                     id, 
-                    name, 
+                    name,
+                    title, 
+                    subtitle,
                     description, 
                     stripe_price_id,
                     price,
-                    image_url
+                    image_url,
+                    payment_mode
                 )
             )
         `)
@@ -138,10 +159,12 @@ export async function getPublicContentHierarchy() {
             packages: Array<{
                 id: string;
                 name: string;
+                title: string | null;
                 description: string;
                 stripe_price_id: string;
                 price: number;
                 image_url: string | null;
+                payment_mode: 'subscription' | 'payment';
             }>;
         }>;
     }>;

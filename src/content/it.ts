@@ -20,7 +20,6 @@ export const site = {
   socials: {
     facebook: "https://www.facebook.com/share/19nybERnXM/",
     instagram: "https://www.instagram.com/fitesmile?igsh=aDh0bWxya2VtcXdi ",
-    youtube: "https://www.youtube.com/@ritazanicchipersonaltraine596",
     tiktok: "https://www.tiktok.com/@ritazanicchipt?_t=ZN-8zTdyeqs5Wo&_r=1 ",
   },
 };
@@ -44,7 +43,7 @@ L’ho testato anche con alcune donne over 50 che alleno: risultati diversi, cer
 Da qui è nata Fit & Smile: un aiuto concreto per tornare a vivere, non a sopravvivere.`,
   facts: [
     "🎓   Laurea in Scienze Motorie",
-    "🕒   ~30 anni di esperienza",
+    "🕒   + 25 anni di esperienza",
 
   ],
 };

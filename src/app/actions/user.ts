@@ -2,6 +2,7 @@
 
 import { createClient } from '@/utils/supabase/server'
 import { redirect } from 'next/navigation'
+import { unstable_cache } from 'next/cache'
 import Stripe from 'stripe'
 import { reconcileUserBadges } from './video'
 
@@ -26,6 +27,69 @@ interface ProfileUpdates {
     avatar_url?: string
 }
 
+/**
+ * Cached function to fetch Stripe documents (invoices + credit notes) for a customer.
+ * Cache TTL: 5 minutes. Revalidates on billing-related tags.
+ */
+const getCachedStripeDocuments = unstable_cache(
+    async (customerId: string, subscriptionId?: string): Promise<UserDocument[]> => {
+        try {
+            const invoiceFetchOptions: Stripe.InvoiceListParams = {
+                customer: customerId,
+                limit: 20,
+            }
+
+            if (subscriptionId) {
+                invoiceFetchOptions.subscription = subscriptionId
+            }
+
+            const [invoices, creditNotes] = await Promise.all([
+                stripe.invoices.list(invoiceFetchOptions),
+                stripe.creditNotes.list({ customer: customerId, limit: 20 })
+            ])
+
+            const invoiceIds = invoices.data.map(i => i.id)
+
+            // Map invoices to documents
+            const invoiceDocs: UserDocument[] = invoices.data.map((inv) => ({
+                id: inv.id,
+                type: 'invoice' as const,
+                number: inv.number || '',
+                date: inv.created,
+                amount: inv.total / 100,
+                currency: inv.currency,
+                url: inv.hosted_invoice_url || inv.invoice_pdf || null,
+                status: inv.status
+            }))
+
+            // Map credit notes to documents
+            const creditNoteDocs: UserDocument[] = creditNotes.data
+                .filter(cn => cn.invoice && invoiceIds.includes(cn.invoice as string))
+                .map(cn => ({
+                    id: cn.id,
+                    type: 'credit_note' as const,
+                    number: cn.number,
+                    date: cn.created,
+                    amount: cn.amount / 100,
+                    currency: cn.currency,
+                    url: cn.pdf,
+                    status: cn.status
+                }))
+
+            // Combine and sort by date descending
+            return [...invoiceDocs, ...creditNoteDocs].sort((a, b) => b.date - a.date)
+        } catch (err) {
+            console.error('Error fetching Stripe documents:', err)
+            return []
+        }
+    },
+    ['stripe-documents'],
+    {
+        revalidate: 300, // 5 minutes cache
+        tags: ['billing', 'stripe-documents']
+    }
+)
+
 export async function getUserSubscriptionInfo() {
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
@@ -41,6 +105,7 @@ export async function getUserSubscriptionInfo() {
             created_at,
             stripe_customer_id,
             stripe_subscription_id,
+            amount,
             packages ( 
                 name, 
                 description,
@@ -58,19 +123,69 @@ export async function getUserSubscriptionInfo() {
 
     if (error) {
         console.error('Error fetching user subscriptions:', error)
-        return []
     }
 
-    const typedSubs = (subs as unknown) as Array<{
-        id: string;
-        status: string;
-        current_period_end: string;
-        created_at: string;
-        stripe_customer_id: string | null;
-        stripe_subscription_id: string | null;
-        packages: unknown;
-        refund_requests: unknown;
-    }>;
+    // Fetch one-time purchases
+    const { data: oneTime, error: oneTimeError } = await supabase
+        .from('one_time_purchases')
+        .select(`
+            id,
+            created_at,
+            amount,
+            status,
+            stripe_payment_intent_id,
+            packages (
+                name,
+                description,
+                image_url,
+                price
+            ),
+            refund_requests (
+                status,
+                reason,
+                created_at,
+                processed_at
+            )
+        `)
+        .eq('user_id', user.id)
+
+    if (oneTimeError) {
+        console.error('Error fetching one time purchases:', oneTimeError)
+    }
+
+    interface SubWithPackage {
+        id: string
+        status: string
+        current_period_end: string
+        created_at: string
+        stripe_customer_id: string | null
+        stripe_subscription_id: string | null
+        amount: number | null
+        packages: {
+            name: string
+            description: string
+            price: number
+            image_url: string | null
+        } | {
+            name: string
+            description: string
+            price: number
+            image_url: string | null
+        }[] | null
+        refund_requests: {
+            status: string
+            reason: string
+            created_at: string
+            processed_at: string | null
+        } | {
+            status: string
+            reason: string
+            created_at: string
+            processed_at: string | null
+        }[] | null
+    }
+
+    const typedSubs = (subs || []) as unknown as SubWithPackage[];
 
     // Map and fetch receipts from Stripe
     const subsWithDetailedInfo = await Promise.all(typedSubs.map(async (sub) => {
@@ -108,78 +223,95 @@ export async function getUserSubscriptionInfo() {
         }
 
         if (customerId) {
-            try {
-                // Fetch invoices for this specific subscription if available
-                const invoiceFetchOptions: Stripe.InvoiceListParams = {
-                    customer: customerId,
-                    limit: 20,
-                }
-
-                if (sub.stripe_subscription_id) {
-                    invoiceFetchOptions.subscription = sub.stripe_subscription_id
-                }
-
-                const invoices = await stripe.invoices.list(invoiceFetchOptions)
-
-                // Fetch all credit notes for this customer (Stripe doesn't support direct subscription filter)
-                const creditNotes = await stripe.creditNotes.list({
-                    customer: customerId,
-                    limit: 20,
-                })
-
-                const invoiceIds = invoices.data.map(i => i.id)
-
-                // Map invoices to documents
-                const invoiceDocs: UserDocument[] = invoices.data.map((inv) => ({
-                    id: inv.id,
-                    type: 'invoice' as const,
-                    number: inv.number || '',
-                    date: inv.created,
-                    amount: inv.total / 100,
-                    currency: inv.currency,
-                    url: inv.hosted_invoice_url || inv.invoice_pdf || null,
-                    status: inv.status
-                }))
-
-                // Map credit notes to documents, filtering those that belong to the relevant invoices
-                // or have the same subscription metadata if applicable (usually CNs are tied to invoices)
-                const creditNoteDocs: UserDocument[] = creditNotes.data
-                    .filter(cn => cn.invoice && invoiceIds.includes(cn.invoice as string))
-                    .map(cn => ({
-                        id: cn.id,
-                        type: 'credit_note' as const,
-                        number: cn.number,
-                        date: cn.created,
-                        amount: cn.amount / 100,
-                        currency: cn.currency,
-                        url: cn.pdf,
-                        status: cn.status
-                    }))
-
-                // Combine and sort by date descending
-                documents = [...invoiceDocs, ...creditNoteDocs].sort((a, b) => b.date - a.date)
-
-            } catch (err) {
-                console.error('Error fetching documentation for customer:', sub.stripe_customer_id, err)
-            }
+            // Use cached function to fetch Stripe documents
+            documents = await getCachedStripeDocuments(customerId, sub.stripe_subscription_id || undefined)
         }
 
         const pkg = (Array.isArray(sub.packages) ? sub.packages[0] : sub.packages) as { name: string; description: string; price: number; image_url: string | null } | null
         const refunds = Array.isArray(sub.refund_requests) ? sub.refund_requests : (sub.refund_requests ? [sub.refund_requests] : [])
+
+        // Prefer sub.amount (actual paid price) over package base price
+        const actualAmount = sub.amount ? Number(sub.amount) / 100 : Number(pkg?.price || 0)
 
         return {
             ...sub,
             packages: pkg,
             refund_requests: refunds,
             next_invoice: sub.current_period_end,
-            amount: Number(pkg?.price || 0),
+            amount: actualAmount,
             interval: 'mese',
             documents,
             receipt_url: documents.find(d => d.type === 'invoice')?.url // legacy support if needed
         }
     }))
 
-    return subsWithDetailedInfo
+    interface OneTimePurchaseDB {
+        id: string
+        created_at: string
+        amount: number | null
+        status: string
+        stripe_payment_intent_id: string | null
+        packages: {
+            name: string
+            description: string
+            image_url: string | null
+            price: number
+        } | {
+            name: string
+            description: string
+            image_url: string | null
+            price: number
+        }[] | null
+        refund_requests?: unknown[]
+    }
+
+    const oneTimePurchasesWithDocs = await Promise.all((oneTime || []).map(async (purchaseUnknown) => {
+        const purchase = purchaseUnknown as unknown as OneTimePurchaseDB
+        const documents: UserDocument[] = []
+
+        if (purchase.stripe_payment_intent_id) {
+            try {
+                // Fetch the Payment Intent to get the latest charge receipt
+                // This is more reliable for one-time payments 
+                const pi = await stripe.paymentIntents.retrieve(purchase.stripe_payment_intent_id, {
+                    expand: ['latest_charge']
+                })
+
+                const charge = pi.latest_charge as Stripe.Charge
+
+                if (charge && charge.receipt_url) {
+                    documents.push({
+                        id: charge.id,
+                        type: 'invoice' as const,
+                        number: charge.receipt_number || 'Ricevuta',
+                        date: pi.created,
+                        amount: pi.amount / 100,
+                        currency: pi.currency,
+                        url: charge.receipt_url,
+                        status: pi.status
+                    })
+                }
+            } catch (err) {
+                console.error('Error fetching documentation for PI:', purchase.stripe_payment_intent_id, err)
+            }
+        }
+
+        return {
+            id: purchase.id,
+            status: purchase.status || 'paid',
+            created_at: purchase.created_at,
+            amount: purchase.amount,
+            packages: Array.isArray(purchase.packages) ? purchase.packages[0] : purchase.packages,
+            stripe_payment_intent_id: purchase.stripe_payment_intent_id,
+            refund_requests: purchase.refund_requests || [],
+            documents
+        }
+    }))
+
+    return {
+        subscriptions: subsWithDetailedInfo,
+        oneTimePurchases: oneTimePurchasesWithDocs
+    }
 }
 
 export async function getUserProfile() {
@@ -208,18 +340,42 @@ export async function getUserProfile() {
         .select('*, packages(name)')
         .eq('user_id', user.id)
 
+    const { data: oneTimePurchases } = await supabase
+        .from('one_time_purchases')
+        .select(`
+            id,
+            created_at,
+            status,
+            packages (
+                id,
+                name,
+                description,
+                image_url
+            )
+        `)
+        .eq('user_id', user.id)
+        .neq('status', 'refunded') // We only want valid purchases
+
+    const normalizedPurchases = (oneTimePurchases || []).map(p => ({
+        ...p,
+        packages: Array.isArray(p.packages) ? p.packages[0] : p.packages
+    }))
+
     return {
         user,
         profile,
         activeSubscriptions: activeSubs || [],
-        badges: badges || []
+        badges: badges || [],
+        oneTimePurchases: normalizedPurchases
     }
 }
+
 export async function signOutUser() {
     const supabase = await createClient()
     await supabase.auth.signOut()
     redirect('/login')
 }
+
 export async function getUserNotifications() {
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
@@ -362,4 +518,70 @@ export async function updatePassword(password: string) {
     }
 
     return { success: true }
+}
+
+export async function recoverPassword(email: string) {
+    const supabase = await createClient()
+
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/auth/reset-password`,
+    })
+
+    if (error) {
+        console.error('Error sending reset password email:', error)
+        throw new Error(error.message)
+    }
+
+    return { success: true }
+}
+
+export async function findEmail(fullName: string) {
+    const supabase = await createClient()
+
+    // We use a broader search to help the user find themselves
+    const { data: profiles, error } = await supabase
+        .from('profiles')
+        .select('email')
+        .ilike('full_name', `%${fullName}%`)
+        .limit(5)
+
+    if (error) {
+        console.error('Error finding email:', error)
+        throw new Error('Errore durante la ricerca. Riprova più tardi.')
+    }
+
+    if (!profiles || profiles.length === 0) {
+        throw new Error('Nessun utente trovato con questo nome.')
+    }
+
+    // Mask the emails: n*******@domain.com
+    const maskedEmails = profiles.map(p => {
+        if (!p.email) return null
+        const [local, domain] = p.email.split('@')
+        if (!domain) return p.email // Should not happen
+        const maskedLocal = local.length > 2
+            ? local[0] + '*'.repeat(local.length - 2) + local[local.length - 1]
+            : local[0] + '*';
+        return `${maskedLocal}@${domain}`
+    }).filter(p => p !== null) as string[]
+
+    return { success: true, maskedEmails }
+}
+
+export async function getPassportStamps() {
+    const supabase = await createClient()
+
+    // Fetch all packages that have a badge type defined to populate the passport slots
+    const { data: packages, error } = await supabase
+        .from('packages')
+        .select('id, name, badge_type')
+        .not('badge_type', 'is', null)
+        .order('name')
+
+    if (error) {
+        console.error('Error fetching passport stamps:', error)
+        return []
+    }
+
+    return packages
 }

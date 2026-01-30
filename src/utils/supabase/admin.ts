@@ -1,15 +1,19 @@
 import { createClient } from '@/utils/supabase/server'
 
-export async function isAdmin() {
+export async function isAdmin(userId?: string) {
     const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
 
-    if (!user) return false
+    let finalUserId = userId
+    if (!finalUserId) {
+        const { data: { user } } = await supabase.auth.getUser()
+        if (!user) return false
+        finalUserId = user.id
+    }
 
     const { data } = await supabase
         .from('admins')
         .select('user_id')
-        .eq('user_id', user.id)
+        .eq('user_id', finalUserId)
         .single()
 
     return !!data

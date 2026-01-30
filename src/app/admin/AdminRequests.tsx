@@ -1,7 +1,8 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { getAdminNotifications, getRefundRequests, handleRefundRequest, markNotificationAsRead } from '@/app/actions/admin'
+import { getAdminNotifications, markNotificationAsRead } from '@/app/actions/admin_actions/users'
+import { getRefundRequests, handleRefundRequest } from '@/app/actions/admin_actions/sales'
 import { createClient } from '@/utils/supabase/client'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -9,6 +10,7 @@ import { Loader2, Bell, RefreshCcw, XCircle, User, Clock, AlertTriangle, Chevron
 import { toast } from 'sonner'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Badge } from "@/components/ui/badge"
+import { logger } from '@/lib/logger'
 
 const ITEMS_PER_PAGE = 6
 
@@ -36,6 +38,10 @@ interface RefundRequest {
         package_id: string
         packages: { name: string } | null
     } | null
+    one_time_purchases: {
+        package_id: string
+        packages: { name: string } | null
+    } | null
 }
 
 export default function AdminRequests() {
@@ -46,19 +52,23 @@ export default function AdminRequests() {
 
     // Pagination states
     const [currentPageNotifs, setCurrentPageNotifs] = useState(1)
+    const [totalNotifs, setTotalNotifs] = useState(0)
     const [currentPageRefunds, setCurrentPageRefunds] = useState(1)
+    const [totalRefunds, setTotalRefunds] = useState(0)
 
     const loadData = async (silent = false) => {
         try {
             if (!silent) setLoading(true)
-            const [notifs, refunds] = await Promise.all([
-                getAdminNotifications(),
-                getRefundRequests()
+            const [notifsResult, refundsResult] = await Promise.all([
+                getAdminNotifications(currentPageNotifs, ITEMS_PER_PAGE),
+                getRefundRequests(currentPageRefunds, ITEMS_PER_PAGE)
             ])
-            setNotifications(notifs)
-            setRefundRequests(refunds)
+            setNotifications(notifsResult.data as AdminNotification[])
+            setTotalNotifs(notifsResult.totalCount)
+            setRefundRequests(refundsResult.data as RefundRequest[])
+            setTotalRefunds(refundsResult.totalCount)
         } catch (error) {
-            console.error('Failed to load admin billing data', error)
+            logger.error('Failed to load admin billing data', error)
             if (!silent) toast.error('Errore nel caricamento dei dati')
         } finally {
             if (!silent) setLoading(false)
@@ -67,7 +77,10 @@ export default function AdminRequests() {
 
     useEffect(() => {
         loadData()
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [currentPageNotifs, currentPageRefunds])
 
+    useEffect(() => {
         const supabase = createClient()
 
         // Listen for changes in refund_requests
@@ -98,6 +111,7 @@ export default function AdminRequests() {
             supabase.removeChannel(refundChannel)
             supabase.removeChannel(notifChannel)
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [])
 
     const handleAction = async (requestId: string, status: 'approved' | 'rejected') => {
@@ -128,7 +142,7 @@ export default function AdminRequests() {
             await markNotificationAsRead(id)
             setNotifications(notifications.map(n => n.id === id ? { ...n, is_read: true } : n))
         } catch (error) {
-            console.error(error)
+            logger.error('Mark as read error:', error)
         }
     }
 
@@ -144,18 +158,12 @@ export default function AdminRequests() {
     const unreadCount = notifications.filter(n => !n.is_read).length
 
     // Pagination logic for Notifications
-    const totalPagesNotifs = Math.ceil(notifications.length / ITEMS_PER_PAGE)
-    const paginatedNotifs = notifications.slice(
-        (currentPageNotifs - 1) * ITEMS_PER_PAGE,
-        currentPageNotifs * ITEMS_PER_PAGE
-    )
+    const totalPagesNotifs = Math.ceil(totalNotifs / ITEMS_PER_PAGE)
+    const paginatedNotifs = notifications
 
     // Pagination logic for Refund Requests
-    const totalPagesRefunds = Math.ceil(refundRequests.length / ITEMS_PER_PAGE)
-    const paginatedRefunds = refundRequests.slice(
-        (currentPageRefunds - 1) * ITEMS_PER_PAGE,
-        currentPageRefunds * ITEMS_PER_PAGE
-    )
+    const totalPagesRefunds = Math.ceil(totalRefunds / ITEMS_PER_PAGE)
+    const paginatedRefunds = refundRequests
 
     return (
         <div className="bg-black space-y-8 max-w-6xl mx-auto px-4 md:px-8 py-8 md:py-12">
@@ -168,8 +176,8 @@ export default function AdminRequests() {
 
             <Tabs defaultValue="notifications" className="space-y-6">
                 <TabsList className="bg-neutral-900 border border-white/10 p-1 rounded-2xl w-full md:w-auto h-auto grid grid-cols-2 md:inline-flex">
-                    <TabsTrigger value="notifications" className="rounded-xl data-[state=active]:bg-white data-[state=active]:text-black data-[state=inactive]:text-white gap-2 py-2 md:py-1 transition-all">
-                        <Bell className="w-4 h-4" />
+                    <TabsTrigger value="notifications" className="rounded-xl data-[state=active]:bg-white data-[state=active]:text-black data-[state=inactive]:text-white gap-2 py-2 md:py-1 transition-all text-xs md:text-sm">
+                        <Bell className="w-3.5 h-3.5 md:w-4 md:h-4" />
                         Notifiche
                         {unreadCount > 0 && (
                             <Badge variant="destructive" className="h-5 px-1.5 min-w-[20px] justify-center text-[10px]">
@@ -177,8 +185,8 @@ export default function AdminRequests() {
                             </Badge>
                         )}
                     </TabsTrigger>
-                    <TabsTrigger value="refunds" className="rounded-xl data-[state=active]:bg-white data-[state=active]:text-black data-[state=inactive]:text-white gap-2 py-2 md:py-1 transition-all">
-                        <RefreshCcw className="w-4 h-4" />
+                    <TabsTrigger value="refunds" className="rounded-xl data-[state=active]:bg-white data-[state=active]:text-black data-[state=inactive]:text-white gap-2 py-2 md:py-1 transition-all text-xs md:text-sm">
+                        <RefreshCcw className="w-3.5 h-3.5 md:w-4 md:h-4" />
                         Richieste Rimborso
                     </TabsTrigger>
                 </TabsList>
@@ -234,8 +242,8 @@ export default function AdminRequests() {
                                                 </div>
                                             </div>
 
-                                            <div className="w-full md:w-auto md:text-right flex flex-row md:flex-col justify-between md:justify-start items-center md:items-end gap-2 shrink-0 pt-2 md:pt-0 border-t md:border-t-0 border-white/5">
-                                                <div className="text-[10px] text-white flex items-center gap-1.5 uppercase font-black tracking-widest whitespace-nowrap">
+                                            <div className="w-full md:w-auto md:text-right flex flex-col justify-between items-end gap-2 shrink-0 pt-2 md:pt-0 border-t md:border-t-0 border-white/5">
+                                                <div className="text-[10px] text-white flex items-center gap-1.5 uppercase font-black tracking-widest whitespace-nowrap self-start md:self-end">
                                                     <Clock className="w-3 h-3 text-brand" />
                                                     {new Date(n.created_at).toLocaleString('it-IT', { day: '2-digit', month: '2-digit', year: '2-digit', hour: '2-digit', minute: '2-digit' })}
                                                 </div>
@@ -243,7 +251,7 @@ export default function AdminRequests() {
                                                     <Button
                                                         variant="outline"
                                                         size="sm"
-                                                        className="text-[10px] text-white border-white/20 hover:bg-brand hover:text-white hover:border-brand transition-all uppercase font-black tracking-wider px-3 h-7 rounded-lg"
+                                                        className="text-[10px] text-white border-white/20 hover:bg-brand hover:text-white hover:border-brand transition-all uppercase font-black tracking-wider px-3 h-7 rounded-lg w-full md:w-auto"
                                                         onClick={() => handleMarkAsRead(n.id)}
                                                     >
                                                         Segna come letta
@@ -335,7 +343,7 @@ export default function AdminRequests() {
                                                 <div className="space-y-1">
                                                     <label className="text-[9px] uppercase font-black text-white/50 tracking-widest block">Pacchetto</label>
                                                     <p className="text-xs text-white font-black italic uppercase tracking-tight truncate">
-                                                        {req.user_subscriptions?.packages?.name || 'N/A'}
+                                                        {req.user_subscriptions?.packages?.name || req.one_time_purchases?.packages?.name || 'N/A'}
                                                     </p>
                                                 </div>
                                                 <div className="space-y-1">

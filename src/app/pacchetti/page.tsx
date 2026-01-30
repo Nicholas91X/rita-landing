@@ -18,19 +18,16 @@ import Link from "next/link";
 import { getPublicContentHierarchy } from "../actions/content";
 
 const leftImgs = [
-  "/side/left-1.jpg",
-  "/side/left-2.jpg",
-  "/side/left-3.jpg",
-  "/side/left-4.jpg",
-  "/side/left-5.jpg",
+  "https://hel1.your-objectstorage.com/nicholas-bucket/rita-zanicchi/side/left-1.png",
+  "https://hel1.your-objectstorage.com/nicholas-bucket/rita-zanicchi/side/left-2.png",
+  "https://hel1.your-objectstorage.com/nicholas-bucket/rita-zanicchi/side/left-3.png",
+  "https://hel1.your-objectstorage.com/nicholas-bucket/rita-zanicchi/side/left-4.png",
 ];
 
 const rightImgs = [
-  "/side/right-1.jpg",
-  "/side/right-2.jpg",
-  "/side/right-3.jpg",
-  "/side/right-4.jpg",
-  "/side/right-5.jpg",
+  "https://hel1.your-objectstorage.com/nicholas-bucket/rita-zanicchi/side/right-1.png",
+  "https://hel1.your-objectstorage.com/nicholas-bucket/rita-zanicchi/side/right-2.png",
+  "https://hel1.your-objectstorage.com/nicholas-bucket/rita-zanicchi/side/right-3.png",
 ];
 
 export const metadata: Metadata = {
@@ -70,19 +67,20 @@ export default async function PackagesPage() {
         gap={12}
         speedSec={22}
       />
-      <div className="max-w-7xl mx-auto px-8 md:px-10 lg:px-26 xl:px-26 py-20">
+      <div className="max-w-7xl mx-auto py-12 md:py-20 text-[var(--secondary)]">
         <Section className="section">
           <div className="grid gap-10 md:grid-cols-[minmax(0,0.75fr)_minmax(0,1fr)] items-center">
             <div className="space-y-4">
               <p className="text-sm uppercase tracking-[0.3em] text-[var(--muted-foreground)]">
                 Pacchetti coaching
               </p>
-              <h1 className="h1 text-white ts-white">
-                Scegli il tuo percorso
+              <h1 className="h1 text-[var(--secondary)]">
+                Come vuoi affrontare questo viaggio? 🧭
               </h1>
-              <p className="text-lg lead">
-                Dai primi passi al perfezionamento tecnico.
-                Trova il pacchetto adatto al tuo livello e inizia ad allenarti oggi stesso.
+              <p className="text-lg lead text-[var(--secondary)]">
+                Non importa se parti da zero. L&apos;importante è scegliere il bagaglio giusto per te. 🎒<br />
+                Puoi prendere il Passaporto e viaggiare in autonomia ai tuoi ritmi,<br />
+                oppure chiedermi di essere la tua Guida Personale per sentirti protetta passo dopo passo.
               </p>
               <CtaRow>
                 <CtaWhatsApp
@@ -160,6 +158,9 @@ export default async function PackagesPage() {
                     </div>
                     <CardTitle className="text-2xl font-bold text-[var(--foreground)]">
                       {pkg.name}
+                      {pkg.name?.toUpperCase().includes("BALI") && " 🍹"}
+                      {pkg.name?.toUpperCase().includes("NEW YORK") && " 🗽"}
+                      {pkg.name?.toUpperCase().includes("AVANA") && " 🌴"}
                     </CardTitle>
                     <CardDescription className="text-sm text-gray-700 mt-2 line-clamp-3">
                       {pkg.description}

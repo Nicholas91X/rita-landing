@@ -52,6 +52,7 @@
   --brand-2: #EC732C;
   --navy: #001F3D;
   --steel: #345C72;
+  --cream: #FFFDD0;
 
   /* Design */
   --radius: 1rem;
@@ -194,4 +195,22 @@ body {
   to {
     transform: translateY(0);
   }
+}
+
+@keyframes pulse-subtle {
+
+  0%,
+  100% {
+    transform: scale(1);
+    filter: brightness(100%);
+  }
+
+  50% {
+    transform: scale(1.03);
+    filter: brightness(115%);
+  }
+}
+
+.animate-pulse-cta {
+  animation: pulse-subtle 2s infinite ease-in-out;
 }

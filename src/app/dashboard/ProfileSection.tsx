@@ -2,12 +2,14 @@
 
 import { useState, useEffect } from 'react'
 import Image from 'next/image'
-import { getUserProfile, updateProfile, updateEmail, updatePassword } from '@/app/actions/user'
+import { getUserProfile, updateProfile, updateEmail, updatePassword, getPassportStamps } from '@/app/actions/user'
+import { logger } from '@/lib/logger'
+import UserProfileNotifications from './UserProfileNotifications'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
-import { User, Mail, Shield, LogOut, Loader2, Camera, KeyRound } from 'lucide-react'
+import { User, Mail, Shield, LogOut, Loader2, Camera, ChevronLeft, ChevronRight } from 'lucide-react'
 import { createClient } from '@/utils/supabase/client'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
@@ -27,6 +29,14 @@ interface Badge {
     }
 }
 
+
+
+interface PassportStamp {
+    id: string
+    name: string
+    badge_type: string
+}
+
 interface UserProfileData {
     user: {
         email?: string
@@ -39,7 +49,12 @@ interface UserProfileData {
     badges: Badge[]
 }
 
-export default function ProfileSection({ onProfileUpdate }: { onProfileUpdate?: () => void }) {
+interface ProfileSectionProps {
+    onProfileUpdate?: () => void | Promise<void>
+    activeSubTab?: 'info' | 'badges' | 'notifications'
+}
+
+export default function ProfileSection({ onProfileUpdate, activeSubTab = 'info' }: ProfileSectionProps) {
     const [userData, setUserData] = useState<UserProfileData | null>(null)
     const [loading, setLoading] = useState(true)
     const [isEditing, setIsEditing] = useState(false)
@@ -67,7 +82,7 @@ export default function ProfileSection({ onProfileUpdate }: { onProfileUpdate?: 
                 setUserData(data)
                 setFormData(prev => ({ ...prev, fullName: data.profile?.full_name || '' }))
             } catch (error) {
-                console.error('Failed to fetch profile', error)
+                logger.error('Failed to fetch profile', error)
             } finally {
                 setLoading(false)
             }
@@ -106,7 +121,7 @@ export default function ProfileSection({ onProfileUpdate }: { onProfileUpdate?: 
             setFormData(prev => ({ ...prev, avatar: null })) // Clear file input
             toast.success('Profilo aggiornato con successo')
         } catch (error) {
-            console.error('Failed to update profile', error)
+            logger.error('Failed to update profile', error)
             toast.error('Errore durante il salvataggio del profilo')
         } finally {
             setSaving(false)
@@ -162,279 +177,412 @@ export default function ProfileSection({ onProfileUpdate }: { onProfileUpdate?: 
     }
 
     return (
-        <div className="max-w-4xl space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-500">
-            <div className="flex items-center justify-between">
-                <div>
-                    <h2 className="text-3xl font-bold text-white tracking-tight">Il tuo Profilo</h2>
-                    <p className="text-neutral-400 mt-1">Gestisci le tue informazioni personali.</p>
-                </div>
-                {!isEditing ? (
-                    <Button onClick={() => setIsEditing(true)} className="bg-[var(--brand)] text-white hover:bg-[var(--brand)]/90 rounded-xl">
-                        Modifica Profilo
-                    </Button>
-                ) : (
-                    <div className="flex gap-2">
-                        <Button onClick={() => setIsEditing(false)} variant="ghost" className="text-neutral-400 hover:text-white">
-                            Annulla
-                        </Button>
-                        <Button onClick={handleSave} disabled={saving} className="bg-[var(--brand)] text-white hover:bg-[var(--brand)]/90 rounded-xl min-w-[100px]">
-                            {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Salva'}
-                        </Button>
+        <div className="max-w-4xl space-y-10 animate-in fade-in duration-500">
+            {activeSubTab === 'info' && (
+                <div className="space-y-10 animate-in slide-in-from-left-4 duration-500">
+                    {/* ... existing info content ... */}
+                    <div className="flex items-center justify-between">
+                        <div>
+                            <h2 className="text-2xl font-bold text-[#593e25] tracking-tight">Dati Personali</h2>
+                            <p className="text-neutral-500 mt-1">Gestisci le tue informazioni dell&apos;account.</p>
+                        </div>
+                        {!isEditing ? (
+                            <Button onClick={() => setIsEditing(true)} className="bg-[#846047] text-white hover:bg-[#846047]/90 rounded-xl">
+                                Modifica Profilo
+                            </Button>
+                        ) : (
+                            <div className="flex gap-2">
+                                <Button onClick={() => setIsEditing(false)} variant="ghost" className="text-neutral-400 hover:text-white">
+                                    Annulla
+                                </Button>
+                                <Button onClick={handleSave} disabled={saving} className="bg-[#846047] text-white hover:bg-[#846047]/90 rounded-xl min-w-[100px]">
+                                    {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Salva'}
+                                </Button>
+                            </div>
+                        )}
                     </div>
-                )}
-            </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-12 gap-10">
-                <div className="md:col-span-4 space-y-6">
-                    <Card className="bg-white/5 border-white/10 backdrop-blur-md shadow-2xl overflow-hidden rounded-[32px] p-8 flex flex-col items-center text-center group hover:border-[var(--brand)]/30 transition-colors">
-                        <div className="relative group cursor-pointer" onClick={() => isEditing && document.getElementById('avatar-upload')?.click()}>
-                            {userData?.profile?.avatar_url || formData.avatar ? (
-                                <div className="w-32 h-32 rounded-full border-4 border-[var(--brand)]/20 overflow-hidden mb-6 shadow-2xl">
-                                    <Image
-                                        src={formData.avatar ? URL.createObjectURL(formData.avatar) : (userData?.profile?.avatar_url || '')}
-                                        alt="Profile"
-                                        className="w-full h-full object-cover"
-                                        fill
-                                        sizes="128px"
+                    <div className="grid grid-cols-1 md:grid-cols-12 gap-10">
+                        <div className="md:col-span-4 space-y-6">
+                            <Card className="bg-white border-[#846047]/10 shadow-xl overflow-hidden rounded-[32px] p-8 flex flex-col items-center text-center group hover:border-[#846047]/30 transition-colors">
+                                <div className="relative group cursor-pointer" onClick={() => isEditing && document.getElementById('avatar-upload')?.click()}>
+                                    {userData?.profile?.avatar_url || formData.avatar ? (
+                                        <div className="w-32 h-32 rounded-full border-4 border-[#846047]/10 overflow-hidden mb-6 shadow-2xl relative">
+                                            <Image
+                                                src={formData.avatar ? URL.createObjectURL(formData.avatar) : (userData?.profile?.avatar_url || '')}
+                                                alt="Profile"
+                                                className="w-full h-full object-cover"
+                                                fill
+                                                sizes="128px"
+                                            />
+                                        </div>
+                                    ) : (
+                                        <div className="w-32 h-32 rounded-full bg-[#846047]/10 border-4 border-[#846047]/20 flex items-center justify-center text-4xl font-black text-[#846047] mb-6 transition-all group-hover:scale-105 shadow-sm">
+                                            {userData?.user?.email?.substring(0, 2).toUpperCase()}
+                                        </div>
+                                    )}
+
+                                    {isEditing && (
+                                        <div className="absolute inset-0 flex items-center justify-center bg-black/50 rounded-full opacity-0 group-hover:opacity-100 transition-opacity mb-6">
+                                            <Camera className="w-8 h-8 text-white" />
+                                        </div>
+                                    )}
+                                    <input
+                                        type="file"
+                                        id="avatar-upload"
+                                        className="hidden"
+                                        accept="image/*"
+                                        onChange={handleFileChange}
+                                        disabled={!isEditing}
                                     />
                                 </div>
-                            ) : (
-                                <div className="w-32 h-32 rounded-full bg-[var(--brand)]/10 border-4 border-[var(--brand)]/20 flex items-center justify-center text-4xl font-black text-[var(--brand)] mb-6 transition-all group-hover:scale-105 shadow-[0_0_30px_rgba(244,101,48,0.2)]">
-                                    {userData?.user?.email?.substring(0, 2).toUpperCase()}
-                                </div>
-                            )}
 
-                            {isEditing && (
-                                <div className="absolute inset-0 flex items-center justify-center bg-black/50 rounded-full opacity-0 group-hover:opacity-100 transition-opacity mb-6">
-                                    <Camera className="w-8 h-8 text-white" />
+                                {isEditing ? (
+                                    <input
+                                        type="text"
+                                        value={formData.fullName}
+                                        onChange={(e) => setFormData(p => ({ ...p, fullName: e.target.value }))}
+                                        placeholder="Nome e Cognome"
+                                        className="text-center bg-transparent border-b border-[#846047] text-[#2a2e30] font-bold text-xl focus:outline-none w-full pb-1"
+                                    />
+                                ) : (
+                                    <h3 className="text-xl font-bold text-[#2a2e30] mb-1">
+                                        {userData?.profile?.full_name || 'Utente Ritiana'}
+                                    </h3>
+                                )}
+                                <p className="text-neutral-500 text-sm mt-1">{userData?.user?.email}</p>
+
+                                <div className="mt-8 pt-8 border-t border-gray-100 w-full">
+                                    <Button
+                                        onClick={handleLogout}
+                                        variant="ghost"
+                                        className="w-full text-[#F46530] hover:text-[#F46530]/80 hover:bg-[#F46530]/10 font-bold flex items-center gap-2 transition-all"
+                                    >
+                                        <LogOut className="w-4 h-4" /> Esci dall&apos;Area Riservata
+                                    </Button>
                                 </div>
-                            )}
-                            <input
-                                type="file"
-                                id="avatar-upload"
-                                className="hidden"
-                                accept="image/*"
-                                onChange={handleFileChange}
-                                disabled={!isEditing}
-                            />
+                            </Card>
                         </div>
 
-                        {isEditing ? (
-                            <input
-                                type="text"
-                                value={formData.fullName}
-                                onChange={(e) => setFormData(p => ({ ...p, fullName: e.target.value }))}
-                                placeholder="Nome e Cognome"
-                                className="text-center bg-transparent border-b border-[var(--brand)] text-white font-bold text-xl focus:outline-none w-full pb-1"
-                            />
-                        ) : (
-                            <h3 className="text-xl font-bold text-white mb-1">
-                                {userData?.profile?.full_name || 'Utente Ritiana'}
+                        <div className="md:col-span-8 space-y-6">
+                            <Card className="bg-white border-gray-100 shadow-xl rounded-[32px] overflow-hidden">
+                                <CardHeader className="bg-[#f8f9fa] px-8 py-6 border-b border-gray-100">
+                                    <CardTitle className="text-[#2a2e30] text-lg font-bold">Informazioni Account</CardTitle>
+                                </CardHeader>
+                                <CardContent className="p-8 space-y-6">
+                                    <div className="flex items-center gap-4">
+                                        <div className="p-3 bg-[#f8f9fa] rounded-2xl border border-gray-100">
+                                            <Mail className="w-5 h-5 text-[#846047]" />
+                                        </div>
+                                        <div className="flex-1">
+                                            <label className="text-[10px] text-neutral-400 uppercase font-black tracking-widest block mb-1">Email Registrazione</label>
+                                            <div className="flex flex-col gap-2">
+                                                <p className="text-[#2a2e30] font-bold">{userData?.user?.email}</p>
+                                                <Dialog open={isEmailDialogOpen} onOpenChange={setIsEmailDialogOpen}>
+                                                    <DialogTrigger asChild>
+                                                        <Button variant="ghost" size="sm" className="w-fit text-xs h-8 text-[#846047] hover:bg-[#846047]/5 px-0">
+                                                            Modifica Email
+                                                        </Button>
+                                                    </DialogTrigger>
+                                                    <DialogContent className="bg-white border-none rounded-[32px] pointer-events-auto">
+                                                        <DialogHeader>
+                                                            <DialogTitle className="text-[#2a2e30] font-black uppercase tracking-tight">Modifica Email</DialogTitle>
+                                                            <DialogDescription>
+                                                                Inserisci il nuovo indirizzo email. Riceverai una conferma al nuovo indirizzo.
+                                                            </DialogDescription>
+                                                        </DialogHeader>
+                                                        <div className="py-4">
+                                                            <Input
+                                                                placeholder="Nuova Email"
+                                                                value={emailForm.email}
+                                                                onChange={(e) => setEmailForm({ email: e.target.value })}
+                                                                className="rounded-xl border-gray-200"
+                                                            />
+                                                        </div>
+                                                        <DialogFooter>
+                                                            <Button variant="ghost" onClick={() => setIsEmailDialogOpen(false)}>Annulla</Button>
+                                                            <Button onClick={handleUpdateEmail} disabled={saving} className="bg-[#846047] text-white hover:bg-[#846047]/90 rounded-xl">
+                                                                {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Aggiorna Email'}
+                                                            </Button>
+                                                        </DialogFooter>
+                                                    </DialogContent>
+                                                </Dialog>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div className="flex items-center gap-4">
+                                        <div className="p-3 bg-[#f8f9fa] rounded-2xl border border-gray-100">
+                                            <User className="w-5 h-5 text-[#846047]" />
+                                        </div>
+                                        <div className="flex-1">
+                                            <label className="text-[10px] text-neutral-400 uppercase font-black tracking-widest block mb-1">Nome Completo</label>
+                                            <p className="text-[#2a2e30] font-bold">
+                                                {userData?.profile?.full_name || <span className="text-gray-300 italic">Non impostato</span>}
+                                            </p>
+                                        </div>
+                                    </div>
+
+                                    <div className="flex items-center gap-4">
+                                        <div className="p-3 bg-[#f8f9fa] rounded-2xl border border-gray-100">
+                                            <Shield className="w-5 h-5 text-[#846047]" />
+                                        </div>
+                                        <div className="flex-1">
+                                            <label className="text-[10px] text-neutral-400 uppercase font-black tracking-widest block mb-1">Sicurezza Pagina</label>
+                                            <div className="flex flex-col gap-2">
+                                                <p className="text-[#2a2e30] font-bold">Password</p>
+                                                <Dialog open={isPasswordDialogOpen} onOpenChange={setIsPasswordDialogOpen}>
+                                                    <DialogTrigger asChild>
+                                                        <Button variant="ghost" size="sm" className="w-fit text-xs h-8 text-[#846047] hover:bg-[#846047]/5 px-0">
+                                                            Cambia Password
+                                                        </Button>
+                                                    </DialogTrigger>
+                                                    <DialogContent className="bg-white border-none rounded-[32px] pointer-events-auto">
+                                                        <DialogHeader>
+                                                            <DialogTitle className="text-[#2a2e30] font-black uppercase tracking-tight">Cambia Password</DialogTitle>
+                                                            <DialogDescription>
+                                                                Inserisci la nuova password per il tuo account.
+                                                            </DialogDescription>
+                                                        </DialogHeader>
+                                                        <div className="py-4 space-y-4">
+                                                            <Input
+                                                                type="password"
+                                                                placeholder="Nuova Password (min. 6 caratteri)"
+                                                                value={passwordForm.password}
+                                                                onChange={(e) => setPasswordForm(prev => ({ ...prev, password: e.target.value }))}
+                                                                className="rounded-xl border-gray-200"
+                                                            />
+                                                            <Input
+                                                                type="password"
+                                                                placeholder="Conferma Nuova Password"
+                                                                value={passwordForm.confirmPassword}
+                                                                onChange={(e) => setPasswordForm(prev => ({ ...prev, confirmPassword: e.target.value }))}
+                                                                className="rounded-xl border-gray-200"
+                                                            />
+                                                        </div>
+                                                        <DialogFooter>
+                                                            <Button variant="ghost" onClick={() => setIsPasswordDialogOpen(false)}>Annulla</Button>
+                                                            <Button onClick={handleUpdatePassword} disabled={saving} className="bg-[#846047] text-white hover:bg-[#846047]/90 rounded-xl">
+                                                                {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Aggiorna Password'}
+                                                            </Button>
+                                                        </DialogFooter>
+                                                    </DialogContent>
+                                                </Dialog>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </CardContent>
+                            </Card>
+                        </div>
+                    </div>
+                </div>
+            )}
+            {activeSubTab === 'badges' && (
+                <div className="space-y-10 animate-in slide-in-from-right-4 duration-500 perspective-[2000px]">
+                    <PassportBook userBadges={userData?.badges || []} userProfile={userData?.profile || null} />
+                </div>
+            )}
+            {activeSubTab === 'notifications' && (
+                <UserProfileNotifications />
+            )}
+        </div >
+    )
+}
+
+function PassportBook({ userBadges, userProfile }: { userBadges: Badge[], userProfile: Profile | null }) {
+    const [allStamps, setAllStamps] = useState<PassportStamp[]>([])
+    const [currentPage, setCurrentPage] = useState(0)
+    const [isFlipping, setIsFlipping] = useState(false)
+    const firstName = userProfile?.full_name?.split(' ')[0] || 'Citizen'
+
+    useEffect(() => {
+        const fetchStamps = async () => {
+            const stamps = await getPassportStamps()
+            setAllStamps(stamps || [])
+        }
+        fetchStamps()
+    }, [])
+
+    const ITEMS_PER_PAGE = 4
+    const totalPages = Math.ceil((allStamps.length || 1) / ITEMS_PER_PAGE)
+    const safeTotalPages = Math.max(totalPages, 1)
+
+    const handlePageChange = (direction: 'next' | 'prev') => {
+        if (isFlipping) return
+        if (direction === 'next' && currentPage >= safeTotalPages - 1) return
+        if (direction === 'prev' && currentPage <= 0) return
+
+        setIsFlipping(true)
+
+        setTimeout(() => {
+            setCurrentPage(prev => direction === 'next' ? prev + 1 : prev - 1)
+        }, 300)
+
+        setTimeout(() => {
+            setIsFlipping(false)
+        }, 600)
+    }
+
+    const currentStamps = allStamps.slice(currentPage * ITEMS_PER_PAGE, (currentPage + 1) * ITEMS_PER_PAGE)
+
+    return (
+        <div className="relative w-full max-w-2xl mx-auto aspect-[1.3/1] md:aspect-[1.4/1]">
+            <div className={`absolute inset-0 bg-[#fdfbf7] rounded-[20px] shadow-[0_10px_30px_rgba(0,0,0,0.2),inset_0_0_100px_rgba(0,0,0,0.05)] border-r-[8px] md:border-r-[12px] border-[#846047]/20 overflow-hidden transition-all duration-500 ${isFlipping ? 'scale-[0.98]' : 'scale-100'}`}>
+                {/* Textures and Fold */}
+                <div className="absolute inset-0 opacity-[0.4] pointer-events-none mix-blend-multiply"
+                    style={{ backgroundImage: 'url("https://www.transparenttextures.com/patterns/cream-paper.png")' }} />
+                <div className="absolute inset-0 opacity-[0.03] pointer-events-none"
+                    style={{ backgroundImage: 'radial-gradient(#846047 1px, transparent 1px)', backgroundSize: '16px 16px' }} />
+                <div className="absolute left-1/2 top-0 bottom-0 w-6 md:w-8 -ml-3 md:-ml-4 bg-gradient-to-r from-black/5 via-black/10 to-black/5 blur-sm z-20 pointer-events-none" />
+                <div className="absolute left-1/2 top-0 bottom-0 w-[1px] bg-[#846047]/20 z-20" />
+
+                <div className={`relative h-full flex flex-row transition-opacity duration-300 ${isFlipping ? 'opacity-0 scale-95 blur-sm' : 'opacity-100 scale-100 blur-0'}`}>
+                    {/* Left Page (User Bio) */}
+                    <div className="w-1/2 p-3 md:p-8 flex flex-col justify-between border-r border-[#846047]/10 relative">
+                        <div className="relative z-10 text-center md:text-left">
+                            <h2 className="text-[8px] md:text-[10px] font-black text-[#846047] uppercase tracking-[0.2em] mb-1 md:mb-2">Repubblica Italiana del Fitness</h2>
+                            <h3 className="text-lg md:text-2xl font-serif font-bold text-[#593e25] leading-none md:leading-tight">
+                                Timbri <br />
+                                <span className="text-[#846047] italic">Passaporto</span>
                             </h3>
-                        )}
-                        <p className="text-neutral-500 text-sm mt-1">{userData?.user?.email}</p>
-
-                        <div className="mt-8 pt-8 border-t border-white/5 w-full">
-                            <Button
-                                onClick={handleLogout}
-                                variant="destructive"
-                                className="w-full h-12 rounded-2xl bg-rose-500/10 hover:bg-rose-500 text-rose-500 hover:text-white border border-rose-500/20 transition-all font-bold flex items-center gap-2"
-                            >
-                                <LogOut className="w-4 h-4" /> Esci dall&apos;Area Riservata
-                            </Button>
                         </div>
-                    </Card>
+
+                        <div className="flex-1 flex flex-col items-center justify-center mt-2 md:mt-4">
+                            <div className="relative w-14 h-14 md:w-24 md:h-24 rounded-full border-2 md:border-4 border-[#846047]/10 overflow-hidden mb-2 md:mb-4 bg-white/50 backdrop-blur-sm">
+                                {userProfile?.avatar_url ? (
+                                    <Image
+                                        src={userProfile.avatar_url}
+                                        alt={firstName}
+                                        fill
+                                        className="object-cover"
+                                    />
+                                ) : (
+                                    <div className="w-full h-full flex items-center justify-center">
+                                        <User className="w-8 h-8 md:w-12 md:h-12 text-[#846047]/30" />
+                                    </div>
+                                )}
+                            </div>
+                            <div className="text-center px-1">
+                                <p className="text-[7px] md:text-[8px] uppercase tracking-widest font-black text-[#846047]/40 mb-0.5 md:mb-1 leading-none">Titolare</p>
+                                <p className="font-serif italic font-bold text-sm md:text-xl text-[#593e25] truncate max-w-full">
+                                    {firstName}
+                                </p>
+                            </div>
+                        </div>
+
+                        <div className="text-[7px] md:text-[8px] font-mono text-[#846047]/40 uppercase text-center mt-auto">
+                            Pag. {currentPage * 2 + 1}
+                        </div>
+                    </div>
+
+                    {/* Right Page (Stamps Grid) */}
+                    <div className="w-1/2 p-3 md:p-8 relative">
+                        <div className="grid grid-cols-2 gap-2 md:gap-4 h-full content-start">
+                            {[0, 1, 2, 3].map((idx) => {
+                                const stampData = currentStamps[idx];
+                                const hasEarned = userBadges.some(ub => ub.badge_type === stampData?.badge_type);
+
+                                return (
+                                    <div key={idx} className="aspect-square relative flex items-center justify-center">
+                                        {stampData ? (
+                                            hasEarned ? (
+                                                <RealStamp
+                                                    type={stampData.badge_type}
+                                                    name={stampData.badge_type.toUpperCase()}
+                                                    date={new Date().toLocaleDateString('it-IT')}
+                                                    index={idx}
+                                                />
+                                            ) : (
+                                                <div className="w-full h-full border-2 border-dashed border-[#846047]/10 rounded-full flex items-center justify-center p-1 md:p-2 opacity-20">
+                                                    <div className="text-center">
+                                                        <span className="block text-[5px] md:text-[8px] font-black uppercase tracking-tight mb-0.5 md:mb-1 truncate px-1">{stampData.name}</span>
+                                                        <div className="w-5 h-5 md:w-8 md:h-8 rounded-full bg-[#846047]/20 mx-auto" />
+                                                    </div>
+                                                </div>
+                                            )
+                                        ) : (
+                                            <div className="w-full h-full border border-dashed border-[#846047]/5 rounded-lg flex items-center justify-center opacity-5">
+                                                <span className="text-[7px] md:text-[8px]">---</span>
+                                            </div>
+                                        )}
+                                    </div>
+                                )
+                            })}
+                        </div>
+                        <div className="absolute bottom-3 md:bottom-8 right-3 md:right-8 text-[7px] md:text-[8px] font-mono text-[#846047]/40 uppercase">
+                            Pag. {currentPage * 2 + 2}
+                        </div>
+                    </div>
                 </div>
 
-                <div className="md:col-span-8 space-y-6">
-                    <Card className="bg-white/5 backdrop-blur-md border-white/5 shadow-2xl rounded-[32px] overflow-hidden">
-                        <CardHeader className="bg-white/5 px-8 py-6">
-                            <CardTitle className="text-white text-lg font-bold">Informazioni Account</CardTitle>
-                        </CardHeader>
-                        <CardContent className="p-8 space-y-6">
-                            <div className="flex items-center gap-4">
-                                <div className="p-3 bg-white/5 rounded-2xl">
-                                    <Mail className="w-5 h-5 text-[var(--brand)]" />
-                                </div>
-                                <div className="flex-1">
-                                    <label className="text-[10px] text-neutral-500 uppercase font-bold tracking-widest block mb-1">Email Registrazione</label>
-                                    <div className="flex flex-col gap-2">
-                                        <p className="text-white font-medium">{userData?.user?.email}</p>
-                                        <Dialog open={isEmailDialogOpen} onOpenChange={setIsEmailDialogOpen}>
-                                            <DialogTrigger asChild>
-                                                <Button variant="outline" size="sm" className="w-fit text-xs h-8 border-white/10 hover:bg-white/5 hover:text-white">
-                                                    Modifica Email
-                                                </Button>
-                                            </DialogTrigger>
-                                            <DialogContent className="bg-neutral-900 border-neutral-800 pointer-events-auto">
-                                                <DialogHeader>
-                                                    <DialogTitle className="text-white">Modifica Email</DialogTitle>
-                                                    <DialogDescription>
-                                                        Inserisci il nuovo indirizzo email. Riceverai una conferma al nuovo indirizzo.
-                                                    </DialogDescription>
-                                                </DialogHeader>
-                                                <div className="py-4">
-                                                    <Input
-                                                        placeholder="Nuova Email"
-                                                        value={emailForm.email}
-                                                        onChange={(e) => setEmailForm({ email: e.target.value })}
-                                                        className="bg-neutral-800 border-neutral-700 text-white"
-                                                    />
-                                                </div>
-                                                <DialogFooter>
-                                                    <Button variant="ghost" onClick={() => setIsEmailDialogOpen(false)} className="text-white">Annulla</Button>
-                                                    <Button onClick={handleUpdateEmail} disabled={saving} className="bg-[var(--brand)] text-white hover:bg-[var(--brand)]/90">
-                                                        {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Aggiorna Email'}
-                                                    </Button>
-                                                </DialogFooter>
-                                            </DialogContent>
-                                        </Dialog>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div className="flex items-center gap-4">
-                                <div className="p-3 bg-white/5 rounded-2xl">
-                                    <User className="w-5 h-5 text-[var(--brand)]" />
-                                </div>
-                                <div className="flex-1">
-                                    <label className="text-[10px] text-neutral-500 uppercase font-bold tracking-widest block mb-1">Nome Completo</label>
-                                    <p className="text-white font-medium">
-                                        {userData?.profile?.full_name || <span className="text-white/20 italic">Non impostato</span>}
-                                    </p>
-                                </div>
-                            </div>
-
-                            <div className="flex items-center gap-4">
-                                <div className="p-3 bg-white/5 rounded-2xl">
-                                    <Shield className="w-5 h-5 text-[var(--brand)]" />
-                                </div>
-                                <div className="flex-1">
-                                    <label className="text-[10px] text-neutral-500 uppercase font-bold tracking-widest block mb-1">Sicurezza</label>
-                                    <div className="flex flex-col gap-2">
-                                        <p className="text-white font-medium">Password</p>
-                                        <Dialog open={isPasswordDialogOpen} onOpenChange={setIsPasswordDialogOpen}>
-                                            <DialogTrigger asChild>
-                                                <Button variant="outline" size="sm" className="w-fit text-xs h-8 border-white/10 hover:bg-white/5 hover:text-white">
-                                                    Cambia Password
-                                                </Button>
-                                            </DialogTrigger>
-                                            <DialogContent className="bg-neutral-900 border-neutral-800 pointer-events-auto">
-                                                <DialogHeader>
-                                                    <DialogTitle className="text-white">Cambia Password</DialogTitle>
-                                                    <DialogDescription>
-                                                        Inserisci la nuova password per il tuo account.
-                                                    </DialogDescription>
-                                                </DialogHeader>
-                                                <div className="py-4 space-y-4">
-                                                    <Input
-                                                        type="password"
-                                                        placeholder="Nuova Password (min. 6 caratteri)"
-                                                        value={passwordForm.password}
-                                                        onChange={(e) => setPasswordForm(prev => ({ ...prev, password: e.target.value }))}
-                                                        className="bg-neutral-800 border-neutral-700 text-white"
-                                                    />
-                                                    <Input
-                                                        type="password"
-                                                        placeholder="Conferma Nuova Password"
-                                                        value={passwordForm.confirmPassword}
-                                                        onChange={(e) => setPasswordForm(prev => ({ ...prev, confirmPassword: e.target.value }))}
-                                                        className="bg-neutral-800 border-neutral-700 text-white"
-                                                    />
-                                                </div>
-                                                <DialogFooter>
-                                                    <Button variant="ghost" onClick={() => setIsPasswordDialogOpen(false)} className="text-white">Annulla</Button>
-                                                    <Button onClick={handleUpdatePassword} disabled={saving} className="bg-[var(--brand)] text-white hover:bg-[var(--brand)]/90">
-                                                        {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Aggiorna Password'}
-                                                    </Button>
-                                                </DialogFooter>
-                                            </DialogContent>
-                                        </Dialog>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div className="p-6 border border-[var(--brand)]/20 bg-[var(--brand)]/5 rounded-[24px] mt-4">
-                                <div className="flex items-start gap-3">
-                                    <KeyRound className="w-5 h-5 text-[var(--brand)] mt-0.5" />
-                                    <div>
-                                        <h4 className="text-white font-bold text-sm">Sicurezza Account</h4>
-                                        <p className="text-white/60 text-xs mt-1 leading-relaxed">
-                                            Ti consigliamo di utilizzare una password sicura e unica. Se cambi l&apos;email, dovrai verificarla nuovamente per accedere.
-                                        </p>
-                                    </div>
-                                </div>
-                            </div>
-                        </CardContent>
-                    </Card>
+                {/* Arrow Controls */}
+                <div className="absolute inset-y-0 left-0 flex items-center z-30">
+                    <button
+                        onClick={() => handlePageChange('prev')}
+                        disabled={currentPage === 0 || isFlipping}
+                        className="p-1 md:p-2 -ml-2 md:-ml-3 rounded-full bg-white shadow-lg text-[#846047] disabled:hidden hover:scale-110 active:scale-95 transition-all border border-[#846047]/10"
+                    >
+                        <ChevronLeft className="w-4 h-4 md:w-5 md:h-5" />
+                    </button>
+                </div>
+                <div className="absolute inset-y-0 right-0 flex items-center z-30">
+                    <button
+                        onClick={() => handlePageChange('next')}
+                        disabled={currentPage >= safeTotalPages - 1 || isFlipping}
+                        className="p-1 md:p-2 -mr-2 md:-mr-3 rounded-full bg-white shadow-lg text-[#846047] disabled:hidden hover:scale-110 active:scale-95 transition-all border border-[#846047]/10"
+                    >
+                        <ChevronRight className="w-4 h-4 md:w-5 md:h-5" />
+                    </button>
                 </div>
             </div>
 
-            {/* Achievements Section */}
-            <div className="pt-10 border-t border-white/5">
-                <div className="flex items-center gap-3 mb-8">
-                    <div className="w-10 h-10 rounded-xl bg-[var(--brand)]/20 flex items-center justify-center text-[var(--brand)]">
-                        <Shield className="w-5 h-5 shadow-[0_0_15px_rgba(244,101,48,0.4)]" />
-                    </div>
-                    <div>
-                        <h3 className="text-2xl font-bold text-white tracking-tight">Le Mie Conquiste</h3>
-                        <p className="text-neutral-400 text-sm">I badge che hai guadagnato completando i percorsi.</p>
-                    </div>
-                </div>
-
-                {userData && userData.badges && userData.badges.length > 0 ? (
-                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 md:gap-6">
-                        {userData.badges.map((badge) => (
-                            <div key={badge.id} className="group relative aspect-square">
-                                <Card className="w-full h-full bg-white/[0.03] border-white/5 backdrop-blur-xl rounded-full p-4 md:p-6 flex flex-col items-center justify-center text-center hover:border-[var(--brand)]/40 transition-all duration-700 hover:scale-[1.03] hover:shadow-[0_25px_60px_-15px_rgba(244,101,48,0.2)] overflow-hidden">
-
-                                    {/* Animated Ring Decor */}
-                                    <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-700">
-                                        <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(circle_at_50%_0%,rgba(244,101,48,0.15),transparent_70%)]" />
-                                    </div>
-
-                                    <div className="relative z-10 w-12 h-12 md:w-16 md:h-16 rounded-full bg-gradient-to-br from-neutral-800 to-neutral-900 flex items-center justify-center text-2xl md:text-4xl mb-2 shadow-[0_10px_30px_-5px_rgba(0,0,0,0.5)] border border-white/10 group-hover:border-[var(--brand)]/30 transition-colors duration-500">
-                                        <div className="absolute inset-0 rounded-full bg-[var(--brand)]/5 group-hover:animate-pulse" />
-                                        <span className="relative drop-shadow-[0_0_10px_rgba(255,255,255,0.2)]">
-                                            {badge.badge_type === 'leo' && '🦁'}
-                                            {badge.badge_type === 'tiger' && '🐯'}
-                                            {badge.badge_type === 'giraffe' && '🦒'}
-                                            {badge.badge_type === 'elephant' && '🐘'}
-                                            {badge.badge_type === 'monkey' && '🐵'}
-                                            {badge.badge_type === 'wolf' && '🐺'}
-                                            {badge.badge_type === 'fox' && '🦊'}
-                                            {badge.badge_type === 'panda' && '🐼'}
-                                            {!['leo', 'tiger', 'giraffe', 'elephant', 'monkey', 'wolf', 'fox', 'panda'].includes(badge.badge_type) && '🏅'}
-                                        </span>
-                                    </div>
-
-                                    <div className="relative z-10 space-y-0.5">
-                                        <h4 className="text-white font-black text-[10px] md:text-xs uppercase tracking-[0.1em] group-hover:text-[var(--brand)] transition-colors line-clamp-1">{badge.badge_type}</h4>
-                                        <p className="text-[7px] md:text-[8px] text-neutral-500 font-bold uppercase tracking-widest leading-tight line-clamp-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                                            {badge.packages?.name}
-                                        </p>
-                                    </div>
-                                </Card>
-                            </div>
-                        ))}
-                    </div>
-                ) : (
-                    <Card className="bg-white/5 border-dashed border-white/10 p-12 flex flex-col items-center justify-center text-center rounded-[32px]">
-                        <div className="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center text-neutral-600 mb-4">
-                            <Shield className="w-8 h-8" />
-                        </div>
-                        <h4 className="text-white font-bold mb-2">Ancora nessuna conquista</h4>
-                        <p className="text-neutral-500 text-sm max-w-xs">Completando tutti i video di un pacchetto sbloccherai badge esclusivi da mostrare qui.</p>
-                        <Button
-                            variant="link"
-                            className="mt-4 text-[var(--brand)] font-bold decoration-[var(--brand)]"
-                            onClick={() => router.push('/dashboard?tab=library')}
-                        >
-                            Vai ai tuoi allenamenti
-                        </Button>
-                    </Card>
-                )}
+            {/* Page Count Indicator */}
+            <div className="mt-4 md:mt-8 flex justify-center gap-1.5 opacity-40">
+                {Array.from({ length: safeTotalPages }).map((_, i) => (
+                    <div key={i} className={`h-1 rounded-full transition-all duration-300 ${i === currentPage ? 'w-4 bg-[#846047]' : 'w-1 bg-[#846047]/30'}`} />
+                ))}
             </div>
         </div>
     )
 }
+
+function RealStamp({ type, name, date, index }: { type: string, name: string, date: string, index: number }) {
+    const rotations = ['rotate-12', '-rotate-6', 'rotate-3', '-rotate-12'];
+    const rot = rotations[index % rotations.length];
+
+    const getStampColor = (t: string) => {
+        switch (t.toLowerCase()) {
+            case 'bali': return 'text-emerald-700 border-emerald-700';
+            case 'new_york': return 'text-blue-700 border-blue-700';
+            case 'rinascita': return 'text-indigo-700 border-indigo-700';
+            case 'lavana': return 'text-orange-600 border-orange-600';
+            case 'siviglia': return 'text-rose-700 border-rose-700';
+            default: return 'text-neutral-700 border-neutral-700';
+        }
+    };
+
+    const colorClass = getStampColor(type);
+
+    return (
+        <div className={`relative w-20 h-20 md:w-28 md:h-28 ${rot} opacity-90 transition-all hover:scale-110 active:scale-90`}>
+            <div className={`absolute inset-0 rounded-full border-[3px] border-double ${colorClass} opacity-80`}
+                style={{
+                    maskImage: 'url("data:image/svg+xml,%3Csvg viewBox=\'0 0 200 200\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cfilter id=\'noise\'%3E%3CfeTurbulence type=\'fractalNoise\' baseFrequency=\'1.5\'/%3E%3C/filter%3E%3Crect width=\'100%25\' height=\'100%25\' filter=\'url(%23noise)\' opacity=\'0.7\'/%3E%3C/svg%3E")',
+                    maskMode: 'luminance',
+                    WebkitMaskImage: 'url("data:image/svg+xml,%3Csvg viewBox=\'0 0 200 200\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cfilter id=\'noise\'%3E%3CfeTurbulence type=\'fractalNoise\' baseFrequency=\'1.5\'/%3E%3C/filter%3E%3Crect width=\'100%25\' height=\'100%25\' filter=\'url(%23noise)\' opacity=\'0.7\'/%3E%3C/svg%3E")'
+                }}
+            />
+            <div className={`absolute inset-0 flex flex-col items-center justify-center ${colorClass}`}>
+                <span className="text-[6px] md:text-[8px] font-black uppercase tracking-[0.2em] mb-0.5 opacity-60">VISA</span>
+                <span className="text-xs md:text-sm font-black uppercase tracking-tighter scale-y-125 my-1 border-t border-b border-current/30 py-1 w-[85%] text-center leading-none">
+                    {name}
+                </span>
+                <span className="text-[7px] md:text-[9px] font-mono font-bold tracking-tighter opacity-80">{date}</span>
+                <span className="text-[5px] md:text-[7px] font-black uppercase mt-1 tracking-widest opacity-40">Entry Permit</span>
+            </div>
+            <div className="absolute inset-0 rounded-full mix-blend-multiply opacity-20 pointer-events-none"
+                style={{ backgroundImage: 'url("https://www.transparenttextures.com/patterns/stucco.png")' }} />
+        </div>
+    )
+}
+

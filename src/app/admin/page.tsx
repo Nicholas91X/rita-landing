@@ -1,4 +1,5 @@
-import { getAdminPackages, getAdminStats } from '@/app/actions/admin'
+import { getAdminPackages } from '@/app/actions/admin_actions/packages'
+import { getAdminStats } from '@/app/actions/admin_actions/sales'
 import { isAdmin } from '@/utils/supabase/admin'
 import { redirect } from 'next/navigation'
 import AdminDashboardClient from './DashboardClient'

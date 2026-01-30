@@ -9,6 +9,14 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || 'sk_test_placeholder'
     apiVersion: '2025-12-15.clover' as unknown as Stripe.LatestApiVersion,
 })
 
+interface RefundInsertData {
+    user_id: string
+    reason: string
+    status: string
+    subscription_id?: string
+    purchase_id?: string
+}
+
 export async function createCheckoutSession(packageId: string) {
     const supabase = await createClient()
 
@@ -21,7 +29,7 @@ export async function createCheckoutSession(packageId: string) {
     // 2. Fetch package info and User eligibility
     const { data: pkg, error: pkgError } = await supabase
         .from('packages')
-        .select('stripe_price_id')
+        .select('stripe_price_id, payment_mode')
         .eq('id', packageId)
         .single()
 
@@ -54,8 +62,10 @@ export async function createCheckoutSession(packageId: string) {
     // 3. Create Stripe Checkout Session
     const origin = (await headers()).get('origin') || 'http://localhost:3000'
 
+    const isSubscription = pkg.payment_mode !== 'payment' // Default to subscription if null
+
     const sessionParams: Stripe.Checkout.SessionCreateParams = {
-        mode: 'subscription',
+        mode: isSubscription ? 'subscription' : 'payment',
         line_items: [
             {
                 price: pkg.stripe_price_id,
@@ -71,8 +81,8 @@ export async function createCheckoutSession(packageId: string) {
         cancel_url: `${origin}/dashboard?canceled=true`,
     }
 
-    // Apply Trial
-    if (isTrialEligible) {
+    // Apply Trial (Only for Subscriptions)
+    if (isTrialEligible && isSubscription) {
         sessionParams.subscription_data = {
             trial_period_days: 7
         }
@@ -138,36 +148,59 @@ export async function createPortalSession() {
 
     return session.url
 }
-export async function requestRefund(subscriptionId: string, reason: string) {
+export async function requestRefund(id: string, reason: string, type: 'subscription' | 'purchase' = 'subscription') {
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) throw new Error('Unauthorized')
 
-    const { data: subData } = await supabase
-        .from('user_subscriptions')
-        .select('created_at, packages(name)')
-        .eq('id', subscriptionId)
-        .single()
+    let packageName = 'Pacchetto'
+    let createdAt: number
 
-    if (!subData) throw new Error('Abbonamento non trovato')
+    if (type === 'subscription') {
+        const { data: subData } = await supabase
+            .from('user_subscriptions')
+            .select('created_at, packages(name)')
+            .eq('id', id)
+            .single()
+
+        if (!subData) throw new Error('Abbonamento non trovato')
+        createdAt = new Date(subData.created_at).getTime()
+        packageName = (subData.packages as unknown as { name: string })?.name || 'Pacchetto'
+    } else {
+        const { data: purchaseData } = await supabase
+            .from('one_time_purchases')
+            .select('created_at, packages(name)')
+            .eq('id', id)
+            .single()
+
+        if (!purchaseData) throw new Error('Acquisto non trovato')
+        createdAt = new Date(purchaseData.created_at).getTime()
+        packageName = (purchaseData.packages as unknown as { name: string })?.name || 'Pacchetto'
+    }
 
     // 4 days limit logic (4 * 24 * 60 * 60 * 1000 = 345600000 ms)
-    const createdAt = new Date(subData.created_at).getTime()
     const now = new Date().getTime()
     const diffDays = (now - createdAt) / (1000 * 60 * 60 * 24)
 
     if (diffDays > 4) {
-        throw new Error('Non è possibile richiedere un rimborso dopo 4 giorni dalla sottoscrizione.')
+        throw new Error('Non è possibile richiedere un rimborso dopo 4 giorni.')
+    }
+
+    const insertData: RefundInsertData = {
+        user_id: user.id,
+        reason,
+        status: 'pending'
+    }
+
+    if (type === 'subscription') {
+        insertData.subscription_id = id
+    } else {
+        insertData.purchase_id = id
     }
 
     const { error } = await supabase
         .from('refund_requests')
-        .insert({
-            user_id: user.id,
-            subscription_id: subscriptionId,
-            reason,
-            status: 'pending'
-        })
+        .insert(insertData)
 
     if (error) throw new Error('Errore durante la richiesta di rimborso')
 
@@ -176,9 +209,9 @@ export async function requestRefund(subscriptionId: string, reason: string) {
         type: 'refund_request',
         user_id: user.id,
         data: {
-            packageName: (subData?.packages as unknown as { name: string })?.name || 'Pacchetto',
+            packageName,
             reason: reason,
-            subscriptionId: subscriptionId
+            [type === 'subscription' ? 'subscriptionId' : 'purchaseId']: id
         }
     })
 
@@ -213,10 +246,10 @@ export async function cancelSubscription(subscriptionId: string) {
         }
     }
 
-    // 3. Update status in DB
+    // 3. Update flag in DB (don't set status to 'canceled' yet, Stripe will tell us when it's truly over)
     await supabase
         .from('user_subscriptions')
-        .update({ status: 'canceled' })
+        .update({ cancel_at_period_end: true })
         .eq('id', subscriptionId)
 
     // 4. Create Admin Notification

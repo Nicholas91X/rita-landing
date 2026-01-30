@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { createPackage, updatePackage, getAdminPackages, getAdminCourses } from '@/app/actions/admin'
+import { createPackage, updatePackage, getAdminPackages, getAdminCourses } from '@/app/actions/admin_actions/packages'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
@@ -22,12 +22,14 @@ import { toast } from 'sonner'
 type Package = {
     id: string
     name: string
+    title: string | null
     description: string
     price: number
     stripe_product_id: string | null
     stripe_price_id: string | null
     course_id: string | null
     badge_type: string | null
+    payment_mode: string | null
     image_url: string | null
     courses?: { name: string }
 }
@@ -44,7 +46,7 @@ export default function AdminPackages() {
     const [loading, setLoading] = useState(true)
     const [isDialogOpen, setIsDialogOpen] = useState(false)
     const [editingPackage, setEditingPackage] = useState<Package | null>(null)
-    const [formData, setFormData] = useState({ name: '', description: '', price: 0, course_id: '', badge_type: '' })
+    const [formData, setFormData] = useState({ name: '', title: '', description: '', price: 0, course_id: '', badge_type: '', payment_mode: 'subscription' })
     const [imageFile, setImageFile] = useState<File | null>(null)
     const [imagePreview, setImagePreview] = useState<string | null>(null)
     const [submitting, setSubmitting] = useState(false)
@@ -78,15 +80,17 @@ export default function AdminPackages() {
             setEditingPackage(pkg)
             setFormData({
                 name: pkg.name,
+                title: pkg.title || '',
                 description: pkg.description || '',
                 price: pkg.price,
                 course_id: pkg.course_id || '',
-                badge_type: pkg.badge_type || ''
+                badge_type: pkg.badge_type || '',
+                payment_mode: pkg.payment_mode || 'subscription'
             })
             setImagePreview(pkg.image_url)
         } else {
             setEditingPackage(null)
-            setFormData({ name: '', description: '', price: 0, course_id: '', badge_type: '' })
+            setFormData({ name: '', title: '', description: '', price: 0, course_id: '', badge_type: '', payment_mode: 'subscription' })
             setImagePreview(null)
         }
         setImageFile(null)
@@ -99,10 +103,13 @@ export default function AdminPackages() {
 
         const data = new FormData()
         data.append('name', formData.name)
+        data.append('title', formData.title)
         data.append('description', formData.description)
         data.append('price', formData.price.toString())
         data.append('course_id', formData.course_id)
+        data.append('course_id', formData.course_id)
         data.append('badge_type', formData.badge_type)
+        data.append('payment_mode', formData.payment_mode)
         if (imageFile) {
             data.append('image', imageFile)
         }
@@ -131,11 +138,11 @@ export default function AdminPackages() {
 
     return (
         <div className="space-y-6">
-            <div className="flex justify-between items-center">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <h2 className="text-2xl font-bold text-white">
                     Gestione Pacchetti
                 </h2>
-                <Button onClick={() => handleOpenDialog()} className="bg-white text-black hover:bg-neutral-200">
+                <Button onClick={() => handleOpenDialog()} className="bg-white text-black hover:bg-neutral-200 w-full sm:w-auto">
                     <Plus className="w-4 h-4 mr-2" />
                     Nuovo Pacchetto
                 </Button>
@@ -262,8 +269,16 @@ export default function AdminPackages() {
                                         required
                                     />
                                 </div>
+                                <div className="space-y-2 col-span-2">
+                                    <label className="text-sm font-bold text-white uppercase tracking-widest text-[10px]">Titolo (Opzionale)</label>
+                                    <Input
+                                        value={formData.title}
+                                        onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                                        className="bg-neutral-800 border-neutral-700"
+                                        placeholder="Es. Percorso Rinascita Guidata"
+                                    />
+                                </div>
                             </div>
-
                             <div className="space-y-2">
                                 <label className="text-sm font-bold text-white uppercase tracking-widest text-[10px]">Descrizione</label>
                                 <Textarea
@@ -303,22 +318,32 @@ export default function AdminPackages() {
                                     </select>
                                 </div>
                                 <div className="space-y-2 col-span-2">
-                                    <label className="text-sm font-bold text-white uppercase tracking-widest text-[10px]">Badge di Completamento</label>
+                                    <label className="text-sm font-bold text-white uppercase tracking-widest text-[10px]">Timbro Passaporto (Badge)</label>
                                     <select
                                         value={formData.badge_type}
                                         onChange={(e) => setFormData({ ...formData, badge_type: e.target.value })}
                                         className="w-full h-10 bg-neutral-800 border-neutral-700 rounded-md px-3 text-sm focus:ring-2 focus:ring-emerald-500 outline-none"
                                         required
                                     >
-                                        <option value="" disabled>Seleziona un badge...</option>
-                                        <option value="leo">🦁 Leone (Energia/Forza)</option>
-                                        <option value="tiger">🐯 Tigre (Coraggio/Poderosa)</option>
-                                        <option value="giraffe">🦒 Giraffa (Sguardo Alto/Prospettiva)</option>
-                                        <option value="elephant">🐘 Elefante (Saggezza/Stabilità)</option>
-                                        <option value="monkey">🐒 Scimmia (Gioia/Flessibilità)</option>
-                                        <option value="wolf">🐺 Lupo (Determinazione/Leadership)</option>
-                                        <option value="fox">🦊 Volpe (Intelligenza/Adattabilità)</option>
-                                        <option value="panda">🐼 Panda (Equilibrio/Gentilezza)</option>
+                                        <option value="" disabled>Seleziona un timbro...</option>
+                                        <option value="bali">🏝️ Bali (Relax/Natura)</option>
+                                        <option value="new_york">🗽 New York (Energy/City)</option>
+                                        <option value="rinascita">🦋 Rinascita (Transformation)</option>
+                                        <option value="lavana">🇨🇺 L&apos;Avana (Passione/Vitalità)</option>
+                                        <option value="siviglia">💃 Siviglia (Passion/Dance)</option>
+                                        <option value="generic">🏅 Generic (Medal)</option>
+                                    </select>
+                                </div>
+                                <div className="space-y-2 col-span-2">
+                                    <label className="text-sm font-bold text-white uppercase tracking-widest text-[10px]">Modalità Pagamento</label>
+                                    <select
+                                        value={formData.payment_mode}
+                                        onChange={(e) => setFormData({ ...formData, payment_mode: e.target.value })}
+                                        className="w-full h-10 bg-neutral-800 border-neutral-700 rounded-md px-3 text-sm focus:ring-2 focus:ring-emerald-500 outline-none"
+                                        required
+                                    >
+                                        <option value="subscription">Abbonamento (Ricorrente)</option>
+                                        <option value="payment">Una Tantum (Lifetime)</option>
                                     </select>
                                 </div>
                             </div>

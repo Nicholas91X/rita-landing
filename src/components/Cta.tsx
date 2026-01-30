@@ -29,6 +29,6 @@ export function CtaWhatsApp({
   );
 }
 
-export function CtaRow({ children }: { children: React.ReactNode }) {
-  return <div className="mt-6 flex flex-wrap gap-3">{children}</div>;
+export function CtaRow({ children, className = "" }: { children: React.ReactNode, className?: string }) {
+  return <div className={`mt-6 flex flex-wrap gap-3 ${className}`}>{children}</div>;
 }

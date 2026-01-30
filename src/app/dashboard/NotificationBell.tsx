@@ -62,7 +62,7 @@ export function NotificationBell() {
                 <Button variant="ghost" size="icon" className="relative hover:bg-white/10 rounded-xl transition-all h-10 w-10">
                     <Bell className="w-5 h-5 text-white" />
                     {unreadCount > 0 && (
-                        <Badge className="absolute -top-1 -right-1 h-5 w-5 p-0 flex items-center justify-center bg-brand text-white border-2 border-[#001F3D] animate-in zoom-in-50 duration-300">
+                        <Badge className="absolute -top-1 -right-1 h-5 w-5 p-0 flex items-center justify-center bg-[#7f554f] text-white border-2 border-[#001F3D] animate-in zoom-in-50 duration-300">
                             {unreadCount}
                         </Badge>
                     )}
@@ -86,7 +86,7 @@ export function NotificationBell() {
                                 onSelect={async () => {
                                     // Mark as read and then redirect
                                     await markUserNotificationAsRead(n.id)
-                                    router.push('/dashboard?tab=profile')
+                                    router.push('/dashboard?tab=profile&profileTab=notifications')
                                     fetchNotifications() // Update locally
                                 }}
                                 className="flex flex-col items-start gap-1 p-3 rounded-xl transition-all cursor-pointer focus:bg-white/10 bg-white/5 border-l-2 border-brand"

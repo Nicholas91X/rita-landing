@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { getAdminUsers, getUserHistory } from '@/app/actions/admin'
+import { getAdminUsers, getUserHistory } from '@/app/actions/admin_actions/users'
 import { CardContent } from '@/components/ui/card'
 import Image from 'next/image'
 import { Input } from '@/components/ui/input'
@@ -29,6 +29,7 @@ import {
     DialogDescription,
 } from "@/components/ui/dialog"
 import { Badge } from '@/components/ui/badge'
+import { logger } from '@/lib/logger'
 
 interface AdminUser {
     id: string
@@ -59,29 +60,38 @@ export default function AdminUsers() {
 
     // Pagination state
     const [currentPage, setCurrentPage] = useState<number>(1)
+    const [totalCount, setTotalCount] = useState<number>(0)
     const [historyPage, setHistoryPage] = useState<number>(1)
 
+    // Reset pagination and reload when searching
     useEffect(() => {
-        loadUsers()
-    }, [])
-
-    // Reset pagination when searching
-    useEffect(() => {
-        setCurrentPage(1)
+        const timer = setTimeout(() => {
+            setCurrentPage(1)
+            loadUsers(1, searchTerm)
+        }, 300) // Debounce search
+        return () => clearTimeout(timer)
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [searchTerm])
+
+    // Reload when page changes
+    useEffect(() => {
+        loadUsers(currentPage, searchTerm)
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [currentPage])
 
     // Reset history pagination when changing user
     useEffect(() => {
         setHistoryPage(1)
     }, [selectedUser])
 
-    async function loadUsers() {
+    async function loadUsers(page: number = currentPage, search: string = searchTerm) {
         setLoading(true)
         try {
-            const data = await getAdminUsers()
-            setUsers((data as AdminUser[]) || [])
+            const result = await getAdminUsers(page, ITEMS_PER_PAGE, search)
+            setUsers((result.data as AdminUser[]) || [])
+            setTotalCount(result.totalCount)
         } catch (error) {
-            console.error('Failed to load users:', error)
+            logger.error('Failed to load users:', error)
         } finally {
             setLoading(false)
         }
@@ -94,26 +104,16 @@ export default function AdminUsers() {
             const data = await getUserHistory(user.id)
             setHistory((data as HistoryOperation[]) || [])
         } catch (error) {
-            console.error('Failed to load history:', error)
+            logger.error('Failed to load history:', error)
         } finally {
             setLoadingHistory(false)
         }
     }
 
-    const filteredUsers = (users || []).filter(user => {
-        if (!user) return false;
-        const name = (user.full_name || '').toLowerCase()
-        const email = (user.email || '').toLowerCase()
-        const search = searchTerm.toLowerCase()
-        return name.includes(search) || email.includes(search)
-    })
 
     // Pagination logic for users
-    const totalUserPages = Math.ceil(filteredUsers.length / ITEMS_PER_PAGE)
-    const paginatedUsers = filteredUsers.slice(
-        (currentPage - 1) * ITEMS_PER_PAGE,
-        currentPage * ITEMS_PER_PAGE
-    )
+    const totalUserPages = Math.ceil(totalCount / ITEMS_PER_PAGE)
+    const paginatedUsers = users // Data is already paginated from server
 
     // Pagination logic for history
     const totalHistoryPages = Math.ceil(history.length / ITEMS_PER_PAGE)
@@ -216,7 +216,7 @@ export default function AdminUsers() {
                     </table>
                 </div>
 
-                {filteredUsers.length === 0 && (
+                {users.length === 0 && (
                     <div className="py-16 text-center bg-neutral-900 border-t border-neutral-800">
                         <User className="h-10 w-10 text-neutral-700 mx-auto mb-3" />
                         <p className="text-white font-bold italic">Nessun utente trovato</p>
