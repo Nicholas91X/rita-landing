@@ -19,6 +19,7 @@ import {
     AccordionItem,
     AccordionTrigger,
 } from "@/components/ui/accordion"
+import PWAInstallPrompt from '@/components/PWAInstallPrompt'
 
 type Package = {
     id: string
@@ -516,6 +517,9 @@ export default function AdminDashboardClient({ packages, libraryId, stats }: { p
                     )}
                 </div>
             </div>
+
+            {/* PWA Install Prompt */}
+            <PWAInstallPrompt />
         </div>
     )
 }

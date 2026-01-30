@@ -17,6 +17,7 @@ import { logger } from '@/lib/logger'
 import Image from 'next/image'
 
 import { NotificationBell } from './NotificationBell'
+import PWAInstallPrompt from '@/components/PWAInstallPrompt'
 
 interface DashboardProfile {
     user: {
@@ -258,6 +259,9 @@ export default function DashboardClient({ levels }: { levels: Level[] }) {
                     </Suspense>
                 </div>
             </main>
+
+            {/* PWA Install Prompt */}
+            <PWAInstallPrompt />
         </div >
     )
 }

@@ -1,0 +1,32 @@
+{
+    "name": "Rita Workout",
+    "short_name": "Rita",
+    "description": "Il tuo personal trainer virtuale. Allenamenti brevi ed efficaci.",
+    "start_url": "/dashboard",
+    "scope": "/",
+    "display": "standalone",
+    "orientation": "portrait",
+    "background_color": "#0a0a0a",
+    "theme_color": "#593e25",
+    "icons": [
+        {
+            "src": "/icon-192.png",
+            "sizes": "192x192",
+            "type": "image/png",
+            "purpose": "any maskable"
+        },
+        {
+            "src": "/icon-512.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "any maskable"
+        }
+    ],
+    "categories": [
+        "fitness",
+        "health",
+        "lifestyle"
+    ],
+    "lang": "it",
+    "dir": "ltr"
+}
