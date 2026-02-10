@@ -64,6 +64,7 @@ export default function AdminDashboardClient({ packages, libraryId, stats }: { p
     const [selectedPackage, setSelectedPackage] = useState('')
     const [file, setFile] = useState<File | null>(null)
     const [status, setStatus] = useState<'idle' | 'creating' | 'uploading' | 'saving' | 'success' | 'error'>('idle')
+    const [uploadProgress, setUploadProgress] = useState(0)
     const [videos, setVideos] = useState<VideoRecord[]>([])
     const [loadingVideos, setLoadingVideos] = useState(true)
     const [filterPackage, setFilterPackage] = useState('')
@@ -105,17 +106,35 @@ export default function AdminDashboardClient({ packages, libraryId, stats }: { p
 
             const videoId = bunnyVideo.guid
             setStatus('uploading')
+            setUploadProgress(0)
 
             const bunnyUrl = `https://video.bunnycdn.com/library/${config.libraryId}/videos/${videoId}`
-            const uploadResponse = await fetch(bunnyUrl, {
-                method: 'PUT',
-                headers: {
-                    'AccessKey': config.apiKey,
-                    'Content-Type': 'application/octet-stream',
-                },
-                body: file
+
+            // Usiamo XMLHttpRequest invece di fetch per avere il progresso di upload
+            await new Promise((resolve, reject) => {
+                const xhr = new XMLHttpRequest()
+                xhr.open('PUT', bunnyUrl)
+                xhr.setRequestHeader('AccessKey', config.apiKey!)
+                xhr.setRequestHeader('Content-Type', 'application/octet-stream')
+
+                xhr.upload.onprogress = (event) => {
+                    if (event.lengthComputable) {
+                        const percent = Math.round((event.loaded / event.total) * 100)
+                        setUploadProgress(percent)
+                    }
+                }
+
+                xhr.onload = () => {
+                    if (xhr.status >= 200 && xhr.status < 300) {
+                        resolve(xhr.response)
+                    } else {
+                        reject(new Error(`Upload failed with status ${xhr.status}`))
+                    }
+                }
+
+                xhr.onerror = () => reject(new Error('Network error during upload'))
+                xhr.send(file)
             })
-            if (!uploadResponse.ok) throw new Error('Upload failed')
             setStatus('saving')
             await saveVideoToDb({
                 title,
@@ -126,6 +145,7 @@ export default function AdminDashboardClient({ packages, libraryId, stats }: { p
                 duration: parseInt(duration) || undefined
             })
             setStatus('success')
+            setUploadProgress(0)
             fetchVideos()
             setFile(null)
             setTitle('')
@@ -320,8 +340,16 @@ export default function AdminDashboardClient({ packages, libraryId, stats }: { p
                                         <div className="p-6 bg-[var(--brand)]/5 rounded-2xl border border-[var(--brand)]/20 flex flex-col items-center justify-center text-center space-y-4 animate-pulse">
                                             <Loader2 className="h-10 w-10 text-[var(--brand)] animate-spin" />
                                             <p className="text-[10px] font-black uppercase tracking-widest text-[var(--brand)]">
-                                                {status.toUpperCase()}...
+                                                {status.toUpperCase()} {status === 'uploading' && `${uploadProgress}%`}...
                                             </p>
+                                            {status === 'uploading' && (
+                                                <div className="w-full bg-white/5 h-1.5 rounded-full overflow-hidden border border-white/5">
+                                                    <div
+                                                        className="h-full bg-[var(--brand)] transition-all duration-300 shadow-[0_0_10px_rgba(244,101,48,0.5)]"
+                                                        style={{ width: `${uploadProgress}%` }}
+                                                    />
+                                                </div>
+                                            )}
                                         </div>
                                     ) : status === 'success' ? (
                                         <div className="p-4 bg-emerald-500/10 text-emerald-500 rounded-2xl flex items-center gap-3 border border-emerald-500/20">
