@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import { createBunnyVideo, saveVideoToDb, getAdminVideos, deleteVideo, updateVideo } from '@/app/actions/admin_actions/videos'
+import { createBunnyVideo, saveVideoToDb, getAdminVideos, deleteVideo, updateVideo, getBunnyConfig } from '@/app/actions/admin_actions/videos'
 import AdminStats from './AdminStats'
 import AdminPackages from './AdminPackages'
 import AdminStripe from './AdminStripe'
@@ -100,12 +100,19 @@ export default function AdminDashboardClient({ packages, libraryId, stats }: { p
         try {
             setStatus('creating')
             const bunnyVideo = await createBunnyVideo(title)
+            const config = await getBunnyConfig()
+            if (!config.apiKey || !config.libraryId) throw new Error('Configurazione Bunny mancante')
+
             const videoId = bunnyVideo.guid
             setStatus('uploading')
-            const proxyUrl = `/api/admin/bunny-proxy/${libraryId}/${videoId}`
-            const uploadResponse = await fetch(proxyUrl, {
+
+            const bunnyUrl = `https://video.bunnycdn.com/library/${config.libraryId}/videos/${videoId}`
+            const uploadResponse = await fetch(bunnyUrl, {
                 method: 'PUT',
-                headers: { 'Content-Type': 'application/octet-stream' },
+                headers: {
+                    'AccessKey': config.apiKey,
+                    'Content-Type': 'application/octet-stream',
+                },
                 body: file
             })
             if (!uploadResponse.ok) throw new Error('Upload failed')

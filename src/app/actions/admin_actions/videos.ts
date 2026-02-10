@@ -171,3 +171,13 @@ export async function updateVideo(videoId: string, data: {
     if (error) throw new Error(error.message)
     return { success: true }
 }
+
+export async function getBunnyConfig() {
+    const isSuperAdmin = await isAdmin()
+    if (!isSuperAdmin) throw new Error('Unauthorized')
+
+    return {
+        libraryId: process.env.BUNNY_LIBRARY_ID?.trim(),
+        apiKey: process.env.BUNNY_LIBRARY_API_KEY?.trim(),
+    }
+}
