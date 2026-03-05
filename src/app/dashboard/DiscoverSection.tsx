@@ -68,13 +68,13 @@ export default function DiscoverSection({
 
     if (discoverLevels.length === 0) {
         return (
-            <div className="text-center py-24 border-2 border-dashed border-white/5 rounded-3xl bg-neutral-900/50 animate-in fade-in duration-700">
+            <div className="text-center py-24 border-2 border-dashed border-[var(--dash-border)] rounded-3xl bg-[var(--dash-card)] animate-in fade-in duration-700">
                 <div className="max-w-md mx-auto space-y-6">
                     <div className="mx-auto w-16 h-16 bg-brand/10 text-brand rounded-full flex items-center justify-center">
                         <Compass className="h-8 w-8" />
                     </div>
                     <h3 className="text-2xl font-bold text-white">Hai già tutto!</h3>
-                    <p className="text-neutral-400 leading-relaxed">
+                    <p className="text-[var(--dash-muted-light)] leading-relaxed">
                         Complimenti! Hai accesso a tutti i nostri percorsi di allenamento. Resta sintonizzata per nuovi contenuti in arrivo.
                     </p>
                 </div>
@@ -84,20 +84,20 @@ export default function DiscoverSection({
 
     return (
         <div className="space-y-16 animate-in fade-in slide-in-from-bottom-4 duration-500">
-            <div className="bg-[#fff5f2] p-8 rounded-3xl shadow-sm">
-                <h2 className="text-3xl font-bold text-[#a66042] tracking-tight flex items-center gap-3 mb-6">
-                    Il Tuo Passaporto Fit & Smile <Contact className="w-8 h-8 text-[#a66042]" />
+            <div className="bg-[var(--dash-accent-soft)] p-8 rounded-3xl shadow-sm">
+                <h2 className="text-3xl font-bold text-[var(--dash-accent)] tracking-tight flex items-center gap-3 mb-6">
+                    Il Tuo Passaporto Fit & Smile <Contact className="w-8 h-8 text-[var(--dash-accent)]" />
                 </h2>
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mt-6">
-                    <div className="text-black text-base font-medium max-w-2xl leading-relaxed space-y-2">
+                    <div className="text-[var(--dash-text)] text-base font-medium max-w-2xl leading-relaxed space-y-2">
                         <p>Prepara i bagagli (e il tappetino), si parte!</p>
                         <p>Qui trovi tutte le tappe del tuo viaggio di rinascita.</p>
                         <p>Scegli la tua prossima destinazione e inizia a collezionare i timbri!</p>
                     </div>
                     {hasUsedTrial && (
-                        <div className="flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/5 border border-white/10 animate-in fade-in slide-in-from-right-4 duration-1000">
+                        <div className="flex items-center gap-2 px-4 py-1.5 rounded-full bg-[var(--dash-accent-soft)] border border-[var(--dash-border)] animate-in fade-in slide-in-from-right-4 duration-1000">
                             <div className="w-1.5 h-1.5 rounded-full bg-[var(--brand)] animate-pulse" />
-                            <span className="text-[10px] font-black uppercase tracking-widest text-neutral-200">
+                            <span className="text-[10px] font-black uppercase tracking-widest text-[var(--dash-muted-light)]">
                                 Periodo di prova già usufruito
                             </span>
                         </div>
@@ -112,9 +112,9 @@ export default function DiscoverSection({
                             <h3 className="text-2xl font-bold text-white flex items-center gap-3">
                                 <div className="w-2 h-2 rounded-full bg-brand" />
                                 {course.name.toLowerCase().includes('pilates') ? (
-                                    <span className="text-[#a66042]">MESE 1</span>
+                                    <span className="text-[var(--dash-accent)]">MESE 1</span>
                                 ) : (course.name.toLowerCase().includes('total') || course.name.toLowerCase().includes('body')) ? (
-                                    <span className="text-[#a66042]">MESE 2</span>
+                                    <span className="text-[var(--dash-accent)]">MESE 2</span>
                                 ) : course.name}
                             </h3>
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-12 relative">
@@ -131,17 +131,17 @@ export default function DiscoverSection({
                                             {!isLast && (
                                                 <>
                                                     {/* Desktop/Tablet Horizontal Path */}
-                                                    <div className={`hidden md:block absolute -right-12 top-1/2 w-12 border-t-2 border-dashed border-[#a66042]/40 z-0 ${isEndOfRowDesktop ? 'lg:hidden' : ''} ${isEndOfRowTablet ? 'md:hidden lg:block' : ''}`} />
+                                                    <div className={`hidden md:block absolute -right-12 top-1/2 w-12 border-t-2 border-dashed border-[var(--dash-accent)]/40 z-0 ${isEndOfRowDesktop ? 'lg:hidden' : ''} ${isEndOfRowTablet ? 'md:hidden lg:block' : ''}`} />
 
                                                     {/* Mobile/Wrap Vertical Path */}
-                                                    <div className={`absolute left-1/2 -bottom-12 h-12 border-l-2 border-dashed border-[#a66042]/40 z-0 ${!isEndOfRowDesktop ? 'lg:hidden' : 'lg:block'} ${!isEndOfRowTablet ? 'md:hidden' : 'md:block lg:hidden'} md:hidden`} />
+                                                    <div className={`absolute left-1/2 -bottom-12 h-12 border-l-2 border-dashed border-[var(--dash-accent)]/40 z-0 ${!isEndOfRowDesktop ? 'lg:hidden' : 'lg:block'} ${!isEndOfRowTablet ? 'md:hidden' : 'md:block lg:hidden'} md:hidden`} />
 
                                                     {/* Always show vertical on true mobile */}
-                                                    <div className="md:hidden absolute left-1/2 -bottom-12 h-12 border-l-2 border-dashed border-[#a66042]/40 z-0" />
+                                                    <div className="md:hidden absolute left-1/2 -bottom-12 h-12 border-l-2 border-dashed border-[var(--dash-accent)]/40 z-0" />
                                                 </>
                                             )}
 
-                                            <Card className="bg-white border border-[#a66042]/10 shadow-xl overflow-hidden group hover:border-[#a66042]/30 transition-all duration-500 rounded-[40px] flex flex-col relative z-10 h-full">
+                                            <Card className="bg-[var(--dash-card)] border border-[var(--dash-accent)]/10 shadow-xl overflow-hidden group hover:border-[var(--dash-accent)]/30 transition-all duration-500 rounded-[40px] flex flex-col relative z-10 h-full">
                                                 {/* Image Header */}
                                                 <div className="h-56 w-full relative overflow-hidden">
                                                     {pkg.image_url ? (
@@ -153,8 +153,8 @@ export default function DiscoverSection({
                                                             className="object-cover group-hover:scale-110 transition-transform duration-1000"
                                                         />
                                                     ) : (
-                                                        <div className="w-full h-full bg-neutral-100 flex items-center justify-center">
-                                                            <Compass className="w-12 h-12 text-[#a66042]/20" />
+                                                        <div className="w-full h-full bg-[var(--dash-placeholder)] flex items-center justify-center">
+                                                            <Compass className="w-12 h-12 text-[var(--dash-accent)]/20" />
                                                         </div>
                                                     )}
                                                     <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
@@ -174,36 +174,36 @@ export default function DiscoverSection({
 
                                                     {/* Price Tag Overlay */}
                                                     <div className="absolute bottom-4 left-6">
-                                                        <div className="bg-white/95 backdrop-blur-md px-3 py-1 rounded-full border border-white/20 shadow-lg">
-                                                            <span className="text-[#a66042] font-black text-sm">€{pkg.price}</span>
+                                                        <div className="bg-[var(--dash-card)] backdrop-blur-md px-3 py-1 rounded-full border border-white/20 shadow-lg">
+                                                            <span className="text-[var(--dash-accent)] font-black text-sm">€{pkg.price}</span>
                                                         </div>
                                                     </div>
                                                 </div>
 
                                                 <CardHeader className="pb-4 pt-8 px-8 flex-1 space-y-6">
                                                     <div>
-                                                        <h4 className="text-[#a66042] text-[10px] font-black uppercase tracking-[0.2em] mb-2">Destinazione</h4>
-                                                        <CardTitle className="text-3xl font-black text-[#2a2e30] uppercase tracking-tighter leading-none mb-1">
+                                                        <h4 className="text-[var(--dash-accent)] text-[10px] font-black uppercase tracking-[0.2em] mb-2">Destinazione</h4>
+                                                        <CardTitle className="text-3xl font-black text-[var(--dash-text)] uppercase tracking-tighter leading-none mb-1">
                                                             {isBali ? "Bali" : isNewYork ? "New York" : pkg.name}
                                                             {isBali && <span className="ml-2">🍹</span>}
                                                             {isNewYork && <span className="ml-2">🗽</span>}
                                                         </CardTitle>
-                                                        <p className="text-gray-500 text-sm font-medium">
+                                                        <p className="text-[var(--dash-muted)] text-sm font-medium">
                                                             {pkg.title || (isNewYork ? "Energia & Metabolismo" : "Metodo Fit & Smile")}
                                                         </p>
                                                     </div>
 
                                                     {/* Mini Highlights - Inspired by the image */}
                                                     <div className="grid grid-cols-2 gap-3 pt-2">
-                                                        <div className="bg-[#f8f9fa] p-3 rounded-2xl border border-gray-100 flex flex-col items-center text-center gap-1">
-                                                            <Clock className="w-4 h-4 text-[#846047]" />
-                                                            <span className="text-[9px] uppercase font-bold text-gray-400">Durata</span>
-                                                            <span className="text-[11px] font-black text-[#2a2e30]">4 Settimane</span>
+                                                        <div className="bg-[var(--dash-card-header)] p-3 rounded-2xl border border-[var(--dash-border)] flex flex-col items-center text-center gap-1">
+                                                            <Clock className="w-4 h-4 text-[var(--dash-accent)]" />
+                                                            <span className="text-[9px] uppercase font-bold text-[var(--dash-muted-light)]">Durata</span>
+                                                            <span className="text-[11px] font-black text-[var(--dash-text)]">4 Settimane</span>
                                                         </div>
-                                                        <div className="bg-[#f8f9fa] p-3 rounded-2xl border border-gray-100 flex flex-col items-center text-center gap-1">
-                                                            <Calendar className="w-4 h-4 text-[#846047]" />
-                                                            <span className="text-[9px] uppercase font-bold text-gray-400">Ritmo</span>
-                                                            <span className="text-[11px] font-black text-[#2a2e30]">3x Week</span>
+                                                        <div className="bg-[var(--dash-card-header)] p-3 rounded-2xl border border-[var(--dash-border)] flex flex-col items-center text-center gap-1">
+                                                            <Calendar className="w-4 h-4 text-[var(--dash-accent)]" />
+                                                            <span className="text-[9px] uppercase font-bold text-[var(--dash-muted-light)]">Ritmo</span>
+                                                            <span className="text-[11px] font-black text-[var(--dash-text)]">3x Week</span>
                                                         </div>
                                                     </div>
 
@@ -221,7 +221,7 @@ export default function DiscoverSection({
                                                     <Button
                                                         onClick={() => setSelectedPkg(pkg)}
                                                         variant="ghost"
-                                                        className="w-full text-[#a66042] font-black uppercase tracking-widest text-[10px] gap-2 hover:bg-[#fff5f2] transition-all"
+                                                        className="w-full text-[var(--dash-accent)] font-black uppercase tracking-widest text-[10px] gap-2 hover:bg-[var(--dash-accent)]/10 transition-all"
                                                     >
                                                         Vedi Itinerario Completo <ArrowRight className="w-4 h-4" />
                                                     </Button>
@@ -232,7 +232,7 @@ export default function DiscoverSection({
                                                         price={pkg.price}
                                                         isTrial={isTrialEligible}
                                                         isDiscounted={isLoyaltyEligible}
-                                                        className="w-full bg-[#2a2e30] hover:bg-[#a66042] text-white rounded-xl h-11 font-bold uppercase tracking-widest text-[11px] transition-all shadow-lg hover:scale-[1.02] active:scale-[0.98] px-2 text-center"
+                                                        className="w-full bg-[var(--dash-heading)] hover:bg-[var(--dash-accent)] text-white rounded-xl h-11 font-bold uppercase tracking-widest text-[11px] transition-all shadow-lg hover:scale-[1.02] active:scale-[0.98] px-2 text-center"
                                                         customLabel="Ottieni il Biglietto"
                                                     />
                                                 </CardFooter>
@@ -247,17 +247,17 @@ export default function DiscoverSection({
             ))}
 
             {/* Help / Advice Section */}
-            <div className="mt-20 bg-[#fff5f2] p-8 sm:p-12 rounded-[40px] border border-[#a66042]/10 shadow-sm text-center space-y-6 max-w-4xl mx-auto">
+            <div className="mt-20 bg-[var(--dash-accent-soft)] p-8 sm:p-12 rounded-[40px] border border-[var(--dash-accent)]/10 shadow-sm text-center space-y-6 max-w-4xl mx-auto">
                 <div className="space-y-2">
-                    <h3 className="text-2xl font-black text-[#a66042] uppercase tracking-tight">
+                    <h3 className="text-2xl font-black text-[var(--dash-accent)] uppercase tracking-tight">
                         Non sai quale biglietto prendere?
                     </h3>
-                    <div className="text-black text-lg font-medium leading-relaxed max-w-3xl mx-auto">
+                    <div className="text-[var(--dash-text)] text-lg font-medium leading-relaxed max-w-3xl mx-auto">
                         <p>Il mio consiglio è di seguire l&apos;ordine naturale:</p>
-                        <p className="text-[#a66042] font-black text-2xl my-3">
+                        <p className="text-[var(--dash-accent)] font-black text-2xl my-3">
                             Bali → NY → Siviglia → Avana
                         </p>
-                        <div className="mt-4 text-base text-gray-600 space-y-2">
+                        <div className="mt-4 text-base text-[var(--dash-muted)] space-y-2">
                             <p>Il tuo corpo è stato progettato per questo percorso.</p>
                             <p>Ma se ti senti già piena di energia, puoi volare subito a New York!</p>
                         </div>
@@ -275,7 +275,7 @@ export default function DiscoverSection({
             </div>
 
             <Dialog open={!!selectedPkg} onOpenChange={(open) => !open && setSelectedPkg(null)}>
-                <DialogContent className="max-w-2xl bg-white border-none rounded-[28px] sm:rounded-[32px] overflow-hidden p-0">
+                <DialogContent className="max-w-2xl bg-[var(--dash-card)] border-none rounded-[28px] sm:rounded-[32px] overflow-hidden p-0">
                     {selectedPkg && (
                         <div className="flex flex-col max-h-[90vh] overflow-y-auto custom-scrollbar">
                             {/* Booking Style Header Image */}
@@ -283,7 +283,7 @@ export default function DiscoverSection({
                                 {selectedPkg.image_url ? (
                                     <Image src={selectedPkg.image_url} alt={selectedPkg.name} fill className="object-cover" />
                                 ) : (
-                                    <div className="w-full h-full bg-[#2a2e30]" />
+                                    <div className="w-full h-full bg-[var(--dash-text)]" />
                                 )}
                                 <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent" />
                                 <div className="absolute bottom-0 left-0 p-6 sm:p-8 w-full">
@@ -291,11 +291,11 @@ export default function DiscoverSection({
                                         <div className="flex gap-0.5 text-yellow-400">
                                             {[...Array(5)].map((_, i) => <Star key={i} className="w-4 h-4 fill-current" />)}
                                         </div>
-                                        <span className="bg-yellow-400 text-[#2a2e30] text-[10px] font-black uppercase px-2 py-0.5 rounded-md">Eccezionale</span>
+                                        <span className="bg-yellow-400 text-[var(--dash-text)] text-[10px] font-black uppercase px-2 py-0.5 rounded-md">Eccezionale</span>
                                     </div>
                                     <h2 className="text-2xl sm:text-3xl font-black text-white uppercase tracking-tight leading-none mb-1 shadow-black drop-shadow-lg">
                                         {selectedPkg.name.toLowerCase().includes('pilates') && selectedPkg.name.toLowerCase().includes('principiante') ? (
-                                            <>MESE 1: <span className="text-[#f4f1ea]">Destinazione Bali</span></>
+                                            <>MESE 1: <span className="text-[var(--dash-text)]">Destinazione Bali</span></>
                                         ) : selectedPkg.name}
                                     </h2>
                                     <p className="text-white/80 text-sm font-medium flex items-center gap-1.5">
@@ -304,34 +304,34 @@ export default function DiscoverSection({
                                 </div>
                             </div>
 
-                            <div className="p-6 sm:p-8 space-y-8 bg-[#f8f9fa]">
+                            <div className="p-6 sm:p-8 space-y-8 bg-[var(--dash-card-header)]">
                                 {/* Highlights */}
                                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                                    <div className="bg-white p-3 rounded-xl border border-gray-200 shadow-sm flex flex-col items-center text-center gap-1">
-                                        <Clock className="w-5 h-5 text-[#846047]" />
-                                        <span className="text-[10px] uppercase font-bold text-gray-400">Durata</span>
-                                        <span className="text-xs font-black text-[#2a2e30]">4 Settimane</span>
+                                    <div className="bg-[var(--dash-card)] p-3 rounded-xl border border-[var(--dash-border)] shadow-sm flex flex-col items-center text-center gap-1">
+                                        <Clock className="w-5 h-5 text-[var(--dash-accent)]" />
+                                        <span className="text-[10px] uppercase font-bold text-[var(--dash-muted-light)]">Durata</span>
+                                        <span className="text-xs font-black text-[var(--dash-text)]">4 Settimane</span>
                                     </div>
-                                    <div className="bg-white p-3 rounded-xl border border-gray-200 shadow-sm flex flex-col items-center text-center gap-1">
-                                        <Trophy className="w-5 h-5 text-[#846047]" />
-                                        <span className="text-[10px] uppercase font-bold text-gray-400">Livello</span>
-                                        <span className="text-xs font-black text-[#2a2e30]">Tutti</span>
+                                    <div className="bg-[var(--dash-card)] p-3 rounded-xl border border-[var(--dash-border)] shadow-sm flex flex-col items-center text-center gap-1">
+                                        <Trophy className="w-5 h-5 text-[var(--dash-accent)]" />
+                                        <span className="text-[10px] uppercase font-bold text-[var(--dash-muted-light)]">Livello</span>
+                                        <span className="text-xs font-black text-[var(--dash-text)]">Tutti</span>
                                     </div>
-                                    <div className="bg-white p-3 rounded-xl border border-gray-200 shadow-sm flex flex-col items-center text-center gap-1">
-                                        <Calendar className="w-5 h-5 text-[#846047]" />
-                                        <span className="text-[10px] uppercase font-bold text-gray-400">Frequenza</span>
-                                        <span className="text-xs font-black text-[#2a2e30]">3x Settimana</span>
+                                    <div className="bg-[var(--dash-card)] p-3 rounded-xl border border-[var(--dash-border)] shadow-sm flex flex-col items-center text-center gap-1">
+                                        <Calendar className="w-5 h-5 text-[var(--dash-accent)]" />
+                                        <span className="text-[10px] uppercase font-bold text-[var(--dash-muted-light)]">Frequenza</span>
+                                        <span className="text-xs font-black text-[var(--dash-text)]">3x Settimana</span>
                                     </div>
-                                    <div className="bg-white p-3 rounded-xl border border-gray-200 shadow-sm flex flex-col items-center text-center gap-1">
+                                    <div className="bg-[var(--dash-card)] p-3 rounded-xl border border-[var(--dash-border)] shadow-sm flex flex-col items-center text-center gap-1">
                                         <Check className="w-5 h-5 text-emerald-500" />
-                                        <span className="text-[10px] uppercase font-bold text-gray-400">Accesso</span>
-                                        <span className="text-xs font-black text-[#2a2e30]">Illimitato</span>
+                                        <span className="text-[10px] uppercase font-bold text-[var(--dash-muted-light)]">Accesso</span>
+                                        <span className="text-xs font-black text-[var(--dash-text)]">Illimitato</span>
                                     </div>
                                 </div>
 
                                 {/* Description */}
                                 <div className="space-y-3">
-                                    <h3 className="text-lg font-black text-[#2a2e30]">
+                                    <h3 className="text-lg font-black text-[var(--dash-text)]">
                                         Benvenuta a {
                                             selectedPkg.name.toLowerCase().includes('bali') || (selectedPkg.name.toLowerCase().includes('pilates') && selectedPkg.name.toLowerCase().includes('principiante'))
                                                 ? "Bali 🍹"
@@ -342,7 +342,7 @@ export default function DiscoverSection({
                                     </h3>
                                     {(selectedPkg.name.toLowerCase().includes('bali') || (selectedPkg.name.toLowerCase().includes('pilates') && selectedPkg.name.toLowerCase().includes('principiante')))
                                         ? (
-                                            <div className="text-gray-600 text-sm leading-relaxed space-y-3">
+                                            <div className="text-[var(--dash-muted)] text-sm leading-relaxed space-y-3">
                                                 <p>Togliti le scarpe.</p>
                                                 <p>Questo mese non dobbiamo correre.</p>
                                                 <p>Dobbiamo &apos;fluire&apos;.</p>
@@ -357,7 +357,7 @@ export default function DiscoverSection({
                                         )
                                         : (selectedPkg.name.toLowerCase().includes('total') || selectedPkg.name.toLowerCase().includes('body') || selectedPkg.name.toLowerCase().includes('new york'))
                                             ? (
-                                                <div className="text-gray-600 text-sm leading-relaxed space-y-3">
+                                                <div className="text-[var(--dash-muted)] text-sm leading-relaxed space-y-3">
                                                     <p>Allaccia le scarpe da ginnastica, siamo nella Grande Mela!</p>
                                                     <p>Ora che ti sei sbloccata, alziamo un po&apos; il ritmo.</p>
                                                     <p>Questo mese il focus è sulle gambe e sull&apos;energia:</p>
@@ -366,7 +366,7 @@ export default function DiscoverSection({
                                                 </div>
                                             )
                                             : (
-                                                <p className="text-gray-600 text-sm leading-relaxed">
+                                                <p className="text-[var(--dash-muted)] text-sm leading-relaxed">
                                                     {selectedPkg.description || "Un viaggio trasformativo per il tuo benessere fisico e mentale. Questo pacchetto include tutto il necessario per raggiungere i tuoi obiettivi con il metodo RITA."}
                                                 </p>
                                             )}
@@ -374,24 +374,24 @@ export default function DiscoverSection({
 
                                 {/* Itinerary List */}
                                 <div className="space-y-4">
-                                    <h3 className="text-lg font-black text-[#2a2e30]">Il tuo Itinerario di Viaggio</h3>
+                                    <h3 className="text-lg font-black text-[var(--dash-text)]">Il tuo Itinerario di Viaggio</h3>
                                     <div className="space-y-3">
                                         {[1, 2, 3, 4].map((week) => (
-                                            <div key={week} className="flex items-start gap-4 p-4 bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
-                                                <div className="w-10 h-10 rounded-full bg-[#f1ebe7] flex items-center justify-center shrink-0 font-black text-[#846047]">
+                                            <div key={week} className="flex items-start gap-4 p-4 bg-[var(--dash-card)] rounded-2xl border border-[var(--dash-border)] shadow-sm hover:shadow-md transition-shadow">
+                                                <div className="w-10 h-10 rounded-full bg-[var(--dash-placeholder)] flex items-center justify-center shrink-0 font-black text-[var(--dash-accent)]">
                                                     {week}
                                                 </div>
                                                 <div>
-                                                    <h4 className="font-bold text-[#2a2e30] text-sm uppercase mb-1">
+                                                    <h4 className="font-bold text-[var(--dash-text)] text-sm uppercase mb-1">
                                                         SETTIMANA {week}: {week === 1 ? "L'Atterraggio" : week === 2 ? "La Scoperta" : week === 3 ? "L'Avventura" : "Il Relax"}
                                                     </h4>
                                                     {(week === 1 || week === 3) && (
-                                                        <p className="text-[10px] text-[#846047] font-bold mb-1">
+                                                        <p className="text-[10px] text-[var(--dash-accent)] font-bold mb-1">
                                                             3 Lezioni Fit
                                                         </p>
                                                     )}
                                                     {(week === 2 || week === 4) && (
-                                                        <p className="text-[10px] text-[#846047] font-bold mb-1 flex items-center gap-1">
+                                                        <p className="text-[10px] text-[var(--dash-accent)] font-bold mb-1 flex items-center gap-1">
                                                             3 Lezioni Fit + Sorpresa 🎁
                                                         </p>
                                                     )}
@@ -405,7 +405,7 @@ export default function DiscoverSection({
                                 <div className="flex items-center gap-4 p-4 bg-emerald-50 rounded-xl border border-emerald-100">
                                     <div className="bg-emerald-500 rounded-lg p-2 text-white font-black text-xl">9.8</div>
                                     <div>
-                                        <div className="font-bold text-[#2a2e30] text-sm">Eccezionale</div>
+                                        <div className="font-bold text-[var(--dash-text)] text-sm">Eccezionale</div>
                                         <div className="text-xs text-emerald-700">Basato su oltre 500 viaggiatrici felici</div>
                                     </div>
                                 </div>
@@ -417,7 +417,7 @@ export default function DiscoverSection({
                                         price={selectedPkg.price}
                                         isTrial={isTrialEligible}
                                         isDiscounted={isLoyaltyEligible}
-                                        className="w-full bg-[#2a2e30] hover:bg-[#846047] text-white rounded-2xl h-14 font-black uppercase tracking-widest text-xs transition-all shadow-xl hover:scale-[1.02] active:scale-[0.98]"
+                                        className="w-full bg-[var(--dash-heading)] hover:bg-[var(--dash-accent)] text-white rounded-2xl h-14 font-black uppercase tracking-widest text-xs transition-all shadow-xl hover:scale-[1.02] active:scale-[0.98]"
                                         customLabel="Prenota Ora il Tuo Posto"
                                     />
                                 </div>

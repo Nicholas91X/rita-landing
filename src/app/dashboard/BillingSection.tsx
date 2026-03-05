@@ -211,8 +211,8 @@ export default function BillingSection() {
 
     if (loading) {
         return (
-            <div className="flex flex-col items-center justify-center p-20 gap-4 text-neutral-500 font-medium">
-                <Loader2 className="w-8 h-8 animate-spin text-[#846047]" />
+            <div className="flex flex-col items-center justify-center p-20 gap-4 text-[var(--dash-muted)] font-medium">
+                <Loader2 className="w-8 h-8 animate-spin text-[var(--dash-accent)]" />
                 <p>Caricamento dati di fatturazione...</p>
             </div>
         )
@@ -222,13 +222,13 @@ export default function BillingSection() {
         <div className="space-y-12 animate-in fade-in slide-in-from-bottom-4 duration-500 pb-20">
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
                 <div>
-                    <h2 className="text-3xl font-black text-[#593e25] italic uppercase tracking-tighter">Fatturazione</h2>
-                    <p className="text-neutral-500 mt-1 font-medium">Gestisci il tuo abbonamento e i tuoi pagamenti.</p>
+                    <h2 className="text-3xl font-black text-[var(--dash-heading)] italic uppercase tracking-tighter">Fatturazione</h2>
+                    <p className="text-[var(--dash-muted)] mt-1 font-medium">Gestisci il tuo abbonamento e i tuoi pagamenti.</p>
                 </div>
                 <Button
                     onClick={handleManageBilling}
                     disabled={portalLoading || (subscriptions.length === 0 && oneTimePurchases.length === 0)}
-                    className="bg-[#d4c4b5] hover:bg-[#d4c4b5]/90 text-[#593e25] font-bold h-12 px-6 rounded-2xl transition-all shadow-xl"
+                    className="bg-[var(--dash-accent)] hover:bg-[var(--dash-accent)]/90 text-white font-bold h-12 px-6 rounded-2xl transition-all shadow-xl"
                 >
                     {portalLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : (
                         <span className="flex items-center gap-2">
@@ -240,13 +240,13 @@ export default function BillingSection() {
 
             {/* Subscriptions Section */}
             <div className="space-y-8">
-                <div className="flex items-center justify-between border-b border-[#846047]/10 pb-4">
-                    <h3 className="text-xl font-bold text-[#2a2e30]">Abbonamenti</h3>
+                <div className="flex items-center justify-between border-b border-[var(--dash-accent-border)] pb-4">
+                    <h3 className="text-xl font-bold text-[var(--dash-text)]">Abbonamenti</h3>
                     <div className="flex items-center gap-2">
                         <Button
                             variant={filter === 'all' ? 'secondary' : 'ghost'}
                             onClick={() => { setFilter('all'); setSubPage(1); }}
-                            className="h-8 text-xs font-bold rounded-lg text-[#593e25]"
+                            className="h-8 text-xs font-bold rounded-lg text-[var(--dash-heading)]"
                         >
                             Tutti
                         </Button>
@@ -272,7 +272,7 @@ export default function BillingSection() {
                         const isRefundAllowed = diffDays <= 4 && sub.status !== 'trialing';
 
                         return (
-                            <Card key={sub.id} className="bg-white border-[#846047]/20 shadow-xl overflow-hidden group rounded-[2rem]">
+                            <Card key={sub.id} className="bg-[var(--dash-card)] border-[var(--dash-accent-border)] shadow-xl overflow-hidden group rounded-[2rem]">
                                 <div className="h-32 w-full relative overflow-hidden">
                                     {sub.packages?.image_url ? (
                                         <Image
@@ -283,8 +283,8 @@ export default function BillingSection() {
                                             className="object-cover group-hover:scale-110 transition-transform duration-500"
                                         />
                                     ) : (
-                                        <div className="w-full h-full bg-neutral-100 flex items-center justify-center">
-                                            <PackageIcon className="w-10 h-10 text-neutral-300" />
+                                        <div className="w-full h-full bg-[var(--dash-placeholder)] flex items-center justify-center">
+                                            <PackageIcon className="w-10 h-10 text-[var(--dash-muted-light)]" />
                                         </div>
                                     )}
                                     <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
@@ -295,7 +295,7 @@ export default function BillingSection() {
                                 </div>
                                 <CardHeader className="pb-4">
                                     <div className="flex justify-between items-start">
-                                        <CardTitle className="text-lg font-black text-[#593e25] line-clamp-1 italic uppercase tracking-tight">{sub.packages?.name}</CardTitle>
+                                        <CardTitle className="text-lg font-black text-[var(--dash-heading)] line-clamp-1 italic uppercase tracking-tight">{sub.packages?.name}</CardTitle>
                                         {sub.status === 'active' ? (
                                             <span className="px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 text-[10px] font-bold border border-emerald-500/20 uppercase">Attivo</span>
                                         ) : sub.status === 'trialing' ? (
@@ -303,44 +303,44 @@ export default function BillingSection() {
                                         ) : sub.status === 'refunded' ? (
                                             <span className="px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-600 text-[10px] font-bold border border-amber-500/20 uppercase">Rimborsato</span>
                                         ) : (
-                                            <span className="px-2 py-0.5 rounded-full bg-neutral-100 text-neutral-500 text-[10px] font-bold border border-neutral-200 uppercase">{sub.status}</span>
+                                            <span className="px-2 py-0.5 rounded-full bg-[var(--dash-placeholder)] text-[var(--dash-muted)] text-[10px] font-bold border border-[var(--dash-border)] uppercase">{sub.status}</span>
                                         )}
                                     </div>
-                                    <CardDescription className="text-neutral-500 text-xs mt-1 italic font-medium leading-tight">
+                                    <CardDescription className="text-[var(--dash-muted)] text-xs mt-1 italic font-medium leading-tight">
                                         {sub.packages?.description || 'Nessuna descrizione disponibile'}
                                     </CardDescription>
                                 </CardHeader>
                                 <CardContent className="space-y-4">
-                                    <div className="flex items-center gap-3 text-sm text-neutral-600">
-                                        <div className="w-8 h-8 rounded-full bg-neutral-50 flex items-center justify-center border border-neutral-100">
-                                            <CreditCard className="w-4 h-4 text-[#846047]" />
+                                    <div className="flex items-center gap-3 text-sm text-[var(--dash-muted)]">
+                                        <div className="w-8 h-8 rounded-full bg-[var(--dash-card)] flex items-center justify-center border border-[var(--dash-border)]">
+                                            <CreditCard className="w-4 h-4 text-[var(--dash-accent)]" />
                                         </div>
                                         <div className="flex flex-col">
-                                            <span className="text-[10px] text-neutral-400 uppercase font-black tracking-wider">Costo</span>
-                                            <span className="font-bold text-[#2a2e30]">€ {sub.amount.toFixed(2)} / {sub.interval === 'month' ? 'mese' : sub.interval}</span>
+                                            <span className="text-[10px] text-[var(--dash-muted-light)] uppercase font-black tracking-wider">Costo</span>
+                                            <span className="font-bold text-[var(--dash-text)]">€ {sub.amount.toFixed(2)} / {sub.interval === 'month' ? 'mese' : sub.interval}</span>
                                         </div>
                                     </div>
-                                    <div className="flex items-center gap-3 text-sm text-neutral-600">
-                                        <div className="w-8 h-8 rounded-full bg-neutral-50 flex items-center justify-center border border-neutral-100">
-                                            <Calendar className="w-4 h-4 text-[#846047]" />
+                                    <div className="flex items-center gap-3 text-sm text-[var(--dash-muted)]">
+                                        <div className="w-8 h-8 rounded-full bg-[var(--dash-card)] flex items-center justify-center border border-[var(--dash-border)]">
+                                            <Calendar className="w-4 h-4 text-[var(--dash-accent)]" />
                                         </div>
                                         <div className="flex flex-col">
-                                            <span className="text-[10px] text-neutral-400 uppercase font-black tracking-wider">
+                                            <span className="text-[10px] text-[var(--dash-muted-light)] uppercase font-black tracking-wider">
                                                 {sub.status === 'active' ? 'Prossimo Rinnovo' : 'Fino a'}
                                             </span>
-                                            <span className="font-bold text-[#2a2e30]">{new Date(sub.next_invoice).toLocaleDateString('it-IT')}</span>
+                                            <span className="font-bold text-[var(--dash-text)]">{new Date(sub.next_invoice).toLocaleDateString('it-IT')}</span>
                                         </div>
                                     </div>
 
                                     {sub.documents && sub.documents.length > 0 && (
-                                        <div className="pt-4 mt-2 border-t border-neutral-100 space-y-3">
+                                        <div className="pt-4 mt-2 border-t border-[var(--dash-border)] space-y-3">
                                             <div className="flex items-center gap-2 mb-1">
-                                                <Receipt className="w-3.5 h-3.5 text-[#846047]" />
-                                                <span className="text-[10px] uppercase font-black tracking-widest text-[#593e25]">Documenti Scaricabili</span>
+                                                <Receipt className="w-3.5 h-3.5 text-[var(--dash-accent)]" />
+                                                <span className="text-[10px] uppercase font-black tracking-widest text-[var(--dash-heading)]">Documenti Scaricabili</span>
                                             </div>
                                             <div className="space-y-2 max-h-[160px] overflow-y-auto pr-2 custom-scrollbar">
                                                 {sub.documents.map((doc) => (
-                                                    <div key={doc.id} className="flex items-center justify-between p-2.5 rounded-2xl bg-neutral-50 border border-neutral-100 hover:bg-neutral-100 transition-colors group/doc">
+                                                    <div key={doc.id} className="flex items-center justify-between p-2.5 rounded-2xl bg-[var(--dash-card)] border border-[var(--dash-border)] hover:bg-[var(--dash-placeholder)] transition-colors group/doc">
                                                         <div className="flex items-center gap-2 min-w-0">
                                                             {doc.type === 'invoice' ? (
                                                                 <FileText className="w-3.5 h-3.5 text-emerald-600" />
@@ -348,10 +348,10 @@ export default function BillingSection() {
                                                                 <RefreshCcw className="w-3.5 h-3.5 text-amber-600" />
                                                             )}
                                                             <div className="flex flex-col min-w-0">
-                                                                <span className="text-[9px] font-black text-[#2a2e30] truncate uppercase tracking-tight">
+                                                                <span className="text-[9px] font-black text-[var(--dash-text)] truncate uppercase tracking-tight">
                                                                     {doc.type === 'invoice' ? 'Fattura' : 'Nota Credito'}
                                                                 </span>
-                                                                <span className="text-[8px] text-neutral-500 font-bold">
+                                                                <span className="text-[8px] text-[var(--dash-muted)] font-bold">
                                                                     {new Date(doc.date * 1000).toLocaleDateString('it-IT')} • €{doc.amount.toFixed(2)}
                                                                 </span>
                                                             </div>
@@ -359,10 +359,10 @@ export default function BillingSection() {
                                                         <Button
                                                             variant="ghost"
                                                             size="icon"
-                                                            className="w-8 h-8 rounded-xl hover:bg-white hover:shadow-sm"
+                                                            className="w-8 h-8 rounded-xl hover:bg-[var(--dash-card)] hover:shadow-sm"
                                                             onClick={() => window.open(doc.url || undefined, '_blank')}
                                                         >
-                                                            <ExternalLink className="w-3.5 h-3.5 text-neutral-400 group-hover/doc:text-[#593e25]" />
+                                                            <ExternalLink className="w-3.5 h-3.5 text-[var(--dash-muted-light)] group-hover/doc:text-[var(--dash-heading)]" />
                                                         </Button>
                                                     </div>
                                                 ))}
@@ -376,7 +376,7 @@ export default function BillingSection() {
                                             <Button
                                                 variant="outline"
                                                 size="sm"
-                                                className="flex-1 h-10 text-[10px] border-neutral-200 hover:bg-neutral-50 text-[#593e25] gap-2 font-black uppercase tracking-widest rounded-2xl"
+                                                className="flex-1 h-10 text-[10px] border-[var(--dash-border)] hover:bg-[var(--dash-card)] text-[var(--dash-heading)] gap-2 font-black uppercase tracking-widest rounded-2xl"
                                                 onClick={() => setCancelDialog({ open: true, subId: sub.id })}
                                                 disabled={actionLoading === sub.id}
                                             >
@@ -390,8 +390,8 @@ export default function BillingSection() {
                                                 variant="outline"
                                                 size="sm"
                                                 className={cn(
-                                                    "flex-1 h-10 text-[10px] border-[#846047]/20 hover:bg-[#846047]/5 text-[#846047] gap-2 font-black uppercase tracking-widest rounded-2xl",
-                                                    !isRefundAllowed && "opacity-40 cursor-not-allowed border-neutral-100 text-neutral-400"
+                                                    "flex-1 h-10 text-[10px] border-[var(--dash-accent-border)] hover:bg-[var(--dash-accent-soft)] text-[var(--dash-accent)] gap-2 font-black uppercase tracking-widest rounded-2xl",
+                                                    !isRefundAllowed && "opacity-40 cursor-not-allowed border-[var(--dash-border)] text-[var(--dash-muted-light)]"
                                                 )}
                                                 onClick={() => isRefundAllowed && setRefundDialog({ open: true, id: sub.id, type: 'subscription' })}
                                                 title={sub.status === 'trialing' ? "Rimborso non disponibile per prodotti in prova" : !isRefundAllowed ? "Rimborso non disponibile dopo 4 giorni" : ""}
@@ -418,7 +418,7 @@ export default function BillingSection() {
                                             </div>
                                         </div>
                                     )}
-                                    <div className="w-full flex items-center justify-center gap-2 text-[8px] text-neutral-400 mt-2 uppercase tracking-[0.2em] font-black">
+                                    <div className="w-full flex items-center justify-center gap-2 text-[8px] text-[var(--dash-muted-light)] mt-2 uppercase tracking-[0.2em] font-black">
                                         <CheckCircle2 className="w-2.5 h-2.5 text-emerald-500/50" />
                                         Pagamento Sicuro Stripe
                                     </div>
@@ -426,10 +426,10 @@ export default function BillingSection() {
                             </Card>
                         );
                     }) : (
-                        <div className="col-span-full py-16 text-center border-2 border-dashed border-[#846047]/10 rounded-[2.5rem] bg-neutral-50/50 w-full">
-                            <CreditCard className="w-12 h-12 text-neutral-200 mx-auto mb-4" />
-                            <h3 className="text-xl font-black text-[#593e25] italic uppercase tracking-tighter mb-2">Nessun abbonamento trovato</h3>
-                            <p className="text-neutral-500 max-w-sm mx-auto font-medium">I record filtrati appariranno qui.</p>
+                        <div className="col-span-full py-16 text-center border-2 border-dashed border-[var(--dash-accent-border)] rounded-[2.5rem] bg-[var(--dash-placeholder)]/50 w-full">
+                            <CreditCard className="w-12 h-12 text-[var(--dash-muted-light)] mx-auto mb-4" />
+                            <h3 className="text-xl font-black text-[var(--dash-heading)] italic uppercase tracking-tighter mb-2">Nessun abbonamento trovato</h3>
+                            <p className="text-[var(--dash-muted)] max-w-sm mx-auto font-medium">I record filtrati appariranno qui.</p>
                         </div>
                     )}
                 </div>
@@ -440,18 +440,18 @@ export default function BillingSection() {
                             variant="ghost"
                             disabled={subPage === 1}
                             onClick={() => setSubPage(p => p - 1)}
-                            className="rounded-xl font-bold text-[#593e25]"
+                            className="rounded-xl font-bold text-[var(--dash-heading)]"
                         >
                             Indietro
                         </Button>
-                        <span className="text-sm font-bold text-[#846047]">
+                        <span className="text-sm font-bold text-[var(--dash-accent)]">
                             Pagina {subPage} di {totalSubPages}
                         </span>
                         <Button
                             variant="ghost"
                             disabled={subPage === totalSubPages}
                             onClick={() => setSubPage(p => p + 1)}
-                            className="rounded-xl font-bold text-[#593e25]"
+                            className="rounded-xl font-bold text-[var(--dash-heading)]"
                         >
                             Avanti
                         </Button>
@@ -461,13 +461,13 @@ export default function BillingSection() {
 
             {/* One-Time Purchases Section */}
             <div className="space-y-8">
-                <div className="flex items-center justify-between border-b border-[#846047]/10 pb-4">
-                    <h3 className="text-xl font-bold text-[#2a2e30]">Acquisti Singoli</h3>
+                <div className="flex items-center justify-between border-b border-[var(--dash-accent-border)] pb-4">
+                    <h3 className="text-xl font-bold text-[var(--dash-text)]">Acquisti Singoli</h3>
                     <div className="flex items-center gap-2">
                         <Button
                             variant={purchaseFilter === 'all' ? 'secondary' : 'ghost'}
                             onClick={() => { setPurchaseFilter('all'); setPurchasePage(1); }}
-                            className="h-8 text-xs font-bold rounded-lg text-[#593e25]"
+                            className="h-8 text-xs font-bold rounded-lg text-[var(--dash-heading)]"
                         >
                             Tutti
                         </Button>
@@ -487,7 +487,7 @@ export default function BillingSection() {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {paginatedPurchases.length > 0 ? paginatedPurchases.map((purchase) => (
-                        <Card key={purchase.id} className="bg-white border-[#846047]/20 shadow-xl overflow-hidden group rounded-[2rem]">
+                        <Card key={purchase.id} className="bg-[var(--dash-card)] border-[var(--dash-accent-border)] shadow-xl overflow-hidden group rounded-[2rem]">
                             <div className="h-32 w-full relative overflow-hidden">
                                 {purchase.packages?.image_url ? (
                                     <Image
@@ -498,58 +498,58 @@ export default function BillingSection() {
                                         className="object-cover group-hover:scale-110 transition-transform duration-500"
                                     />
                                 ) : (
-                                    <div className="w-full h-full bg-neutral-100 flex items-center justify-center">
-                                        <PackageIcon className="w-10 h-10 text-neutral-300" />
+                                    <div className="w-full h-full bg-[var(--dash-placeholder)] flex items-center justify-center">
+                                        <PackageIcon className="w-10 h-10 text-[var(--dash-muted-light)]" />
                                     </div>
                                 )}
                                 <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
-                                <div className="absolute top-0 left-0 w-full h-1.5 bg-[#846047]" />
+                                <div className="absolute top-0 left-0 w-full h-1.5 bg-[var(--dash-accent)]" />
                             </div>
                             <CardHeader className="pb-4">
                                 <div className="flex justify-between items-start">
-                                    <CardTitle className="text-lg font-black text-[#593e25] line-clamp-1 italic uppercase tracking-tight">{purchase.packages?.name}</CardTitle>
+                                    <CardTitle className="text-lg font-black text-[var(--dash-heading)] line-clamp-1 italic uppercase tracking-tight">{purchase.packages?.name}</CardTitle>
                                     <span className="px-2 py-0.5 rounded-full bg-brand/10 text-brand text-[10px] font-bold border border-brand/20 uppercase">Acquistato</span>
                                 </div>
-                                <CardDescription className="text-neutral-500 text-xs mt-1 italic font-medium leading-tight">
+                                <CardDescription className="text-[var(--dash-muted)] text-xs mt-1 italic font-medium leading-tight">
                                     {purchase.packages?.description || 'Accesso completo al pacchetto.'}
                                 </CardDescription>
                             </CardHeader>
                             <CardContent className="space-y-4">
-                                <div className="flex items-center gap-3 text-sm text-neutral-600">
-                                    <div className="w-8 h-8 rounded-full bg-neutral-50 flex items-center justify-center border border-neutral-100">
-                                        <CreditCard className="w-4 h-4 text-[#846047]" />
+                                <div className="flex items-center gap-3 text-sm text-[var(--dash-muted)]">
+                                    <div className="w-8 h-8 rounded-full bg-[var(--dash-card)] flex items-center justify-center border border-[var(--dash-border)]">
+                                        <CreditCard className="w-4 h-4 text-[var(--dash-accent)]" />
                                     </div>
                                     <div className="flex flex-col">
-                                        <span className="text-[10px] text-neutral-400 uppercase font-black tracking-wider">Prezzo Pagato</span>
-                                        <span className="font-bold text-[#2a2e30]">€ {purchase.amount ? (purchase.amount / 100).toFixed(2) : purchase.packages?.price.toFixed(2)}</span>
+                                        <span className="text-[10px] text-[var(--dash-muted-light)] uppercase font-black tracking-wider">Prezzo Pagato</span>
+                                        <span className="font-bold text-[var(--dash-text)]">€ {purchase.amount ? (purchase.amount / 100).toFixed(2) : purchase.packages?.price.toFixed(2)}</span>
                                     </div>
                                 </div>
-                                <div className="flex items-center gap-3 text-sm text-neutral-600">
-                                    <div className="w-8 h-8 rounded-full bg-neutral-50 flex items-center justify-center border border-neutral-100">
-                                        <Calendar className="w-4 h-4 text-[#846047]" />
+                                <div className="flex items-center gap-3 text-sm text-[var(--dash-muted)]">
+                                    <div className="w-8 h-8 rounded-full bg-[var(--dash-card)] flex items-center justify-center border border-[var(--dash-border)]">
+                                        <Calendar className="w-4 h-4 text-[var(--dash-accent)]" />
                                     </div>
                                     <div className="flex flex-col">
-                                        <span className="text-[10px] text-neutral-400 uppercase font-black tracking-wider">Data Acquisto</span>
-                                        <span className="font-bold text-[#2a2e30]">{new Date(purchase.created_at).toLocaleDateString('it-IT')}</span>
+                                        <span className="text-[10px] text-[var(--dash-muted-light)] uppercase font-black tracking-wider">Data Acquisto</span>
+                                        <span className="font-bold text-[var(--dash-text)]">{new Date(purchase.created_at).toLocaleDateString('it-IT')}</span>
                                     </div>
                                 </div>
 
                                 {purchase.documents && purchase.documents.length > 0 && (
-                                    <div className="pt-4 mt-2 border-t border-neutral-100 space-y-3">
+                                    <div className="pt-4 mt-2 border-t border-[var(--dash-border)] space-y-3">
                                         <div className="flex items-center gap-2 mb-1">
-                                            <Receipt className="w-3.5 h-3.5 text-[#846047]" />
-                                            <span className="text-[10px] uppercase font-black tracking-widest text-[#593e25]">Documenti Scaricabili</span>
+                                            <Receipt className="w-3.5 h-3.5 text-[var(--dash-accent)]" />
+                                            <span className="text-[10px] uppercase font-black tracking-widest text-[var(--dash-heading)]">Documenti Scaricabili</span>
                                         </div>
                                         <div className="space-y-2 max-h-[160px] overflow-y-auto pr-2 custom-scrollbar">
                                             {purchase.documents.map((doc) => (
-                                                <div key={doc.id} className="flex items-center justify-between p-2.5 rounded-2xl bg-neutral-50 border border-neutral-100 hover:bg-neutral-100 transition-colors group/doc">
+                                                <div key={doc.id} className="flex items-center justify-between p-2.5 rounded-2xl bg-[var(--dash-card)] border border-[var(--dash-border)] hover:bg-[var(--dash-placeholder)] transition-colors group/doc">
                                                     <div className="flex items-center gap-2 min-w-0">
                                                         <FileText className="w-3.5 h-3.5 text-emerald-600" />
                                                         <div className="flex flex-col min-w-0">
-                                                            <span className="text-[9px] font-black text-[#2a2e30] truncate uppercase tracking-tight">
+                                                            <span className="text-[9px] font-black text-[var(--dash-text)] truncate uppercase tracking-tight">
                                                                 Fattura
                                                             </span>
-                                                            <span className="text-[8px] text-neutral-500 font-bold">
+                                                            <span className="text-[8px] text-[var(--dash-muted)] font-bold">
                                                                 {new Date(doc.date * 1000).toLocaleDateString('it-IT')} • €{doc.amount.toFixed(2)}
                                                             </span>
                                                         </div>
@@ -557,10 +557,10 @@ export default function BillingSection() {
                                                     <Button
                                                         variant="ghost"
                                                         size="icon"
-                                                        className="w-8 h-8 rounded-xl hover:bg-white hover:shadow-sm"
+                                                        className="w-8 h-8 rounded-xl hover:bg-[var(--dash-card)] hover:shadow-sm"
                                                         onClick={() => window.open(doc.url || undefined, '_blank')}
                                                     >
-                                                        <ExternalLink className="w-3.5 h-3.5 text-neutral-400 group-hover/doc:text-[#593e25]" />
+                                                        <ExternalLink className="w-3.5 h-3.5 text-[var(--dash-muted-light)] group-hover/doc:text-[var(--dash-heading)]" />
                                                     </Button>
                                                 </div>
                                             ))}
@@ -575,13 +575,13 @@ export default function BillingSection() {
                                             variant="outline"
                                             size="sm"
                                             className={cn(
-                                                "flex-1 h-10 text-[10px] border-[#846047]/20 hover:bg-[#846047]/5 text-[#846047] gap-2 font-black uppercase tracking-widest rounded-2xl",
+                                                "flex-1 h-10 text-[10px] border-[var(--dash-accent-border)] hover:bg-[var(--dash-accent-soft)] text-[var(--dash-accent)] gap-2 font-black uppercase tracking-widest rounded-2xl",
                                                 (() => {
                                                     const createdAt = new Date(purchase.created_at).getTime();
                                                     const now = new Date().getTime();
                                                     const diffDays = (now - createdAt) / (1000 * 60 * 60 * 24);
                                                     return diffDays > 4;
-                                                })() && "opacity-40 cursor-not-allowed border-neutral-100 text-neutral-400"
+                                                })() && "opacity-40 cursor-not-allowed border-[var(--dash-border)] text-[var(--dash-muted-light)]"
                                             )}
                                             onClick={() => {
                                                 const createdAt = new Date(purchase.created_at).getTime();
@@ -614,17 +614,17 @@ export default function BillingSection() {
                                         </div>
                                     </div>
                                 )}
-                                <div className="w-full flex items-center justify-center gap-2 text-[8px] text-neutral-400 mt-2 uppercase tracking-[0.2em] font-black">
+                                <div className="w-full flex items-center justify-center gap-2 text-[8px] text-[var(--dash-muted-light)] mt-2 uppercase tracking-[0.2em] font-black">
                                     <CheckCircle2 className="w-2.5 h-2.5 text-brand/50" />
                                     Accesso Permanente Sbloccato
                                 </div>
                             </CardFooter>
                         </Card>
                     )) : (
-                        <div className="col-span-full py-16 text-center border-2 border-dashed border-[#846047]/10 rounded-[2.5rem] bg-neutral-50/50 w-full">
-                            <PackageIcon className="w-12 h-12 text-neutral-200 mx-auto mb-4" />
-                            <h3 className="text-xl font-black text-[#593e25] italic uppercase tracking-tighter mb-2">Nessun acquisto trovato</h3>
-                            <p className="text-neutral-500 max-w-sm mx-auto font-medium">I record filtrati appariranno qui.</p>
+                        <div className="col-span-full py-16 text-center border-2 border-dashed border-[var(--dash-accent-border)] rounded-[2.5rem] bg-[var(--dash-placeholder)]/50 w-full">
+                            <PackageIcon className="w-12 h-12 text-[var(--dash-muted-light)] mx-auto mb-4" />
+                            <h3 className="text-xl font-black text-[var(--dash-heading)] italic uppercase tracking-tighter mb-2">Nessun acquisto trovato</h3>
+                            <p className="text-[var(--dash-muted)] max-w-sm mx-auto font-medium">I record filtrati appariranno qui.</p>
                         </div>
                     )}
                 </div>
@@ -635,18 +635,18 @@ export default function BillingSection() {
                             variant="ghost"
                             disabled={purchasePage === 1}
                             onClick={() => setPurchasePage(p => p - 1)}
-                            className="rounded-xl font-bold text-[#593e25]"
+                            className="rounded-xl font-bold text-[var(--dash-heading)]"
                         >
                             Indietro
                         </Button>
-                        <span className="text-sm font-bold text-[#846047]">
+                        <span className="text-sm font-bold text-[var(--dash-accent)]">
                             Pagina {purchasePage} di {totalPurchasePages}
                         </span>
                         <Button
                             variant="ghost"
                             disabled={purchasePage === totalPurchasePages}
                             onClick={() => setPurchasePage(p => p + 1)}
-                            className="rounded-xl font-bold text-[#593e25]"
+                            className="rounded-xl font-bold text-[var(--dash-heading)]"
                         >
                             Avanti
                         </Button>
@@ -654,13 +654,13 @@ export default function BillingSection() {
                 )}
             </div>
 
-            <div className="p-8 bg-[#846047]/5 border border-[#846047]/10 rounded-[2.5rem] flex items-start gap-5 shadow-sm">
-                <div className="p-4 bg-white rounded-2xl shadow-sm border border-[#846047]/10">
-                    <Clock className="w-6 h-6 text-[#846047]" />
+            <div className="p-8 bg-[var(--dash-accent-soft)] border border-[var(--dash-accent-border)] rounded-[2.5rem] flex items-start gap-5 shadow-sm">
+                <div className="p-4 bg-[var(--dash-card)] rounded-2xl shadow-sm border border-[var(--dash-accent-border)]">
+                    <Clock className="w-6 h-6 text-[var(--dash-accent)]" />
                 </div>
                 <div>
-                    <h4 className="font-black text-[#593e25] uppercase italic tracking-tight">Supporto e Rimborsi</h4>
-                    <p className="text-sm text-neutral-500 mt-2 leading-relaxed font-medium">
+                    <h4 className="font-black text-[var(--dash-heading)] uppercase italic tracking-tight">Supporto e Rimborsi</h4>
+                    <p className="text-sm text-[var(--dash-muted)] mt-2 leading-relaxed font-medium">
                         Le richieste di rimborso vengono elaborate manualmente entro 48 ore lavorative.
                         Assicurati di inserire una motivazione valida per facilitare l&apos;operazione.
                         Puoi annullare l&apos;abbonamento o cambiare metodo di pagamento cliccando sul pulsante in alto a destra.
@@ -670,23 +670,23 @@ export default function BillingSection() {
 
             {/* Modals */}
             <Dialog open={refundDialog.open} onOpenChange={(open) => !open && setRefundDialog({ open: false, id: null, type: 'subscription' })}>
-                <DialogContent className="bg-white border-neutral-200 text-[#2a2e30] max-w-md rounded-[2rem] sm:rounded-[2.5rem] p-6 sm:p-8 shadow-2xl">
+                <DialogContent className="bg-[var(--dash-card)] border-[var(--dash-border)] text-[var(--dash-text)] max-w-md rounded-[2rem] sm:rounded-[2.5rem] p-6 sm:p-8 shadow-2xl">
                     <DialogHeader>
-                        <DialogTitle className="text-2xl font-black italic uppercase tracking-tighter flex items-center gap-3 text-[#593e25]">
-                            <RefreshCcw className="w-6 h-6 text-[#846047]" />
+                        <DialogTitle className="text-2xl font-black italic uppercase tracking-tighter flex items-center gap-3 text-[var(--dash-heading)]">
+                            <RefreshCcw className="w-6 h-6 text-[var(--dash-accent)]" />
                             Richiedi Rimborso
                         </DialogTitle>
-                        <DialogDescription className="text-neutral-500 font-medium">
+                        <DialogDescription className="text-[var(--dash-muted)] font-medium">
                             Spiegaci il motivo della tua richiesta. Verrai ricontattato via email.
                         </DialogDescription>
                     </DialogHeader>
 
                     <div className="py-6 space-y-4">
                         <div className="space-y-2">
-                            <label className="text-[10px] uppercase font-black text-neutral-400 tracking-[0.2em] ml-1">Motivazione</label>
+                            <label className="text-[10px] uppercase font-black text-[var(--dash-muted-light)] tracking-[0.2em] ml-1">Motivazione</label>
                             <Textarea
                                 placeholder="Esempio: Errore nell'acquisto, duplicato, etc..."
-                                className="min-h-[140px] bg-neutral-50 border-neutral-200 rounded-2xl focus:ring-[#846047] focus:border-[#846047] text-[#2a2e30] font-medium"
+                                className="min-h-[140px] bg-[var(--dash-card)] border-[var(--dash-border)] rounded-2xl focus:ring-[var(--dash-accent)] focus:border-[var(--dash-accent)] text-[var(--dash-text)] font-medium"
                                 value={refundReason}
                                 onChange={(e) => setRefundReason(e.target.value)}
                             />
@@ -694,7 +694,7 @@ export default function BillingSection() {
 
                         <div className="flex items-start gap-3 p-4 bg-brand/5 border border-brand/10 rounded-2xl">
                             <AlertCircle className="w-5 h-5 text-brand shrink-0 mt-0.5" />
-                            <p className="text-[11px] text-[#593e25] leading-relaxed font-bold">
+                            <p className="text-[11px] text-[var(--dash-heading)] leading-relaxed font-bold">
                                 Una volta inviata, la richiesta verrà esaminata dallo staff. Manterrai l&apos;accesso fino alla risoluzione.
                             </p>
                         </div>
@@ -704,14 +704,14 @@ export default function BillingSection() {
                         <Button
                             variant="ghost"
                             onClick={() => setRefundDialog({ open: false, id: null, type: 'subscription' })}
-                            className="rounded-2xl text-neutral-500 font-bold hover:bg-neutral-50"
+                            className="rounded-2xl text-[var(--dash-muted)] font-bold hover:bg-[var(--dash-card)]"
                         >
                             Annulla
                         </Button>
                         <Button
                             onClick={handleRefundSubmit}
                             disabled={isSubmittingRefund || !refundReason.trim()}
-                            className="bg-[#593e25] hover:bg-[#593e25]/90 text-white font-black uppercase italic tracking-widest rounded-2xl px-8 h-12 shadow-lg"
+                            className="bg-[var(--dash-heading)] hover:bg-[var(--dash-heading)]/90 text-white font-black uppercase italic tracking-widest rounded-2xl px-8 h-12 shadow-lg"
                         >
                             {isSubmittingRefund ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Invia Richiesta'}
                         </Button>
@@ -720,17 +720,17 @@ export default function BillingSection() {
             </Dialog>
 
             <Dialog open={cancelDialog.open} onOpenChange={(open) => !open && setCancelDialog({ open: false, subId: null })}>
-                <DialogContent className="bg-white border-neutral-200 text-[#2a2e30] max-w-sm rounded-[2rem] sm:rounded-[2.5rem] p-6 sm:p-10 shadow-2xl">
+                <DialogContent className="bg-[var(--dash-card)] border-[var(--dash-border)] text-[var(--dash-text)] max-w-sm rounded-[2rem] sm:rounded-[2.5rem] p-6 sm:p-10 shadow-2xl">
                     <div className="flex flex-col items-center text-center space-y-6">
                         <div className="w-20 h-20 rounded-full bg-red-50 flex items-center justify-center shadow-lg shadow-red-500/20">
                             <XCircle className="w-10 h-10 text-white" />
                         </div>
 
                         <div className="space-y-2">
-                            <DialogTitle className="text-2xl font-black italic uppercase tracking-tighter text-[#593e25]">
+                            <DialogTitle className="text-2xl font-black italic uppercase tracking-tighter text-[var(--dash-heading)]">
                                 Conferma Fine
                             </DialogTitle>
-                            <DialogDescription className="text-neutral-500 font-medium text-sm">
+                            <DialogDescription className="text-[var(--dash-muted)] font-medium text-sm">
                                 Sei sicuro di voler annullare il rinnovo? Manterrai l&apos;accesso fino alla scadenza del periodo attuale.
                             </DialogDescription>
                         </div>
@@ -746,7 +746,7 @@ export default function BillingSection() {
                             <Button
                                 variant="ghost"
                                 onClick={() => setCancelDialog({ open: false, subId: null })}
-                                className="w-full text-neutral-400 hover:text-[#593e25] h-12 rounded-2xl font-bold"
+                                className="w-full text-[var(--dash-muted-light)] hover:text-[var(--dash-heading)] h-12 rounded-2xl font-bold"
                             >
                                 No, Mantieni Attivo
                             </Button>

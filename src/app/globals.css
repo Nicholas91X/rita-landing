@@ -56,6 +56,66 @@
 
   /* Design */
   --radius: 1rem;
+
+  /* Dashboard theme (light default) */
+  --dash-bg: #fff8f3;
+  --dash-card: #ffffff;
+  --dash-card-hover: #faf6f3;
+  --dash-card-header: #f8f9fa;
+  --dash-text: #2a2e30;
+  --dash-heading: #593e25;
+  --dash-accent: #846047;
+  --dash-accent-soft: rgba(132, 96, 71, 0.1);
+  --dash-accent-border: rgba(132, 96, 71, 0.1);
+  --dash-border: #f3efec;
+  --dash-muted: #6b7280;
+  --dash-muted-light: #9ca3af;
+  --dash-placeholder: #f3efec;
+  --dash-input-bg: #ffffff;
+  --dash-input-border: #e5e7eb;
+  --dash-steel: #345c72;
+  --dash-overlay: rgba(0, 0, 0, 0.5);
+}
+
+[data-dash-theme="dark"] {
+  --dash-bg: #111110;
+  --dash-card: #1c1a18;
+  --dash-card-hover: #242220;
+  --dash-card-header: #222220;
+  --dash-text: #e8e0d8;
+  --dash-heading: #d4a574;
+  --dash-accent: #c4956a;
+  --dash-accent-soft: rgba(196, 149, 106, 0.12);
+  --dash-accent-border: rgba(196, 149, 106, 0.2);
+  --dash-border: rgba(255, 255, 255, 0.08);
+  --dash-muted: #9ca3af;
+  --dash-muted-light: #6b7280;
+  --dash-placeholder: #2a2a28;
+  --dash-input-bg: #1c1a18;
+  --dash-input-border: rgba(255, 255, 255, 0.1);
+  --dash-steel: #7babc4;
+  --dash-overlay: rgba(0, 0, 0, 0.7);
+
+  /* Override shadcn base tokens so Button variants work in dark mode */
+  --background: #1c1a18;
+  --foreground: #e8e0d8;
+  --card: #1c1a18;
+  --card-foreground: #e8e0d8;
+  --popover: #1c1a18;
+  --popover-foreground: #e8e0d8;
+  --primary: #c4956a;
+  --primary-foreground: #ffffff;
+  --secondary: #2a2a28;
+  --secondary-foreground: #e8e0d8;
+  --muted: #2a2a28;
+  --muted-foreground: #9ca3af;
+  --accent: rgba(196, 149, 106, 0.12);
+  --accent-foreground: #e8e0d8;
+  --destructive: #EC732C;
+  --destructive-foreground: #ffffff;
+  --border: rgba(255, 255, 255, 0.08);
+  --input: rgba(255, 255, 255, 0.1);
+  --ring: #c4956a;
 }
 
 /* ===========================

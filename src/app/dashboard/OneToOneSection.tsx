@@ -86,7 +86,7 @@ export default function OneToOneSection() {
         return (
             <div className="flex flex-col items-center justify-center min-h-[50vh]">
                 <Loader2 className="w-10 h-10 animate-spin text-brand mb-4" />
-                <p className="text-sm font-bold uppercase tracking-widest text-neutral-500">Caricamento...</p>
+                <p className="text-sm font-bold uppercase tracking-widest text-[var(--dash-muted)]">Caricamento...</p>
             </div>
         )
     }
@@ -94,23 +94,23 @@ export default function OneToOneSection() {
     return (
         <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
             <div className="space-y-2">
-                <h2 className="text-xl md:text-2xl font-bold text-[#593e25] tracking-tight uppercase flex items-center gap-3">
+                <h2 className="text-xl md:text-2xl font-bold text-[var(--dash-heading)] tracking-tight uppercase flex items-center gap-3">
                     <Sparkles className="w-6 h-6 text-brand" />
                     Percorsi 1:1
                 </h2>
-                <p className="text-[#2a2e30] opacity-80 max-w-2xl">
+                <p className="text-[var(--dash-text)] opacity-80 max-w-2xl">
                     Esperienze esclusive e percorsi personalizzati one-to-one.
                 </p>
             </div>
 
             {packages.length === 0 ? (
-                <div className="bg-white rounded-3xl p-12 text-center border border-dashed border-neutral-300">
-                    <p className="text-neutral-500 font-medium">Nessun percorso 1:1 disponibile al momento.</p>
+                <div className="bg-[var(--dash-card)] rounded-3xl p-12 text-center border border-dashed border-[var(--dash-border)]">
+                    <p className="text-[var(--dash-muted)] font-medium">Nessun percorso 1:1 disponibile al momento.</p>
                 </div>
             ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                     {packages.map((pkg) => (
-                        <Card key={pkg.purchaseId || pkg.id} className="overflow-hidden border-none shadow-xl bg-white rounded-3xl flex flex-col h-full hover:shadow-2xl transition-all duration-300 group">
+                        <Card key={pkg.purchaseId || pkg.id} className="overflow-hidden border-none shadow-xl bg-[var(--dash-card)] rounded-3xl flex flex-col h-full hover:shadow-2xl transition-all duration-300 group">
                             <div className="relative h-56 w-full overflow-hidden">
                                 {pkg.image_url ? (
                                     <Image
@@ -120,7 +120,7 @@ export default function OneToOneSection() {
                                         className="object-cover group-hover:scale-105 transition-transform duration-700"
                                     />
                                 ) : (
-                                    <div className="w-full h-full bg-neutral-100 flex items-center justify-center text-neutral-300">
+                                    <div className="w-full h-full bg-[var(--dash-placeholder)] flex items-center justify-center text-[var(--dash-muted-light)]">
                                         <Sparkles className="w-16 h-16" />
                                     </div>
                                 )}
@@ -128,7 +128,7 @@ export default function OneToOneSection() {
                                 <div className="absolute bottom-4 left-6 right-6 text-white">
                                     <h3 className="text-2xl font-black italic uppercase tracking-tight leading-none mb-1">{pkg.name}</h3>
                                     {pkg.isPurchased && (
-                                        <p className="text-[10px] font-bold uppercase tracking-widest text-[#e1d5c6]">
+                                        <p className="text-[10px] font-bold uppercase tracking-widest text-[var(--dash-muted-light)]">
                                             Acquisto: {pkg.purchaseId?.substring(0, 8)}
                                         </p>
                                     )}
@@ -137,7 +137,7 @@ export default function OneToOneSection() {
                             </div>
 
                             <CardContent className="flex-1 p-8 space-y-4">
-                                <p className="text-neutral-600 leading-relaxed text-sm">
+                                <p className="text-[var(--dash-muted)] leading-relaxed text-sm">
                                     {pkg.description}
                                 </p>
                             </CardContent>
@@ -169,7 +169,7 @@ export default function OneToOneSection() {
                                                 onClick={() => handlePurchase(pkg.id)}
                                                 disabled={purchasingId === pkg.id}
                                                 variant="outline"
-                                                className="w-full border-[#593e25]/20 text-[#593e25] hover:bg-[#593e25]/5 font-bold h-12 rounded-xl transition-all"
+                                                className="w-full border-[var(--dash-heading)]/20 text-[var(--dash-heading)] hover:bg-[var(--dash-heading)]/5 font-bold h-12 rounded-xl transition-all"
                                             >
                                                 {purchasingId === pkg.id ? (
                                                     <Loader2 className="w-4 h-4 animate-spin" />
@@ -183,7 +183,7 @@ export default function OneToOneSection() {
                                     <Button
                                         onClick={() => handlePurchase(pkg.id)}
                                         disabled={purchasingId === pkg.id}
-                                        className="w-full bg-[#593e25] hover:bg-[#4a331f] text-white font-bold h-14 rounded-xl shadow-lg shadow-[#593e25]/20"
+                                        className="w-full bg-[var(--dash-heading)] hover:bg-[var(--dash-heading)]/90 text-white font-bold h-14 rounded-xl shadow-lg shadow-[var(--dash-heading)]/20"
                                     >
                                         {purchasingId === pkg.id ? (
                                             <Loader2 className="w-5 h-5 animate-spin" />

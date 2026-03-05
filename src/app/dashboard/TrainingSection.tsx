@@ -62,14 +62,14 @@ export default function TrainingSection({ levels, progress, userProfile }: Train
         <div className="space-y-8 animate-in fade-in duration-500 overflow-x-hidden">
             {/* Header / Tabs - Styled to match previous design aesthetics */}
             <div className="flex justify-center md:justify-start px-2 md:px-0">
-                <div className="bg-white rounded-full p-1.5 flex gap-1 shadow-sm border border-[#846047]/10 w-full md:w-auto max-w-full overflow-hidden">
+                <div className="bg-[var(--dash-card)] rounded-full p-1.5 flex gap-1 shadow-sm border border-[var(--dash-accent-border)] w-full md:w-auto max-w-full overflow-hidden">
                     <button
                         onClick={() => setSubTab('my-trainings')}
                         className={cn(
                             "px-4 py-3 rounded-full text-[11px] sm:text-sm font-bold transition-all duration-300 flex-1 md:flex-none text-center whitespace-nowrap truncate",
                             subTab === 'my-trainings'
-                                ? "bg-[#846047] text-white shadow-md"
-                                : "text-[#846047]/70 hover:bg-[#846047]/5 hover:text-[#846047]"
+                                ? "bg-[var(--dash-accent)] text-white shadow-md"
+                                : "text-[var(--dash-accent)]/70 hover:bg-[var(--dash-accent-soft)] hover:text-[var(--dash-accent)]"
                         )}
                     >
                         I tuoi allenamenti
@@ -79,8 +79,8 @@ export default function TrainingSection({ levels, progress, userProfile }: Train
                         className={cn(
                             "px-4 py-3 rounded-full text-[11px] sm:text-sm font-bold transition-all duration-300 flex-1 md:flex-none text-center whitespace-nowrap truncate",
                             subTab === 'new-trainings'
-                                ? "bg-[#846047] text-white shadow-md"
-                                : "text-[#846047]/70 hover:bg-[#846047]/5 hover:text-[#846047]"
+                                ? "bg-[var(--dash-accent)] text-white shadow-md"
+                                : "text-[var(--dash-accent)]/70 hover:bg-[var(--dash-accent-soft)] hover:text-[var(--dash-accent)]"
                         )}
                     >
                         Nuovi corsi

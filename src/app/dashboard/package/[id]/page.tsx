@@ -4,6 +4,7 @@ import Section from '@/components/Section'
 import Link from 'next/link'
 import PackageClient from './PackageClient'
 import PersonalView from './PersonalView'
+import { DashboardThemeProvider } from '../../ThemeContext'
 
 export default async function PackagePage(props: {
     params: Promise<{ id: string }>,
@@ -75,13 +76,15 @@ export default async function PackagePage(props: {
     // Se è un pacchetto "payment" (One-Time) -> Mostra PersonalView
     if (pkg?.payment_mode === 'payment' && oneTimePurchase) {
         return (
-            <PersonalView
-                status={(oneTimePurchase.status as 'paid' | 'pending_appointment' | 'processing_plan' | 'delivered') || 'pending_appointment'}
-                documentUrl={oneTimePurchase.document_url}
-                packageName={pkg.name}
-                userName={firstName}
-                userProfile={userProfile}
-            />
+            <DashboardThemeProvider>
+                <PersonalView
+                    status={(oneTimePurchase.status as 'paid' | 'pending_appointment' | 'processing_plan' | 'delivered') || 'pending_appointment'}
+                    documentUrl={oneTimePurchase.document_url}
+                    packageName={pkg.name}
+                    userName={firstName}
+                    userProfile={userProfile}
+                />
+            </DashboardThemeProvider>
         )
     }
 
@@ -102,5 +105,5 @@ export default async function PackagePage(props: {
         )
     }
 
-    return <PackageClient pkg={pkg!} videos={videos} />
+    return <DashboardThemeProvider><PackageClient pkg={pkg!} videos={videos} /></DashboardThemeProvider>
 }

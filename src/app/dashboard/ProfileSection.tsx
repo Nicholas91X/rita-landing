@@ -9,11 +9,12 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
-import { User, Mail, Shield, LogOut, Loader2, Camera, ChevronLeft, ChevronRight, Trash2 } from 'lucide-react'
+import { User, Mail, Shield, LogOut, Loader2, Camera, ChevronLeft, ChevronRight, Trash2, Sun, Moon } from 'lucide-react'
 import { createClient } from '@/utils/supabase/client'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
 import TransitionOverlay from '@/components/TransitionOverlay'
+import { useDashTheme } from './ThemeContext'
 
 interface Profile {
     id: string
@@ -67,6 +68,7 @@ export default function ProfileSection({ onProfileUpdate, activeSubTab = 'info' 
     const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
     const [deletionRequested, setDeletionRequested] = useState(false)
     const [loggingOut, setLoggingOut] = useState(false)
+    const { theme, toggleTheme } = useDashTheme()
 
     // Form states
     const [formData, setFormData] = useState({
@@ -192,7 +194,7 @@ export default function ProfileSection({ onProfileUpdate, activeSubTab = 'info' 
 
     if (loading) {
         return (
-            <div className="flex flex-col items-center justify-center p-20 gap-4 text-neutral-400">
+            <div className="flex flex-col items-center justify-center p-20 gap-4 text-[var(--dash-muted-light)]">
                 <Loader2 className="w-8 h-8 animate-spin" />
                 <p>Caricamento profilo...</p>
             </div>
@@ -201,11 +203,11 @@ export default function ProfileSection({ onProfileUpdate, activeSubTab = 'info' 
 
     if (fetchError) {
         return (
-            <div className="flex flex-col items-center justify-center p-20 gap-4 text-neutral-400">
+            <div className="flex flex-col items-center justify-center p-20 gap-4 text-[var(--dash-muted-light)]">
                 <p className="text-lg font-semibold text-red-500">Impossibile caricare il profilo.</p>
                 <Button
                     onClick={() => { setLoading(true); setFetchError(false); window.location.reload() }}
-                    className="bg-[#846047] text-white hover:bg-[#846047]/90 rounded-xl"
+                    className="bg-[var(--dash-accent)] text-white hover:bg-[var(--dash-accent)]/90 rounded-xl"
                 >
                     Ricarica la pagina
                 </Button>
@@ -221,19 +223,19 @@ export default function ProfileSection({ onProfileUpdate, activeSubTab = 'info' 
                     {/* ... existing info content ... */}
                     <div className="flex items-center justify-between">
                         <div>
-                            <h2 className="text-2xl font-bold text-[#593e25] tracking-tight">Dati Personali</h2>
-                            <p className="text-neutral-500 mt-1">Gestisci le tue informazioni dell&apos;account.</p>
+                            <h2 className="text-2xl font-bold text-[var(--dash-heading)] tracking-tight">Dati Personali</h2>
+                            <p className="text-[var(--dash-muted)] mt-1">Gestisci le tue informazioni dell&apos;account.</p>
                         </div>
                         {!isEditing ? (
-                            <Button onClick={() => setIsEditing(true)} className="bg-[#846047] text-white hover:bg-[#846047]/90 rounded-xl">
+                            <Button onClick={() => setIsEditing(true)} className="bg-[var(--dash-accent)] text-white hover:bg-[var(--dash-accent)]/90 rounded-xl">
                                 Modifica Profilo
                             </Button>
                         ) : (
                             <div className="flex gap-2">
-                                <Button onClick={() => setIsEditing(false)} variant="ghost" className="text-neutral-400 hover:text-white">
+                                <Button onClick={() => setIsEditing(false)} variant="ghost" className="text-[var(--dash-muted-light)] hover:text-white">
                                     Annulla
                                 </Button>
-                                <Button onClick={handleSave} disabled={saving} className="bg-[#846047] text-white hover:bg-[#846047]/90 rounded-xl min-w-[100px]">
+                                <Button onClick={handleSave} disabled={saving} className="bg-[var(--dash-accent)] text-white hover:bg-[var(--dash-accent)]/90 rounded-xl min-w-[100px]">
                                     {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Salva'}
                                 </Button>
                             </div>
@@ -242,10 +244,10 @@ export default function ProfileSection({ onProfileUpdate, activeSubTab = 'info' 
 
                     <div className="grid grid-cols-1 md:grid-cols-12 gap-10">
                         <div className="md:col-span-4 space-y-6">
-                            <Card className="bg-white border-[#846047]/10 shadow-xl overflow-hidden rounded-[32px] p-8 flex flex-col items-center text-center group hover:border-[#846047]/30 transition-colors">
+                            <Card className="bg-[var(--dash-card)] border-[var(--dash-accent-border)] shadow-xl overflow-hidden rounded-[32px] p-8 flex flex-col items-center text-center group hover:border-[var(--dash-accent-border)] transition-colors">
                                 <div className="relative group cursor-pointer min-w-[44px] min-h-[44px] active:scale-95 transition-transform" onClick={() => isEditing && document.getElementById('avatar-upload')?.click()}>
                                     {userData?.profile?.avatar_url || formData.avatar ? (
-                                        <div className="w-32 h-32 rounded-full border-4 border-[#846047]/10 overflow-hidden mb-6 shadow-2xl relative">
+                                        <div className="w-32 h-32 rounded-full border-4 border-[var(--dash-accent-border)] overflow-hidden mb-6 shadow-2xl relative">
                                             <Image
                                                 src={formData.avatar ? URL.createObjectURL(formData.avatar) : (userData?.profile?.avatar_url || '')}
                                                 alt="Profile"
@@ -255,7 +257,7 @@ export default function ProfileSection({ onProfileUpdate, activeSubTab = 'info' 
                                             />
                                         </div>
                                     ) : (
-                                        <div className="w-32 h-32 rounded-full bg-[#846047]/10 border-4 border-[#846047]/20 flex items-center justify-center text-4xl font-black text-[#846047] mb-6 transition-all group-hover:scale-105 shadow-sm">
+                                        <div className="w-32 h-32 rounded-full bg-[var(--dash-accent-soft)] border-4 border-[var(--dash-accent-border)] flex items-center justify-center text-4xl font-black text-[var(--dash-accent)] mb-6 transition-all group-hover:scale-105 shadow-sm">
                                             {userData?.user?.email?.substring(0, 2).toUpperCase()}
                                         </div>
                                     )}
@@ -281,16 +283,16 @@ export default function ProfileSection({ onProfileUpdate, activeSubTab = 'info' 
                                         value={formData.fullName}
                                         onChange={(e) => setFormData(p => ({ ...p, fullName: e.target.value }))}
                                         placeholder="Nome e Cognome"
-                                        className="text-center bg-transparent border-b border-[#846047] text-[#2a2e30] font-bold text-xl focus:outline-none w-full pb-1"
+                                        className="text-center bg-transparent border-b border-[var(--dash-accent)] text-[var(--dash-text)] font-bold text-xl focus:outline-none w-full pb-1"
                                     />
                                 ) : (
-                                    <h3 className="text-xl font-bold text-[#2a2e30] mb-1">
+                                    <h3 className="text-xl font-bold text-[var(--dash-text)] mb-1">
                                         {userData?.profile?.full_name || 'Utente Ritiana'}
                                     </h3>
                                 )}
-                                <p className="text-neutral-500 text-sm mt-1">{userData?.user?.email}</p>
+                                <p className="text-[var(--dash-muted)] text-sm mt-1">{userData?.user?.email}</p>
 
-                                <div className="mt-8 pt-8 border-t border-gray-100 w-full">
+                                <div className="mt-8 pt-8 border-t border-[var(--dash-border)] w-full">
                                     <Button
                                         onClick={handleLogout}
                                         variant="ghost"
@@ -303,28 +305,28 @@ export default function ProfileSection({ onProfileUpdate, activeSubTab = 'info' 
                         </div>
 
                         <div className="md:col-span-8 space-y-6">
-                            <Card className="bg-white border-gray-100 shadow-xl rounded-[32px] overflow-hidden">
-                                <CardHeader className="bg-[#f8f9fa] px-8 py-6 border-b border-gray-100">
-                                    <CardTitle className="text-[#2a2e30] text-lg font-bold">Informazioni Account</CardTitle>
+                            <Card className="bg-[var(--dash-card)] border-[var(--dash-border)] shadow-xl rounded-[32px] overflow-hidden">
+                                <CardHeader className="bg-[var(--dash-card-header)] px-8 py-6 border-b border-[var(--dash-border)]">
+                                    <CardTitle className="text-[var(--dash-text)] text-lg font-bold">Informazioni Account</CardTitle>
                                 </CardHeader>
                                 <CardContent className="p-8 space-y-6">
                                     <div className="flex items-center gap-4">
-                                        <div className="p-3 bg-[#f8f9fa] rounded-2xl border border-gray-100">
-                                            <Mail className="w-5 h-5 text-[#846047]" />
+                                        <div className="p-3 bg-[var(--dash-card-header)] rounded-2xl border border-[var(--dash-border)]">
+                                            <Mail className="w-5 h-5 text-[var(--dash-accent)]" />
                                         </div>
                                         <div className="flex-1">
-                                            <label className="text-[10px] text-neutral-400 uppercase font-black tracking-widest block mb-1">Email Registrazione</label>
+                                            <label className="text-[10px] text-[var(--dash-muted-light)] uppercase font-black tracking-widest block mb-1">Email Registrazione</label>
                                             <div className="flex flex-col gap-2">
-                                                <p className="text-[#2a2e30] font-bold">{userData?.user?.email}</p>
+                                                <p className="text-[var(--dash-text)] font-bold">{userData?.user?.email}</p>
                                                 <Dialog open={isEmailDialogOpen} onOpenChange={setIsEmailDialogOpen}>
                                                     <DialogTrigger asChild>
-                                                        <Button variant="ghost" size="sm" className="w-fit text-xs h-8 text-[#846047] hover:bg-[#846047]/5 px-0">
+                                                        <Button variant="ghost" size="sm" className="w-fit text-xs h-8 text-[var(--dash-accent)] hover:bg-[var(--dash-accent-soft)] px-0">
                                                             Modifica Email
                                                         </Button>
                                                     </DialogTrigger>
-                                                    <DialogContent className="bg-white border-none rounded-[28px] sm:rounded-[32px] pointer-events-auto">
+                                                    <DialogContent className="bg-[var(--dash-card)] border-none rounded-[28px] sm:rounded-[32px] pointer-events-auto">
                                                         <DialogHeader>
-                                                            <DialogTitle className="text-[#2a2e30] font-black uppercase tracking-tight">Modifica Email</DialogTitle>
+                                                            <DialogTitle className="text-[var(--dash-text)] font-black uppercase tracking-tight">Modifica Email</DialogTitle>
                                                             <DialogDescription>
                                                                 Inserisci il nuovo indirizzo email. Riceverai una conferma al nuovo indirizzo.
                                                             </DialogDescription>
@@ -334,12 +336,12 @@ export default function ProfileSection({ onProfileUpdate, activeSubTab = 'info' 
                                                                 placeholder="Nuova Email"
                                                                 value={emailForm.email}
                                                                 onChange={(e) => setEmailForm({ email: e.target.value })}
-                                                                className="rounded-xl border-gray-200"
+                                                                className="rounded-xl border-[var(--dash-border)]"
                                                             />
                                                         </div>
                                                         <DialogFooter>
                                                             <Button variant="ghost" onClick={() => setIsEmailDialogOpen(false)}>Annulla</Button>
-                                                            <Button onClick={handleUpdateEmail} disabled={saving} className="bg-[#846047] text-white hover:bg-[#846047]/90 rounded-xl">
+                                                            <Button onClick={handleUpdateEmail} disabled={saving} className="bg-[var(--dash-accent)] text-white hover:bg-[var(--dash-accent)]/90 rounded-xl">
                                                                 {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Aggiorna Email'}
                                                             </Button>
                                                         </DialogFooter>
@@ -350,34 +352,34 @@ export default function ProfileSection({ onProfileUpdate, activeSubTab = 'info' 
                                     </div>
 
                                     <div className="flex items-center gap-4">
-                                        <div className="p-3 bg-[#f8f9fa] rounded-2xl border border-gray-100">
-                                            <User className="w-5 h-5 text-[#846047]" />
+                                        <div className="p-3 bg-[var(--dash-card-header)] rounded-2xl border border-[var(--dash-border)]">
+                                            <User className="w-5 h-5 text-[var(--dash-accent)]" />
                                         </div>
                                         <div className="flex-1">
-                                            <label className="text-[10px] text-neutral-400 uppercase font-black tracking-widest block mb-1">Nome Completo</label>
-                                            <p className="text-[#2a2e30] font-bold">
-                                                {userData?.profile?.full_name || <span className="text-gray-300 italic">Non impostato</span>}
+                                            <label className="text-[10px] text-[var(--dash-muted-light)] uppercase font-black tracking-widest block mb-1">Nome Completo</label>
+                                            <p className="text-[var(--dash-text)] font-bold">
+                                                {userData?.profile?.full_name || <span className="text-[var(--dash-muted-light)] italic">Non impostato</span>}
                                             </p>
                                         </div>
                                     </div>
 
                                     <div className="flex items-center gap-4">
-                                        <div className="p-3 bg-[#f8f9fa] rounded-2xl border border-gray-100">
-                                            <Shield className="w-5 h-5 text-[#846047]" />
+                                        <div className="p-3 bg-[var(--dash-card-header)] rounded-2xl border border-[var(--dash-border)]">
+                                            <Shield className="w-5 h-5 text-[var(--dash-accent)]" />
                                         </div>
                                         <div className="flex-1">
-                                            <label className="text-[10px] text-neutral-400 uppercase font-black tracking-widest block mb-1">Sicurezza Pagina</label>
+                                            <label className="text-[10px] text-[var(--dash-muted-light)] uppercase font-black tracking-widest block mb-1">Sicurezza Pagina</label>
                                             <div className="flex flex-col gap-2">
-                                                <p className="text-[#2a2e30] font-bold">Password</p>
+                                                <p className="text-[var(--dash-text)] font-bold">Password</p>
                                                 <Dialog open={isPasswordDialogOpen} onOpenChange={setIsPasswordDialogOpen}>
                                                     <DialogTrigger asChild>
-                                                        <Button variant="ghost" size="sm" className="w-fit text-xs h-8 text-[#846047] hover:bg-[#846047]/5 px-0">
+                                                        <Button variant="ghost" size="sm" className="w-fit text-xs h-8 text-[var(--dash-accent)] hover:bg-[var(--dash-accent-soft)] px-0">
                                                             Cambia Password
                                                         </Button>
                                                     </DialogTrigger>
-                                                    <DialogContent className="bg-white border-none rounded-[28px] sm:rounded-[32px] pointer-events-auto">
+                                                    <DialogContent className="bg-[var(--dash-card)] border-none rounded-[28px] sm:rounded-[32px] pointer-events-auto">
                                                         <DialogHeader>
-                                                            <DialogTitle className="text-[#2a2e30] font-black uppercase tracking-tight">Cambia Password</DialogTitle>
+                                                            <DialogTitle className="text-[var(--dash-text)] font-black uppercase tracking-tight">Cambia Password</DialogTitle>
                                                             <DialogDescription>
                                                                 Inserisci la nuova password per il tuo account.
                                                             </DialogDescription>
@@ -388,19 +390,19 @@ export default function ProfileSection({ onProfileUpdate, activeSubTab = 'info' 
                                                                 placeholder="Nuova Password (min. 6 caratteri)"
                                                                 value={passwordForm.password}
                                                                 onChange={(e) => setPasswordForm(prev => ({ ...prev, password: e.target.value }))}
-                                                                className="rounded-xl border-gray-200"
+                                                                className="rounded-xl border-[var(--dash-border)]"
                                                             />
                                                             <Input
                                                                 type="password"
                                                                 placeholder="Conferma Nuova Password"
                                                                 value={passwordForm.confirmPassword}
                                                                 onChange={(e) => setPasswordForm(prev => ({ ...prev, confirmPassword: e.target.value }))}
-                                                                className="rounded-xl border-gray-200"
+                                                                className="rounded-xl border-[var(--dash-border)]"
                                                             />
                                                         </div>
                                                         <DialogFooter>
                                                             <Button variant="ghost" onClick={() => setIsPasswordDialogOpen(false)}>Annulla</Button>
-                                                            <Button onClick={handleUpdatePassword} disabled={saving} className="bg-[#846047] text-white hover:bg-[#846047]/90 rounded-xl">
+                                                            <Button onClick={handleUpdatePassword} disabled={saving} className="bg-[var(--dash-accent)] text-white hover:bg-[var(--dash-accent)]/90 rounded-xl">
                                                                 {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Aggiorna Password'}
                                                             </Button>
                                                         </DialogFooter>
@@ -412,8 +414,48 @@ export default function ProfileSection({ onProfileUpdate, activeSubTab = 'info' 
                                 </CardContent>
                             </Card>
 
+                            {/* Theme Toggle */}
+                            <Card className="bg-[var(--dash-card)] border-[var(--dash-border)] shadow-xl rounded-[32px] overflow-hidden">
+                                <CardContent className="p-6 md:p-8">
+                                    <div className="flex items-center justify-between">
+                                        <div className="flex items-center gap-4">
+                                            <div className="p-3 bg-[var(--dash-card-header)] rounded-2xl border border-[var(--dash-border)]">
+                                                {theme === 'light' ? (
+                                                    <Sun className="w-5 h-5 text-[var(--dash-accent)]" />
+                                                ) : (
+                                                    <Moon className="w-5 h-5 text-[var(--dash-accent)]" />
+                                                )}
+                                            </div>
+                                            <div>
+                                                <label className="text-[10px] text-[var(--dash-muted-light)] uppercase font-black tracking-widest block mb-1">Aspetto</label>
+                                                <p className="text-[var(--dash-text)] font-bold">
+                                                    {theme === 'light' ? 'Tema Chiaro' : 'Tema Scuro'}
+                                                </p>
+                                            </div>
+                                        </div>
+                                        <button
+                                            onClick={toggleTheme}
+                                            className="relative w-14 h-8 rounded-full transition-colors duration-300 focus:outline-none"
+                                            style={{ backgroundColor: theme === 'dark' ? 'var(--dash-accent)' : 'var(--dash-border)' }}
+                                            aria-label="Cambia tema"
+                                        >
+                                            <div
+                                                className="absolute top-1 left-1 w-6 h-6 rounded-full bg-white shadow-md transition-transform duration-300 flex items-center justify-center"
+                                                style={{ transform: theme === 'dark' ? 'translateX(24px)' : 'translateX(0)' }}
+                                            >
+                                                {theme === 'light' ? (
+                                                    <Sun className="w-3.5 h-3.5 text-amber-500" />
+                                                ) : (
+                                                    <Moon className="w-3.5 h-3.5 text-indigo-500" />
+                                                )}
+                                            </div>
+                                        </button>
+                                    </div>
+                                </CardContent>
+                            </Card>
+
                             {/* Delete Account */}
-                            <Card className="bg-white border-red-100 shadow-xl rounded-[32px] overflow-hidden">
+                            <Card className="bg-[var(--dash-card)] border-red-100 shadow-xl rounded-[32px] overflow-hidden">
                                 <CardContent className="p-6 md:p-8">
                                     <div className="flex flex-col gap-4">
                                         {/* Top: icon + text */}
@@ -422,9 +464,9 @@ export default function ProfileSection({ onProfileUpdate, activeSubTab = 'info' 
                                                 <Trash2 className="w-5 h-5 text-red-500" />
                                             </div>
                                             <div className="flex-1 min-w-0">
-                                                <label className="text-[10px] text-neutral-400 uppercase font-black tracking-widest block mb-1">Zona Pericolosa</label>
-                                                <p className="text-[#2a2e30] font-bold">Elimina il mio account</p>
-                                                <p className="text-xs text-neutral-400 mt-1 leading-relaxed">Questa azione è irreversibile. Tutti i tuoi dati verranno eliminati permanentemente.</p>
+                                                <label className="text-[10px] text-[var(--dash-muted-light)] uppercase font-black tracking-widest block mb-1">Zona Pericolosa</label>
+                                                <p className="text-[var(--dash-text)] font-bold">Elimina il mio account</p>
+                                                <p className="text-xs text-[var(--dash-muted-light)] mt-1 leading-relaxed">Questa azione è irreversibile. Tutti i tuoi dati verranno eliminati permanentemente.</p>
                                             </div>
                                         </div>
 
@@ -439,7 +481,7 @@ export default function ProfileSection({ onProfileUpdate, activeSubTab = 'info' 
                                                     {deletionRequested ? '✓ Richiesta inviata' : 'Elimina Account'}
                                                 </Button>
                                             </DialogTrigger>
-                                            <DialogContent className="bg-white border-none rounded-[28px] sm:rounded-[32px] pointer-events-auto">
+                                            <DialogContent className="bg-[var(--dash-card)] border-none rounded-[28px] sm:rounded-[32px] pointer-events-auto">
                                                 <DialogHeader>
                                                     <DialogTitle className="text-red-600 font-black uppercase tracking-tight">Conferma Eliminazione</DialogTitle>
                                                     <DialogDescription>
@@ -511,28 +553,28 @@ function PassportBook({ userBadges, userProfile }: { userBadges: Badge[], userPr
 
     return (
         <div className="relative w-full max-w-2xl mx-auto aspect-[1.3/1] md:aspect-[1.4/1]">
-            <div className={`absolute inset-0 bg-[#fdfbf7] rounded-[20px] shadow-[0_10px_30px_rgba(0,0,0,0.2),inset_0_0_100px_rgba(0,0,0,0.05)] border-r-[8px] md:border-r-[12px] border-[#846047]/20 overflow-hidden transition-all duration-500 ${isFlipping ? 'scale-[0.98]' : 'scale-100'}`}>
+            <div className={`absolute inset-0 bg-[#fdfbf7] rounded-[20px] shadow-[0_10px_30px_rgba(0,0,0,0.2),inset_0_0_100px_rgba(0,0,0,0.05)] border-r-[8px] md:border-r-[12px] border-[var(--dash-accent-border)] overflow-hidden transition-all duration-500 ${isFlipping ? 'scale-[0.98]' : 'scale-100'}`}>
                 {/* Textures and Fold */}
                 <div className="absolute inset-0 opacity-[0.4] pointer-events-none mix-blend-multiply"
                     style={{ backgroundImage: 'url("https://www.transparenttextures.com/patterns/cream-paper.png")' }} />
                 <div className="absolute inset-0 opacity-[0.03] pointer-events-none"
-                    style={{ backgroundImage: 'radial-gradient(#846047 1px, transparent 1px)', backgroundSize: '16px 16px' }} />
+                    style={{ backgroundImage: 'radial-gradient(var(--dash-accent) 1px, transparent 1px)', backgroundSize: '16px 16px' }} />
                 <div className="absolute left-1/2 top-0 bottom-0 w-6 md:w-8 -ml-3 md:-ml-4 bg-gradient-to-r from-black/5 via-black/10 to-black/5 blur-sm z-20 pointer-events-none" />
-                <div className="absolute left-1/2 top-0 bottom-0 w-[1px] bg-[#846047]/20 z-20" />
+                <div className="absolute left-1/2 top-0 bottom-0 w-[1px] bg-[var(--dash-accent-soft)] z-20" />
 
                 <div className={`relative h-full flex flex-row transition-opacity duration-300 ${isFlipping ? 'opacity-0 scale-95 blur-sm' : 'opacity-100 scale-100 blur-0'}`}>
                     {/* Left Page (User Bio) */}
-                    <div className="w-1/2 p-3 md:p-8 flex flex-col justify-between border-r border-[#846047]/10 relative">
+                    <div className="w-1/2 p-3 md:p-8 flex flex-col justify-between border-r border-[var(--dash-accent-border)] relative">
                         <div className="relative z-10 text-center md:text-left">
-                            <h2 className="text-[8px] md:text-[10px] font-black text-[#846047] uppercase tracking-[0.2em] mb-1 md:mb-2">Repubblica Italiana del Fitness</h2>
-                            <h3 className="text-lg md:text-2xl font-serif font-bold text-[#593e25] leading-none md:leading-tight">
+                            <h2 className="text-[8px] md:text-[10px] font-black text-[var(--dash-accent)] uppercase tracking-[0.2em] mb-1 md:mb-2">Repubblica Italiana del Fitness</h2>
+                            <h3 className="text-lg md:text-2xl font-serif font-bold text-[var(--dash-heading)] leading-none md:leading-tight">
                                 Timbri <br />
-                                <span className="text-[#846047] italic">Passaporto</span>
+                                <span className="text-[var(--dash-accent)] italic">Passaporto</span>
                             </h3>
                         </div>
 
                         <div className="flex-1 flex flex-col items-center justify-center mt-2 md:mt-4">
-                            <div className="relative w-14 h-14 md:w-24 md:h-24 rounded-full border-2 md:border-4 border-[#846047]/10 overflow-hidden mb-2 md:mb-4 bg-white/50 backdrop-blur-sm">
+                            <div className="relative w-14 h-14 md:w-24 md:h-24 rounded-full border-2 md:border-4 border-[var(--dash-accent-border)] overflow-hidden mb-2 md:mb-4 bg-[var(--dash-card)]/50 backdrop-blur-sm">
                                 {userProfile?.avatar_url ? (
                                     <Image
                                         src={userProfile.avatar_url}
@@ -542,19 +584,19 @@ function PassportBook({ userBadges, userProfile }: { userBadges: Badge[], userPr
                                     />
                                 ) : (
                                     <div className="w-full h-full flex items-center justify-center">
-                                        <User className="w-8 h-8 md:w-12 md:h-12 text-[#846047]/30" />
+                                        <User className="w-8 h-8 md:w-12 md:h-12 text-[var(--dash-accent)]/30" />
                                     </div>
                                 )}
                             </div>
                             <div className="text-center px-1">
-                                <p className="text-[7px] md:text-[8px] uppercase tracking-widest font-black text-[#846047]/40 mb-0.5 md:mb-1 leading-none">Titolare</p>
-                                <p className="font-serif italic font-bold text-sm md:text-xl text-[#593e25] truncate max-w-full">
+                                <p className="text-[7px] md:text-[8px] uppercase tracking-widest font-black text-[var(--dash-accent)]/40 mb-0.5 md:mb-1 leading-none">Titolare</p>
+                                <p className="font-serif italic font-bold text-sm md:text-xl text-[var(--dash-heading)] truncate max-w-full">
                                     {firstName}
                                 </p>
                             </div>
                         </div>
 
-                        <div className="text-[7px] md:text-[8px] font-mono text-[#846047]/40 uppercase text-center mt-auto">
+                        <div className="text-[7px] md:text-[8px] font-mono text-[var(--dash-accent)]/40 uppercase text-center mt-auto">
                             Pag. {currentPage * 2 + 1}
                         </div>
                     </div>
@@ -577,15 +619,15 @@ function PassportBook({ userBadges, userProfile }: { userBadges: Badge[], userPr
                                                     index={idx}
                                                 />
                                             ) : (
-                                                <div className="w-full h-full border-2 border-dashed border-[#846047]/10 rounded-full flex items-center justify-center p-1 md:p-2 opacity-20">
+                                                <div className="w-full h-full border-2 border-dashed border-[var(--dash-accent-border)] rounded-full flex items-center justify-center p-1 md:p-2 opacity-20">
                                                     <div className="text-center">
                                                         <span className="block text-[5px] md:text-[8px] font-black uppercase tracking-tight mb-0.5 md:mb-1 truncate px-1">{stampData.name}</span>
-                                                        <div className="w-5 h-5 md:w-8 md:h-8 rounded-full bg-[#846047]/20 mx-auto" />
+                                                        <div className="w-5 h-5 md:w-8 md:h-8 rounded-full bg-[var(--dash-accent-soft)] mx-auto" />
                                                     </div>
                                                 </div>
                                             )
                                         ) : (
-                                            <div className="w-full h-full border border-dashed border-[#846047]/5 rounded-lg flex items-center justify-center opacity-5">
+                                            <div className="w-full h-full border border-dashed border-[var(--dash-accent-border)] rounded-lg flex items-center justify-center opacity-5">
                                                 <span className="text-[7px] md:text-[8px]">---</span>
                                             </div>
                                         )}
@@ -593,7 +635,7 @@ function PassportBook({ userBadges, userProfile }: { userBadges: Badge[], userPr
                                 )
                             })}
                         </div>
-                        <div className="absolute bottom-3 md:bottom-8 right-3 md:right-8 text-[7px] md:text-[8px] font-mono text-[#846047]/40 uppercase">
+                        <div className="absolute bottom-3 md:bottom-8 right-3 md:right-8 text-[7px] md:text-[8px] font-mono text-[var(--dash-accent)]/40 uppercase">
                             Pag. {currentPage * 2 + 2}
                         </div>
                     </div>
@@ -604,7 +646,7 @@ function PassportBook({ userBadges, userProfile }: { userBadges: Badge[], userPr
                     <button
                         onClick={() => handlePageChange('prev')}
                         disabled={currentPage === 0 || isFlipping}
-                        className="p-1 md:p-2 -ml-2 md:-ml-3 rounded-full bg-white shadow-lg text-[#846047] disabled:hidden hover:scale-110 active:scale-95 transition-all border border-[#846047]/10"
+                        className="p-1 md:p-2 -ml-2 md:-ml-3 rounded-full bg-[var(--dash-card)] shadow-lg text-[var(--dash-accent)] disabled:hidden hover:scale-110 active:scale-95 transition-all border border-[var(--dash-accent-border)]"
                     >
                         <ChevronLeft className="w-4 h-4 md:w-5 md:h-5" />
                     </button>
@@ -613,7 +655,7 @@ function PassportBook({ userBadges, userProfile }: { userBadges: Badge[], userPr
                     <button
                         onClick={() => handlePageChange('next')}
                         disabled={currentPage >= safeTotalPages - 1 || isFlipping}
-                        className="p-1 md:p-2 -mr-2 md:-mr-3 rounded-full bg-white shadow-lg text-[#846047] disabled:hidden hover:scale-110 active:scale-95 transition-all border border-[#846047]/10"
+                        className="p-1 md:p-2 -mr-2 md:-mr-3 rounded-full bg-[var(--dash-card)] shadow-lg text-[var(--dash-accent)] disabled:hidden hover:scale-110 active:scale-95 transition-all border border-[var(--dash-accent-border)]"
                     >
                         <ChevronRight className="w-4 h-4 md:w-5 md:h-5" />
                     </button>
@@ -623,7 +665,7 @@ function PassportBook({ userBadges, userProfile }: { userBadges: Badge[], userPr
             {/* Page Count Indicator */}
             <div className="mt-4 md:mt-8 flex justify-center gap-1.5 opacity-40">
                 {Array.from({ length: safeTotalPages }).map((_, i) => (
-                    <div key={i} className={`h-1 rounded-full transition-all duration-300 ${i === currentPage ? 'w-4 bg-[#846047]' : 'w-1 bg-[#846047]/30'}`} />
+                    <div key={i} className={`h-1 rounded-full transition-all duration-300 ${i === currentPage ? 'w-4 bg-[var(--dash-accent)]' : 'w-1 bg-[var(--dash-accent)]/30'}`} />
                 ))}
             </div>
         </div>

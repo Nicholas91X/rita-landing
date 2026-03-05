@@ -71,12 +71,12 @@ export function NotificationBell() {
             <DropdownMenuContent align="end" className="w-80 bg-[#001F3D]/95 backdrop-blur-xl border-white/10 p-2 rounded-2xl shadow-2xl">
                 <div className="flex items-center justify-between px-3 py-2 mb-2 border-b border-white/10">
                     <span className="text-xs font-black uppercase tracking-widest text-white">Notifiche</span>
-                    {unreadCount > 0 && <span className="text-[10px] text-neutral-400 font-bold uppercase">{unreadCount} nuove</span>}
+                    {unreadCount > 0 && <span className="text-[10px] text-[var(--dash-muted-light)] font-bold uppercase">{unreadCount} nuove</span>}
                 </div>
                 <div className="max-h-96 overflow-y-auto space-y-1">
                     {notifications.length === 0 ? (
                         <div className="px-3 py-8 text-center text-white/50">
-                            <Clock className="w-8 h-8 text-neutral-600 mx-auto mb-2 opacity-20" />
+                            <Clock className="w-8 h-8 text-[var(--dash-muted)] mx-auto mb-2 opacity-20" />
                             <p className="text-xs font-medium">Nessuna nuova notifica</p>
                         </div>
                     ) : (
@@ -89,7 +89,7 @@ export function NotificationBell() {
                                     router.push('/dashboard?tab=profile&profileTab=notifications')
                                     fetchNotifications() // Update locally
                                 }}
-                                className="flex flex-col items-start gap-1 p-3 rounded-xl transition-all cursor-pointer focus:bg-white/10 bg-white/5 border-l-2 border-brand"
+                                className="flex flex-col items-start gap-1 p-3 rounded-xl transition-all cursor-pointer focus:bg-white/10 bg-[var(--dash-accent-soft)] border-l-2 border-brand"
                             >
                                 <div className="flex w-full items-start justify-between gap-3">
                                     <div className="flex items-start gap-3 flex-1 min-w-0">
@@ -104,19 +104,19 @@ export function NotificationBell() {
                                         </div>
                                         <div className="flex flex-col gap-0.5 min-w-0 flex-1">
                                             <span className="text-[11px] font-black uppercase text-white leading-tight break-words">{n.title}</span>
-                                            <p className="text-[11px] text-neutral-300 leading-snug line-clamp-3">
+                                            <p className="text-[11px] text-[var(--dash-muted-light)] leading-snug line-clamp-3">
                                                 {n.message}
                                             </p>
                                         </div>
                                     </div>
                                     <button
                                         onClick={(e) => handleMarkAsRead(n.id, e)}
-                                        className="text-[9px] font-black uppercase text-white hover:text-white transition-all bg-white/5 hover:bg-brand/20 px-2 py-1 rounded-md border border-brand/20 shrink-0 self-start"
+                                        className="text-[9px] font-black uppercase text-white hover:text-white transition-all bg-[var(--dash-accent-soft)] hover:bg-brand/20 px-2 py-1 rounded-md border border-brand/20 shrink-0 self-start"
                                     >
                                         Letta
                                     </button>
                                 </div>
-                                <span className="text-[9px] text-neutral-500 font-bold mt-1 uppercase">
+                                <span className="text-[9px] text-[var(--dash-muted)] font-bold mt-1 uppercase">
                                     {new Date(n.created_at).toLocaleDateString('it-IT')}
                                 </span>
                             </DropdownMenuItem>

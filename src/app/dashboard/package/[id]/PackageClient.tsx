@@ -132,14 +132,14 @@ export default function PackageClient({ pkg, videos }: { pkg: Package, videos: V
 
     return (
         <>
-            <main className="h-[100dvh] flex flex-col bg-[var(--bg)] text-[var(--foreground)] selection:bg-[var(--brand)]/10 overflow-x-hidden w-full max-w-full">
+            <main className="h-[100dvh] flex flex-col bg-[var(--dash-bg)] text-[var(--dash-text)] selection:bg-[var(--brand)]/10 overflow-x-hidden w-full max-w-full">
                 {/* Header / Navigation - Part of the flex flow */}
-                <header className="flex-none relative z-[100] bg-[#f3efec] border-b border-[#846047]/10 shadow-sm pt-[safe-area-inset-top]">
+                <header className="flex-none relative z-[100] bg-[var(--dash-card-header)] border-b border-[var(--dash-accent-border)] shadow-sm pt-[safe-area-inset-top]">
                     <div className="max-w-[1400px] mx-auto px-4 lg:px-8 py-3 md:py-4 flex items-center justify-between">
                         <div className="flex items-center gap-4">
                             <Link
                                 href="/dashboard?tab=library"
-                                className="relative z-[110] flex items-center gap-2 px-4 py-2 rounded-full bg-[#846047]/10 border border-[#846047]/20 text-[#846047] hover:text-[#593e25] transition-all hover:bg-[#846047]/20 text-sm font-medium touch-manipulation"
+                                className="relative z-[110] flex items-center gap-2 px-4 py-2 rounded-full bg-[var(--dash-accent-soft)] border border-[var(--dash-accent)]/20 text-[var(--dash-accent)] hover:text-[var(--dash-heading)] transition-all hover:bg-[var(--dash-accent)]/20 text-sm font-medium touch-manipulation"
                             >
                                 <ChevronLeft className="h-4 w-4" />
                                 <span className="hidden md:inline">Esci dalla lezione</span>
@@ -148,7 +148,7 @@ export default function PackageClient({ pkg, videos }: { pkg: Package, videos: V
 
                             <div className="flex flex-col">
                                 <h2 className="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--brand)] mb-0.5 leading-none">Corso in corso</h2>
-                                <h1 className="text-sm md:text-base font-bold text-[#2a2e30] truncate max-w-[150px] sm:max-w-[200px] lg:max-w-md">
+                                <h1 className="text-sm md:text-base font-bold text-[var(--dash-text)] truncate max-w-[150px] sm:max-w-[200px] lg:max-w-md">
                                     {pkg.name}
                                 </h1>
                             </div>
@@ -160,13 +160,13 @@ export default function PackageClient({ pkg, videos }: { pkg: Package, videos: V
 
                 <div className="flex flex-col lg:flex-row flex-1 overflow-y-auto lg:overflow-hidden min-h-0">
                     {/* Main Content Area - Video Player */}
-                    <div className="flex-none lg:flex-1 bg-[#fff8f3] flex flex-col pt-6 lg:pt-10 pb-8 lg:pb-12 lg:overflow-y-auto custom-scrollbar">
+                    <div className="flex-none lg:flex-1 bg-[var(--dash-bg)] flex flex-col pt-6 lg:pt-10 pb-8 lg:pb-12 lg:overflow-y-auto custom-scrollbar">
                         <div className="flex-none flex flex-col">
                             <div className="w-full max-w-6xl mx-auto px-4 lg:px-10 flex flex-col">
                                 {/* Immersive Video Container */}
                                 <h2 className="text-xl md:text-2xl font-black uppercase tracking-tight mb-10">
-                                    <span className="text-[#846047]">MESE 1: </span>
-                                    <span className="text-[#2a2e30]">{pkg.name}</span> {pkg.subtitle && <span className="font-black text-gray-500">({pkg.subtitle})</span>} {pkg.name.toLowerCase().includes('bali') ? '🌿' : pkg.name.toLowerCase().includes('avana') ? '🇨🇺' : pkg.name.toLowerCase().includes('new york') ? '🗽' : '✨'}
+                                    <span className="text-[var(--dash-accent)]">MESE 1: </span>
+                                    <span className="text-[var(--dash-text)]">{pkg.name}</span> {pkg.subtitle && <span className="font-black text-[var(--dash-muted)]">({pkg.subtitle})</span>} {pkg.name.toLowerCase().includes('bali') ? '🌿' : pkg.name.toLowerCase().includes('avana') ? '🇨🇺' : pkg.name.toLowerCase().includes('new york') ? '🗽' : '✨'}
                                 </h2>
                                 <div className="relative group flex-none">
                                     <div className="absolute -inset-4 bg-[var(--brand)]/20 blur-3xl rounded-full opacity-40 group-hover:opacity-60 transition-opacity duration-1000 hidden md:block" />
@@ -199,22 +199,22 @@ export default function PackageClient({ pkg, videos }: { pkg: Package, videos: V
                                             )}
                                         </div>
                                         <div className="flex flex-col">
-                                            <span className="text-xs font-black uppercase tracking-[0.3em] text-[#846047] mb-2">
+                                            <span className="text-xs font-black uppercase tracking-[0.3em] text-[var(--dash-accent)] mb-2">
                                                 {activeVideo.video_type?.replace('_', ' ') || 'Lezione'} • TAPPA {activeVideo.order_index || (videos.indexOf(activeVideo) + 1)}
                                             </span>
-                                            <h1 className="text-3xl lg:text-5xl font-black text-[var(--foreground)] tracking-tight ts-white flex items-center gap-3 flex-wrap">
+                                            <h1 className="text-3xl lg:text-5xl font-black text-[var(--dash-text)] tracking-tight ts-white flex items-center gap-3 flex-wrap">
                                                 <Footprints className="w-8 h-8 lg:w-12 lg:h-12 shrink-0" />
                                                 <span className="break-words">
                                                     {activeVideo.tappa || activeVideo.title}
                                                 </span>
                                             </h1>
                                             {activeVideo.tappa && (
-                                                <p className="text-sm font-medium text-[var(--foreground)]/40 mt-2">
+                                                <p className="text-sm font-medium text-[var(--dash-text)]/40 mt-2">
                                                     {activeVideo.title}
                                                 </p>
                                             )}
                                         </div>
-                                        <div className="flex items-center gap-6 text-sm text-[var(--foreground)]/60 font-medium mt-2">
+                                        <div className="flex items-center gap-6 text-sm text-[var(--dash-text)]/60 font-medium mt-2">
                                             <div className="flex items-center gap-2">
                                                 <Clock className="w-4 h-4 text-[var(--brand)]" />
                                                 <span>
@@ -230,7 +230,7 @@ export default function PackageClient({ pkg, videos }: { pkg: Package, videos: V
                                                 </div>
                                             )}
                                         </div>
-                                        <p className="text-lg text-[var(--foreground)]/70 max-w-3xl leading-relaxed mt-4">
+                                        <p className="text-lg text-[var(--dash-text)]/70 max-w-3xl leading-relaxed mt-4">
                                             {pkg.description}
                                         </p>
                                     </div>
@@ -240,15 +240,15 @@ export default function PackageClient({ pkg, videos }: { pkg: Package, videos: V
                     </div>
 
                     {/* Sidebar - Playlist with Glassmorphism */}
-                    <aside className="w-full lg:w-[400px] xl:w-[450px] bg-white/40 backdrop-blur-3xl lg:border-l border-white/20 flex flex-col h-auto min-h-[400px] lg:h-full relative z-30 shadow-2xl shrink-0">
+                    <aside className="w-full lg:w-[400px] xl:w-[450px] bg-[var(--dash-card)]/40 backdrop-blur-3xl lg:border-l border-[var(--dash-border)] flex flex-col h-auto min-h-[400px] lg:h-full relative z-30 shadow-2xl shrink-0">
                         {/* Progress Overview Header */}
                         <div className="p-6 lg:p-8 border-b border-[var(--brand)]/20">
                             <div className="flex items-center justify-between mb-6">
-                                <h2 className="text-xs font-black uppercase tracking-[0.3em] text-[var(--foreground)]/50">
+                                <h2 className="text-xs font-black uppercase tracking-[0.3em] text-[var(--dash-text)]/50">
                                     IL TUO ITINERARIO
                                 </h2>
                                 {/* Progress Bar Comp */}
-                                <div className="bg-white/40 border border-[var(--brand)]/10 px-4 py-2 rounded-2xl flex items-center gap-2 shadow-sm">
+                                <div className="bg-[var(--dash-card)]/40 border border-[var(--brand)]/10 px-4 py-2 rounded-2xl flex items-center gap-2 shadow-sm">
                                     <div className="h-1.5 w-20 xl:w-24 bg-[var(--brand)]/10 relative rounded-full overflow-hidden">
                                         <div className="absolute top-0 left-0 h-full bg-[var(--brand)] transition-all duration-1000 ease-out" style={{ width: `${preciseCompletionRate}%` }} />
                                     </div>
@@ -258,10 +258,10 @@ export default function PackageClient({ pkg, videos }: { pkg: Package, videos: V
 
                             {/* Month Selectors (Visual Only for now as per image style) */}
                             <div className="flex gap-2 mb-6">
-                                <button className="flex-1 py-2.5 rounded-xl bg-[#846047] text-white text-xs font-bold uppercase tracking-widest shadow-lg shadow-[#846047]/20">
+                                <button className="flex-1 py-2.5 rounded-xl bg-[var(--dash-accent)] text-white text-xs font-bold uppercase tracking-widest shadow-lg shadow-[var(--dash-accent)]/20">
                                     Mese 1
                                 </button>
-                                <button className="flex-1 py-2.5 rounded-xl bg-[#846047]/10 text-[#846047]/40 text-xs font-bold uppercase tracking-widest flex items-center justify-center gap-2 cursor-not-allowed">
+                                <button className="flex-1 py-2.5 rounded-xl bg-[var(--dash-accent-soft)] text-[var(--dash-accent)]/40 text-xs font-bold uppercase tracking-widest flex items-center justify-center gap-2 cursor-not-allowed">
                                     <span className="w-3 h-3 rounded-full border border-current flex items-center justify-center text-[8px]">🔒</span>
                                     Mese 2
                                 </button>
@@ -274,13 +274,13 @@ export default function PackageClient({ pkg, videos }: { pkg: Package, videos: V
                                         key={w}
                                         onClick={() => setActiveWeek(w)}
                                         className={`flex-1 pb-3 text-[11px] font-black uppercase tracking-widest transition-all relative ${activeWeek === w
-                                            ? 'text-[#846047]'
-                                            : 'text-[#846047]/40 hover:text-[#846047]/70'
+                                            ? 'text-[var(--dash-accent)]'
+                                            : 'text-[var(--dash-accent)]/40 hover:text-[var(--dash-accent)]/70'
                                             }`}
                                     >
                                         Sett. {w}
                                         {activeWeek === w && (
-                                            <div className="absolute bottom-0 left-0 w-full h-0.5 bg-[#846047] rounded-t-full" />
+                                            <div className="absolute bottom-0 left-0 w-full h-0.5 bg-[var(--dash-accent)] rounded-t-full" />
                                         )}
                                     </button>
                                 ))}
@@ -291,10 +291,10 @@ export default function PackageClient({ pkg, videos }: { pkg: Package, videos: V
                         <div className="flex-1 overflow-y-auto p-4 lg:p-6 space-y-4 custom-scrollbar">
                             {/* Week Subtitle */}
                             <div className="text-center py-2">
-                                {activeWeek === 1 && <p className="text-sm font-bold text-[#846047] italic">L&apos;Atterraggio 🛬</p>}
-                                {activeWeek === 2 && <p className="text-sm font-bold text-[#846047] italic">L&apos;Esplorazione 🧭</p>}
-                                {activeWeek === 3 && <p className="text-sm font-bold text-[#846047] italic">La Scoperta 🗺️</p>}
-                                {activeWeek === 4 && <p className="text-sm font-bold text-[#846047] italic">Il Traguardo 🏆</p>}
+                                {activeWeek === 1 && <p className="text-sm font-bold text-[var(--dash-accent)] italic">L&apos;Atterraggio 🛬</p>}
+                                {activeWeek === 2 && <p className="text-sm font-bold text-[var(--dash-accent)] italic">L&apos;Esplorazione 🧭</p>}
+                                {activeWeek === 3 && <p className="text-sm font-bold text-[var(--dash-accent)] italic">La Scoperta 🗺️</p>}
+                                {activeWeek === 4 && <p className="text-sm font-bold text-[var(--dash-accent)] italic">Il Traguardo 🏆</p>}
                             </div>
 
                             <div className="space-y-3">
@@ -322,15 +322,15 @@ export default function PackageClient({ pkg, videos }: { pkg: Package, videos: V
                                             onClick={() => setActiveVideo(v)}
                                             className={cn(
                                                 "relative p-4 transition-all duration-300 cursor-pointer group flex items-center gap-4 border-b border-[var(--brand)]/10 last:border-0",
-                                                isActive ? "bg-white/80" : "hover:bg-white/40",
+                                                isActive ? "bg-[var(--dash-card)]/80" : "hover:bg-[var(--dash-card)]/40",
                                                 isBonus && !isActive && "bg-amber-50/30"
                                             )}
                                         >
                                             {/* Status Indicator (Left) */}
                                             <div className="shrink-0">
                                                 {isDone ? (
-                                                    <div className="w-8 h-8 rounded-full bg-[#e8e2d9] flex items-center justify-center">
-                                                        <CheckCircle2 className="w-5 h-5 text-[#846047]" />
+                                                    <div className="w-8 h-8 rounded-full bg-[var(--dash-card-header)] flex items-center justify-center">
+                                                        <CheckCircle2 className="w-5 h-5 text-[var(--dash-accent)]" />
                                                     </div>
                                                 ) : isBonus ? (
                                                     <div className="w-8 h-8 rounded-full border-2 border-amber-200 bg-amber-50 flex items-center justify-center">
@@ -339,9 +339,9 @@ export default function PackageClient({ pkg, videos }: { pkg: Package, videos: V
                                                 ) : (
                                                     <div className={cn(
                                                         "w-8 h-8 rounded-full border-2 flex items-center justify-center",
-                                                        isActive ? "border-[#846047] bg-[#846047]/10" : "border-[#e8e2d9]"
+                                                        isActive ? "border-[var(--dash-accent)] bg-[var(--dash-accent-soft)]" : "border-[var(--dash-border)]"
                                                     )}>
-                                                        {isActive && <div className="w-2.5 h-2.5 rounded-full bg-[#846047]" />}
+                                                        {isActive && <div className="w-2.5 h-2.5 rounded-full bg-[var(--dash-accent)]" />}
                                                     </div>
                                                 )}
                                             </div>
@@ -358,7 +358,7 @@ export default function PackageClient({ pkg, videos }: { pkg: Package, videos: V
                                                         </div>
                                                     ) : (
                                                         <>
-                                                            <div className="absolute inset-0 bg-neutral-100" />
+                                                            <div className="absolute inset-0 bg-[var(--dash-placeholder)]" />
                                                             <Image
                                                                 src={imageErrors[v.id] ? "/images/video-placeholder.png" : `/api/bunny-thumbnail/${v.bunny_video_id}`}
                                                                 alt={v.title}
@@ -386,19 +386,19 @@ export default function PackageClient({ pkg, videos }: { pkg: Package, videos: V
                                                         {isBonus ? "Bonus" : `Tappa ${v.order_index !== undefined ? v.order_index + 1 : globalIndex + 1}`}
                                                     </span>
                                                     {v.tappa && (
-                                                        <h4 className="font-bold text-[15px] leading-tight text-[#2a2e30]">
+                                                        <h4 className="font-bold text-[15px] leading-tight text-[var(--dash-text)]">
                                                             {v.tappa}
                                                         </h4>
                                                     )}
                                                 </div>
                                                 <div className="flex items-center gap-2 opacity-60">
-                                                    <span className="text-[11px] font-medium text-gray-400 truncate max-w-[120px]">
+                                                    <span className="text-[11px] font-medium text-[var(--dash-muted-light)] truncate max-w-[120px]">
                                                         {v.title}
                                                     </span>
                                                     <span className="w-0.5 h-0.5 rounded-full bg-gray-300" />
                                                     <div className="flex items-center gap-1 shrink-0">
-                                                        <Clock className="w-3 h-3 text-gray-400" />
-                                                        <span className="text-[11px] font-medium text-gray-400">
+                                                        <Clock className="w-3 h-3 text-[var(--dash-muted-light)]" />
+                                                        <span className="text-[11px] font-medium text-[var(--dash-muted-light)]">
                                                             {v.duration_minutes || 31}m
                                                         </span>
                                                     </div>
@@ -414,20 +414,20 @@ export default function PackageClient({ pkg, videos }: { pkg: Package, videos: V
             </main>
 
             <Dialog open={showCelebration} onOpenChange={setShowCelebration}>
-                <DialogContent className="bg-[#fdfbf7] border-none rounded-[28px] sm:rounded-[40px] max-w-lg p-0 overflow-hidden shadow-2xl">
+                <DialogContent className="bg-[var(--dash-bg)] border-none rounded-[28px] sm:rounded-[40px] max-w-lg p-0 overflow-hidden shadow-2xl">
                     <div className="relative p-10 flex flex-col items-center text-center">
-                        <div className="absolute inset-0 opacity-[0.03] pointer-events-none" style={{ backgroundImage: 'radial-gradient(#846047 1px, transparent 1px)', backgroundSize: '20px 20px' }} />
+                        <div className="absolute inset-0 opacity-[0.03] pointer-events-none" style={{ backgroundImage: 'radial-gradient(var(--dash-accent) 1px, transparent 1px)', backgroundSize: '20px 20px' }} />
 
                         <div className="w-24 h-24 rounded-full bg-emerald-500/10 flex items-center justify-center mb-6 animate-bounce">
                             <Luggage className="w-12 h-12 text-emerald-600" />
                         </div>
 
                         <DialogHeader className="space-y-4">
-                            <DialogTitle className="text-4xl font-serif font-bold text-[#593e25] tracking-tight leading-tight">
+                            <DialogTitle className="text-4xl font-serif font-bold text-[var(--dash-heading)] tracking-tight leading-tight">
                                 Valigia pronta! 🧳
                             </DialogTitle>
-                            <DialogDescription className="text-lg text-neutral-600 font-medium">
-                                Hai completato con successo il tuo viaggio a <span className="text-[#846047] font-bold">{pkg.name.toLowerCase().includes('bali') ? 'Bali' : (pkg.name.split(' ')[0] || 'questa destinazione')}</span>. Un nuovo timbro ti aspetta nel tuo passaporto!
+                            <DialogDescription className="text-lg text-[var(--dash-muted)] font-medium">
+                                Hai completato con successo il tuo viaggio a <span className="text-[var(--dash-accent)] font-bold">{pkg.name.toLowerCase().includes('bali') ? 'Bali' : (pkg.name.split(' ')[0] || 'questa destinazione')}</span>. Un nuovo timbro ti aspetta nel tuo passaporto!
                             </DialogDescription>
                         </DialogHeader>
 
@@ -437,11 +437,11 @@ export default function PackageClient({ pkg, videos }: { pkg: Package, videos: V
                                     setShowCelebration(false)
                                     router.push('/dashboard?tab=profile&sub=badges')
                                 }}
-                                className="w-full bg-[#846047] text-white hover:bg-[#846047]/90 rounded-2xl h-14 text-lg font-bold shadow-lg shadow-[#846047]/20"
+                                className="w-full bg-[var(--dash-accent)] text-white hover:bg-[var(--dash-accent)]/90 rounded-2xl h-14 text-lg font-bold shadow-lg shadow-[var(--dash-accent)]/20"
                             >
                                 Guarda il Passaporto
                             </Button>
-                            <p className="text-[10px] font-black uppercase tracking-widest text-neutral-400">Repubblica delle Ritiane • Documento di Viaggio</p>
+                            <p className="text-[10px] font-black uppercase tracking-widest text-[var(--dash-muted-light)]">Repubblica delle Ritiane • Documento di Viaggio</p>
                         </div>
                     </div>
                 </DialogContent>

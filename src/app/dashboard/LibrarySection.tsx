@@ -76,13 +76,13 @@ export default function LibrarySection({
 
     if (purchasedLevels.length === 0 && oneTimePurchases.length === 0) {
         return (
-            <div className="text-center py-24 border-2 border-dashed border-white/5 rounded-3xl bg-neutral-900/50 animate-in fade-in duration-700">
+            <div className="text-center py-24 border-2 border-dashed border-[var(--dash-border)] rounded-3xl bg-[var(--dash-card)] animate-in fade-in duration-700">
                 <div className="max-w-md mx-auto space-y-6">
                     <div className="mx-auto w-16 h-16 bg-[var(--brand)]/10 text-[var(--brand)] rounded-full flex items-center justify-center">
                         <Dumbbell className="h-8 w-8" />
                     </div>
                     <h3 className="text-2xl font-bold text-white">Non hai ancora corsi attivi</h3>
-                    <p className="text-neutral-400 leading-relaxed">
+                    <p className="text-[var(--dash-muted-light)] leading-relaxed">
                         Inizia il tuo percorso scegliendo uno dei nostri pacchetti curati per te nel catalogo.
                     </p>
                     <Button
@@ -103,7 +103,7 @@ export default function LibrarySection({
                 <div className="space-y-8">
                     <div className="flex items-center gap-3">
                         <div className="h-8 w-1.5 bg-[var(--brand)] rounded-full" />
-                        <h2 className="text-xl md:text-2xl font-bold text-[#593e25] tracking-tight uppercase">
+                        <h2 className="text-xl md:text-2xl font-bold text-[var(--dash-heading)] tracking-tight uppercase">
                             Il tuo percorso personalizzato
                         </h2>
                     </div>
@@ -112,7 +112,7 @@ export default function LibrarySection({
                             if (purchase.status === 'refunded' || !purchase.packages) return null
 
                             return (
-                                <Card key={purchase.id} className="bg-white border-[#846047]/10 shadow-[0_0_50px_-10px_rgba(132,96,71,0.2)] overflow-hidden group hover:shadow-[0_0_60px_-5px_rgba(132,96,71,0.3)] transition-all duration-500 rounded-[32px] flex flex-col border-none">
+                                <Card key={purchase.id} className="bg-[var(--dash-card)] border-[var(--dash-accent-border)] shadow-[0_0_50px_-10px_rgba(132,96,71,0.2)] overflow-hidden group hover:shadow-[0_0_60px_-5px_rgba(132,96,71,0.3)] transition-all duration-500 rounded-[32px] flex flex-col border-none">
                                     <Link href={`/dashboard/package/${purchase.packages.id}?purchaseId=${purchase.id}`} className="flex-1 flex flex-col">
                                         <div className="h-56 w-full relative overflow-hidden">
                                             {purchase.packages.image_url ? (
@@ -123,36 +123,36 @@ export default function LibrarySection({
                                                     fill
                                                 />
                                             ) : (
-                                                <div className="w-full h-full bg-[#f3efec] flex items-center justify-center">
+                                                <div className="w-full h-full bg-[var(--dash-placeholder)] flex items-center justify-center">
                                                     <span className="text-4xl">✨</span>
                                                 </div>
                                             )}
                                             <div className="absolute inset-0 bg-black/10" />
-                                            <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-sm px-3 py-1 rounded-full text-[10px] font-black uppercase text-[#846047] shadow-sm flex items-center gap-1">
+                                            <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-sm px-3 py-1 rounded-full text-[10px] font-black uppercase text-[var(--dash-accent)] shadow-sm flex items-center gap-1">
                                                 <Calendar className="w-3 h-3" />
                                                 {new Date(purchase.created_at).toLocaleDateString('it-IT')}
                                             </div>
                                         </div>
                                         <CardContent className="p-6 space-y-4">
-                                            <h3 className="text-[22px] font-bold text-[#2a2e30] leading-tight">
+                                            <h3 className="text-[22px] font-bold text-[var(--dash-text)] leading-tight">
                                                 {purchase.packages.name}
                                             </h3>
-                                            <p className="text-sm text-neutral-500 line-clamp-2 leading-relaxed">
+                                            <p className="text-sm text-[var(--dash-muted)] line-clamp-2 leading-relaxed">
                                                 {purchase.packages.description || "Il tuo percorso personalizzato per il benessere fisico e mentale."}
                                             </p>
 
                                             <div className="flex flex-col gap-2 pt-2">
-                                                <div className="flex items-center gap-2 text-neutral-400 text-sm">
+                                                <div className="flex items-center gap-2 text-[var(--dash-muted-light)] text-sm">
                                                     <span className={`
                                                         inline-block text-xs font-bold uppercase tracking-widest flex items-center gap-1.5
                                                         ${purchase.status === 'delivered' ? 'text-emerald-600' :
                                                             purchase.status === 'processing_plan' ? 'text-amber-600' :
-                                                                purchase.status === 'pending_appointment' ? 'text-blue-600' : 'text-[#846047]'}
+                                                                purchase.status === 'pending_appointment' ? 'text-blue-600' : 'text-[var(--dash-accent)]'}
                                                      `}>
                                                         <div className={`w-1.5 h-1.5 rounded-full animate-pulse
                                                             ${purchase.status === 'delivered' ? 'bg-emerald-500' :
                                                                 purchase.status === 'processing_plan' ? 'bg-amber-500' :
-                                                                    purchase.status === 'pending_appointment' ? 'bg-blue-500' : 'bg-[#846047]'}
+                                                                    purchase.status === 'pending_appointment' ? 'bg-blue-500' : 'bg-[var(--dash-accent)]'}
                                                         `} />
                                                         {purchase.status === 'delivered' ? 'Pronto' :
                                                             purchase.status === 'processing_plan' ? 'In Lavorazione' :
@@ -162,12 +162,12 @@ export default function LibrarySection({
                                             </div>
 
                                             <div className="flex items-center justify-end pt-4">
-                                                <span className="text-sm font-medium text-neutral-400">Su Misura</span>
+                                                <span className="text-sm font-medium text-[var(--dash-muted-light)]">Su Misura</span>
                                             </div>
                                         </CardContent>
                                     </Link>
                                     <CardFooter className="p-6 pt-0 mt-auto">
-                                        <Button asChild className="w-full h-11 bg-[#593e25] hover:bg-[#4a331f] text-white rounded-xl font-bold uppercase tracking-widest shadow-lg">
+                                        <Button asChild className="w-full h-11 bg-[var(--dash-heading)] hover:bg-[var(--dash-heading)]/90 text-white rounded-xl font-bold uppercase tracking-widest shadow-lg">
                                             <Link href={`/dashboard/package/${purchase.packages.id}?purchaseId=${purchase.id}`} className="flex items-center gap-2 justify-center">
                                                 VAI AL PERCORSO <ArrowRight className="w-4 h-4" />
                                             </Link>
@@ -182,9 +182,9 @@ export default function LibrarySection({
 
             {purchasedLevels.length > 0 && (
                 <div className="space-y-12">
-                    {oneTimePurchases.length > 0 && <div className="w-full h-px bg-[#846047]/10" />}
+                    {oneTimePurchases.length > 0 && <div className="w-full h-px bg-[var(--dash-accent-soft)]" />}
 
-                    <h2 className="text-xl md:text-2xl font-bold text-[#593e25] tracking-tight uppercase">
+                    <h2 className="text-xl md:text-2xl font-bold text-[var(--dash-heading)] tracking-tight uppercase">
                         Pacchetti Acquistati
                     </h2>
 
@@ -195,7 +195,7 @@ export default function LibrarySection({
                                     <div key={course.id} className="space-y-8">
                                         <div className="flex items-center gap-4">
                                             <div className="h-8 w-1.5 bg-[var(--brand)] rounded-full" />
-                                            <h3 className="text-2xl md:text-3xl font-bold text-[#593e25] tracking-tight">
+                                            <h3 className="text-2xl md:text-3xl font-bold text-[var(--dash-heading)] tracking-tight">
                                                 {course.name.toLowerCase().includes('pilates') && course.name.toLowerCase().includes('principiante') ? 'Destinazione Bali (Equilibrio)' : course.name}
                                             </h3>
                                         </div>
@@ -207,7 +207,7 @@ export default function LibrarySection({
                                                 const isDone = pkgProgress?.isFullyCompleted
 
                                                 return (
-                                                    <Card key={pkg.id} className="bg-white border-[#846047]/10 shadow-[0_0_50px_-10px_rgba(132,96,71,0.2)] overflow-hidden group hover:shadow-[0_0_60px_-5px_rgba(132,96,71,0.3)] transition-all duration-500 rounded-[32px] flex flex-col border-none">
+                                                    <Card key={pkg.id} className="bg-[var(--dash-card)] border-[var(--dash-accent-border)] shadow-[0_0_50px_-10px_rgba(132,96,71,0.2)] overflow-hidden group hover:shadow-[0_0_60px_-5px_rgba(132,96,71,0.3)] transition-all duration-500 rounded-[32px] flex flex-col border-none">
                                                         <Link href={`/dashboard/package/${pkg.id}`} className="flex-1 flex flex-col">
                                                             <div className="h-56 w-full relative overflow-hidden">
                                                                 {pkg.image_url ? (
@@ -219,8 +219,8 @@ export default function LibrarySection({
                                                                         sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                                                                     />
                                                                 ) : (
-                                                                    <div className="w-full h-full bg-neutral-100 flex items-center justify-center opacity-80">
-                                                                        <PlayCircle className="w-12 h-12 text-neutral-300" />
+                                                                    <div className="w-full h-full bg-[var(--dash-placeholder)] flex items-center justify-center opacity-80">
+                                                                        <PlayCircle className="w-12 h-12 text-[var(--dash-muted-light)]" />
                                                                     </div>
                                                                 )}
                                                                 <div className="absolute inset-0 bg-black/5" />
@@ -232,30 +232,30 @@ export default function LibrarySection({
                                                             </div>
 
                                                             <CardContent className="p-8 space-y-4">
-                                                                <h3 className="text-[22px] font-bold text-[#2a2e30] leading-tight">
+                                                                <h3 className="text-[22px] font-bold text-[var(--dash-text)] leading-tight">
                                                                     {pkg.name.toLowerCase().includes('pilates') && pkg.name.toLowerCase().includes('principiante') ? 'Pilates Linfodrenante Principianti' : pkg.name}
                                                                 </h3>
-                                                                <p className="text-sm text-neutral-500 line-clamp-2 leading-relaxed">
+                                                                <p className="text-sm text-[var(--dash-muted)] line-clamp-2 leading-relaxed">
                                                                     {pkg.description || "Il Percorso di introduzione al Pilates Linfodrenante per ritrovare equilibrio e vitalità."}
                                                                 </p>
 
                                                                 {pkg.subtitle && (
-                                                                    <p className="text-xs text-neutral-400 pt-2">{pkg.subtitle}</p>
+                                                                    <p className="text-xs text-[var(--dash-muted-light)] pt-2">{pkg.subtitle}</p>
                                                                 )}
 
                                                                 <div className="flex items-center justify-end pt-6">
                                                                     <div className="relative w-8 h-8">
                                                                         <svg className="w-8 h-8 transform -rotate-90">
-                                                                            <circle cx="16" cy="16" r="14" stroke="currentColor" strokeWidth="3" fill="transparent" className="text-neutral-100" />
+                                                                            <circle cx="16" cy="16" r="14" stroke="currentColor" strokeWidth="3" fill="transparent" className="text-[var(--dash-border)]" />
                                                                             <circle
                                                                                 cx="16" cy="16" r="14"
                                                                                 stroke="currentColor" strokeWidth="3" fill="transparent"
                                                                                 strokeDasharray={2 * Math.PI * 14}
                                                                                 strokeDashoffset={2 * Math.PI * 14 * (1 - (pkgProgress?.completionPercentage || 0) / 100)}
-                                                                                className="text-[#846047] transition-all duration-1000"
+                                                                                className="text-[var(--dash-accent)] transition-all duration-1000"
                                                                             />
                                                                         </svg>
-                                                                        <div className="absolute inset-0 flex items-center justify-center text-[8px] font-bold text-[#846047]">
+                                                                        <div className="absolute inset-0 flex items-center justify-center text-[8px] font-bold text-[var(--dash-accent)]">
                                                                             {Math.round(pkgProgress?.completionPercentage || 0)}%
                                                                         </div>
                                                                     </div>
@@ -266,7 +266,7 @@ export default function LibrarySection({
                                                         <CardFooter className="p-8 pt-0 mt-auto">
                                                             <Button asChild className={`w-full h-11 rounded-xl font-bold uppercase tracking-widest transition-all duration-300 shadow-lg ${isDone
                                                                 ? 'bg-emerald-600 hover:bg-emerald-500 text-white shadow-emerald-900/10'
-                                                                : 'bg-[#593e25] hover:bg-[#4a331f] text-white shadow-[#593e25]/20'
+                                                                : 'bg-[var(--dash-heading)] hover:bg-[var(--dash-heading)]/90 text-white shadow-[var(--dash-heading)]/20'
                                                                 } hover:scale-[1.02] active:scale-[0.98]`}>
                                                                 <Link href={`/dashboard/package/${pkg.id}`} className="flex items-center gap-3 justify-center">
                                                                     {isDone ? (

@@ -18,6 +18,7 @@ import Image from 'next/image'
 
 import { NotificationBell } from './NotificationBell'
 import PWAInstallPrompt from '@/components/PWAInstallPrompt'
+import { DashboardThemeProvider } from './ThemeContext'
 
 interface DashboardProfile {
     user: {
@@ -174,7 +175,8 @@ export default function DashboardClient({ levels }: { levels: Level[] }) {
     }, [activeTab, levels, libraryProgress, userProfile, firstName, profileSubTab, fetchUserProfile])
 
     return (
-        <div className="flex min-h-screen bg-[#fff8f3] text-[var(--secondary)] selection:bg-brand/30 relative overflow-x-hidden">
+        <DashboardThemeProvider>
+        <div className="flex min-h-screen bg-[var(--dash-bg)] text-[var(--dash-text)] selection:bg-brand/30 relative overflow-x-hidden transition-colors duration-300">
             {/* Sfondo chiaro, rimuovo il gradiente scuro */}
 
             {/* Navigation */}
@@ -196,7 +198,7 @@ export default function DashboardClient({ levels }: { levels: Level[] }) {
                 onTouchEnd={handleTouchEnd}
             >
                 {/* Content Header (Visible only on Desktop for Profile name or breadcrumbs if needed) */}
-                <header className="hidden lg:flex h-14 items-center justify-between px-12 border-b border-[#f3efec] sticky top-0 bg-gradient-to-r from-[#654540] to-[#503530] backdrop-blur-xl z-20 transition-all shadow-md">
+                <header className="hidden lg:flex h-14 items-center justify-between px-12 border-b border-[var(--dash-border)] sticky top-0 bg-gradient-to-r from-[#654540] to-[#503530] backdrop-blur-xl z-20 transition-all shadow-md">
                     <div>
                         {/* Empty spacing for alignment with desktop layout if needed */}
                     </div>
@@ -209,7 +211,7 @@ export default function DashboardClient({ levels }: { levels: Level[] }) {
                             <div className="text-right">
                                 <p className="text-[10px] text-white uppercase tracking-widest font-black">Rita Workout</p>
                             </div>
-                            <div className="w-10 h-10 rounded-2xl bg-white flex items-center justify-center text-xs font-black text-[#001F3D] shadow-xl border border-white/20 overflow-hidden relative">
+                            <div className="w-10 h-10 rounded-2xl bg-[var(--dash-card)] flex items-center justify-center text-xs font-black text-[var(--dash-text)] shadow-xl border border-white/20 overflow-hidden relative">
                                 {userProfile?.profile?.avatar_url ? (
                                     <Image
                                         src={userProfile.profile.avatar_url}
@@ -232,38 +234,38 @@ export default function DashboardClient({ levels }: { levels: Level[] }) {
                 </header>
 
                 {/* Header Sezione */}
-                <div className="relative pt-0 pb-6 md:pt-32 md:pb-16 px-6 md:px-12 bg-[#ffffff] backdrop-blur-sm border-b border-[var(--secondary)]/10">
+                <div className="relative pt-0 pb-6 md:pt-32 md:pb-16 px-6 md:px-12 bg-[var(--dash-card)] backdrop-blur-sm border-b border-[var(--dash-border)] transition-colors duration-300">
                     <div className="max-w-7xl mx-auto pt-20 md:pt-0">
                         {activeTab !== 'profile' ? (
                             <>
-                                <h1 className="text-4xl md:text-5xl font-medium text-[#345c72] mb-2 tracking-tight uppercase">
-                                    Area <span className="text-[#345c72]">Riservata</span>
+                                <h1 className="text-4xl md:text-5xl font-medium text-[var(--dash-steel)] mb-2 tracking-tight uppercase">
+                                    Area <span className="text-[var(--dash-steel)]">Riservata</span>
                                 </h1>
-                                <p className="text-[#2a2e30] text-lg md:text-xl font-medium max-w-2xl">
+                                <p className="text-[var(--dash-text)] text-lg md:text-xl font-medium max-w-2xl">
                                     Benvenuta nel tuo spazio di allenamento.<br />Qui trovi i tuoi programmi, i progressi e i nuovi contenuti.
                                 </p>
                             </>
                         ) : (
                             <div className="space-y-8">
                                 <div>
-                                    <h1 className="text-4xl md:text-5xl font-medium text-[#345c72] mb-2 tracking-tight uppercase">
-                                        Il Tuo <span className="text-[#345c72]">Profilo</span>
+                                    <h1 className="text-4xl md:text-5xl font-medium text-[var(--dash-steel)] mb-2 tracking-tight uppercase">
+                                        Il Tuo <span className="text-[var(--dash-steel)]">Profilo</span>
                                     </h1>
-                                    <p className="text-[#2a2e30] text-lg md:text-xl font-medium max-w-2xl">
+                                    <p className="text-[var(--dash-text)] text-lg md:text-xl font-medium max-w-2xl">
                                         Gestisci le tue informazioni e guarda i tuoi traguardi.
                                     </p>
                                 </div>
 
                                 {/* Header / Tabs - Styled to match previous design aesthetics */}
                                 <div className="flex justify-center md:justify-start w-full overflow-hidden">
-                                    <div className="bg-white rounded-2xl md:rounded-full p-1 flex md:p-1.5 gap-1 shadow-sm border border-[#846047]/10 w-full md:w-auto overflow-x-auto scrollbar-none">
+                                    <div className="bg-[var(--dash-card)] rounded-2xl md:rounded-full p-1 flex md:p-1.5 gap-1 shadow-sm border border-[var(--dash-accent-border)] w-full md:w-auto overflow-x-auto scrollbar-none">
                                         <button
                                             onClick={() => setProfileSubTab('info')}
                                             className={cn(
                                                 "px-4 md:px-6 py-2.5 md:py-3 rounded-full text-[11px] md:text-sm font-bold transition-all duration-300 flex-1 md:flex-none text-center whitespace-nowrap",
                                                 profileSubTab === 'info'
-                                                    ? "bg-[#846047] text-white shadow-md"
-                                                    : "text-[#846047]/70 hover:bg-[#846047]/5 hover:text-[#846047]"
+                                                    ? "bg-[var(--dash-accent)] text-white shadow-md"
+                                                    : "text-[var(--dash-accent)]/70 hover:bg-[var(--dash-accent-soft)] hover:text-[var(--dash-accent)]"
                                             )}
                                         >
                                             Dati Personali
@@ -273,8 +275,8 @@ export default function DashboardClient({ levels }: { levels: Level[] }) {
                                             className={cn(
                                                 "px-4 md:px-6 py-2.5 md:py-3 rounded-full text-[11px] md:text-sm font-bold transition-all duration-300 flex-1 md:flex-none text-center whitespace-nowrap",
                                                 profileSubTab === 'badges'
-                                                    ? "bg-[#846047] text-white shadow-md"
-                                                    : "text-[#846047]/70 hover:bg-[#846047]/5 hover:text-[#846047]"
+                                                    ? "bg-[var(--dash-accent)] text-white shadow-md"
+                                                    : "text-[var(--dash-accent)]/70 hover:bg-[var(--dash-accent-soft)] hover:text-[var(--dash-accent)]"
                                             )}
                                         >
                                             Le mie conquiste
@@ -284,8 +286,8 @@ export default function DashboardClient({ levels }: { levels: Level[] }) {
                                             className={cn(
                                                 "px-4 md:px-6 py-2.5 md:py-3 rounded-full text-[11px] md:text-sm font-bold transition-all duration-300 flex-1 md:flex-none text-center whitespace-nowrap",
                                                 profileSubTab === 'notifications'
-                                                    ? "bg-[#846047] text-white shadow-md"
-                                                    : "text-[#846047]/70 hover:bg-[#846047]/5 hover:text-[#846047]"
+                                                    ? "bg-[var(--dash-accent)] text-white shadow-md"
+                                                    : "text-[var(--dash-accent)]/70 hover:bg-[var(--dash-accent-soft)] hover:text-[var(--dash-accent)]"
                                             )}
                                         >
                                             Notifiche
@@ -300,7 +302,7 @@ export default function DashboardClient({ levels }: { levels: Level[] }) {
                 {/* Dynamic Content */}
                 <div className="p-6 md:p-12 pb-32 lg:pb-12 max-w-7xl mx-auto">
                     <Suspense fallback={
-                        <div className="flex flex-col items-center justify-center h-[50vh] gap-4 text-neutral-500">
+                        <div className="flex flex-col items-center justify-center h-[50vh] gap-4 text-[var(--dash-muted)]">
                             <Loader2 className="w-10 h-10 animate-spin text-[var(--brand)]" />
                             <p className="text-sm font-bold uppercase tracking-widest">Inizializzazione Dashboard...</p>
                         </div>
@@ -322,6 +324,7 @@ export default function DashboardClient({ levels }: { levels: Level[] }) {
 
             {/* PWA Install Prompt */}
             <PWAInstallPrompt />
-        </div >
+        </div>
+        </DashboardThemeProvider>
     )
 }
