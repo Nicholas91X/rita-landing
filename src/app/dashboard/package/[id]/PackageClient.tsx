@@ -299,18 +299,18 @@ export default function PackageClient({ pkg, videos }: { pkg: Package, videos: V
 
                             <div className="space-y-3">
                                 {videos.filter(v => {
-                                    const index = v.order_index ?? (videos.indexOf(v) + 1);
-                                    if (activeWeek === 1) return index >= 1 && index <= 3;
-                                    if (activeWeek === 2) return index >= 4 && index <= 6;
-                                    if (activeWeek === 3) return index >= 7 && index <= 9;
-                                    if (activeWeek === 4) return index >= 10 && index <= 12;
+                                    const index = v.order_index ?? videos.indexOf(v);
+                                    if (activeWeek === 1) return index >= 0 && index <= 2;
+                                    if (activeWeek === 2) return index >= 3 && index <= 5;
+                                    if (activeWeek === 3) return index >= 6 && index <= 8;
+                                    if (activeWeek === 4) return index >= 9 && index <= 11;
                                     return false;
                                 }).map((v) => {
                                     const globalIndex = videos.indexOf(v);
                                     const isActive = v.id === activeVideo.id
                                     const progress = progressData[v.id]
                                     const isDone = progress?.is_completed
-                                    const isBonus = v.video_type === 'salsa' || v.video_type === 'bachata';
+                                    const isBonus = (v.video_type || '').toLowerCase().includes('bonus');
 
                                     return (
                                         <div
@@ -354,7 +354,7 @@ export default function PackageClient({ pkg, videos }: { pkg: Package, videos: V
                                                 )}>
                                                     {isBonus ? (
                                                         <div className="w-full h-full flex items-center justify-center text-2xl">
-                                                            {v.video_type === 'salsa' ? '💃' : '🔥'}
+                                                            {(v.video_type || '').toLowerCase().includes('salsa') ? '💃' : '🔥'}
                                                         </div>
                                                     ) : (
                                                         <>
@@ -383,7 +383,7 @@ export default function PackageClient({ pkg, videos }: { pkg: Package, videos: V
                                                         "text-[10px] font-black uppercase tracking-wider",
                                                         isBonus ? "text-amber-600" : "text-[#c49285]"
                                                     )}>
-                                                        {isBonus ? "Bonus" : `Tappa ${v.order_index || globalIndex + 1}`}
+                                                        {isBonus ? "Bonus" : `Tappa ${v.order_index !== undefined ? v.order_index + 1 : globalIndex + 1}`}
                                                     </span>
                                                     {v.tappa && (
                                                         <h4 className="font-bold text-[15px] leading-tight text-[#2a2e30]">
