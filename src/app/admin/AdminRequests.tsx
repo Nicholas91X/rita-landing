@@ -1,12 +1,12 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { getAdminNotifications, markNotificationAsRead } from '@/app/actions/admin_actions/users'
+import { getAdminNotifications, markNotificationAsRead, getAccountDeletionRequests, processAccountDeletion } from '@/app/actions/admin_actions/users'
 import { getRefundRequests, handleRefundRequest } from '@/app/actions/admin_actions/sales'
 import { createClient } from '@/utils/supabase/client'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Loader2, Bell, RefreshCcw, XCircle, User, Clock, AlertTriangle, ChevronLeft, ChevronRight, ShoppingBag } from 'lucide-react'
+import { Loader2, Bell, RefreshCcw, XCircle, User, Clock, AlertTriangle, ChevronLeft, ChevronRight, ShoppingBag, Trash2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Badge } from "@/components/ui/badge"
@@ -25,6 +25,16 @@ interface AdminNotification {
         amount?: number
         reason?: string
     } | null
+}
+
+interface DeletionRequest {
+    id: string
+    type: string
+    created_at: string
+    is_read: boolean
+    user_id: string
+    profiles: { full_name: string; email: string } | null
+    data: { reason?: string } | null
 }
 
 interface RefundRequest {
@@ -47,6 +57,7 @@ interface RefundRequest {
 export default function AdminRequests() {
     const [notifications, setNotifications] = useState<AdminNotification[]>([])
     const [refundRequests, setRefundRequests] = useState<RefundRequest[]>([])
+    const [deletionRequests, setDeletionRequests] = useState<DeletionRequest[]>([])
     const [loading, setLoading] = useState(true)
     const [actionLoading, setActionLoading] = useState<string | null>(null)
 
@@ -59,14 +70,16 @@ export default function AdminRequests() {
     const loadData = async (silent = false) => {
         try {
             if (!silent) setLoading(true)
-            const [notifsResult, refundsResult] = await Promise.all([
+            const [notifsResult, refundsResult, deletionsResult] = await Promise.all([
                 getAdminNotifications(currentPageNotifs, ITEMS_PER_PAGE),
-                getRefundRequests(currentPageRefunds, ITEMS_PER_PAGE)
+                getRefundRequests(currentPageRefunds, ITEMS_PER_PAGE),
+                getAccountDeletionRequests()
             ])
             setNotifications(notifsResult.data as AdminNotification[])
             setTotalNotifs(notifsResult.totalCount)
             setRefundRequests(refundsResult.data as RefundRequest[])
             setTotalRefunds(refundsResult.totalCount)
+            setDeletionRequests(deletionsResult as DeletionRequest[])
         } catch (error) {
             logger.error('Failed to load admin billing data', error)
             if (!silent) toast.error('Errore nel caricamento dei dati')
@@ -146,6 +159,20 @@ export default function AdminRequests() {
         }
     }
 
+    const handleDeletion = async (notificationId: string, userId: string) => {
+        if (!confirm('Sei sicuro di voler eliminare questo account? Questa azione è IRREVERSIBILE.')) return
+        try {
+            setActionLoading(notificationId)
+            await processAccountDeletion(notificationId, userId)
+            toast.success('Account eliminato con successo')
+            loadData(true)
+        } catch (error: unknown) {
+            toast.error((error as Error).message || 'Errore durante l\'eliminazione')
+        } finally {
+            setActionLoading(null)
+        }
+    }
+
     if (loading) {
         return (
             <div className="flex flex-col items-center justify-center p-20 gap-4 text-white font-bold italic">
@@ -175,7 +202,7 @@ export default function AdminRequests() {
             </div>
 
             <Tabs defaultValue="notifications" className="space-y-6">
-                <TabsList className="bg-neutral-900 border border-white/10 p-1 rounded-2xl w-full md:w-auto h-auto grid grid-cols-2 md:inline-flex">
+                <TabsList className="bg-neutral-900 border border-white/10 p-1 rounded-2xl w-full md:w-auto h-auto grid grid-cols-3 md:inline-flex">
                     <TabsTrigger value="notifications" className="rounded-xl data-[state=active]:bg-white data-[state=active]:text-black data-[state=inactive]:text-white gap-2 py-2 md:py-1 transition-all text-xs md:text-sm">
                         <Bell className="w-3.5 h-3.5 md:w-4 md:h-4" />
                         Notifiche
@@ -187,7 +214,16 @@ export default function AdminRequests() {
                     </TabsTrigger>
                     <TabsTrigger value="refunds" className="rounded-xl data-[state=active]:bg-white data-[state=active]:text-black data-[state=inactive]:text-white gap-2 py-2 md:py-1 transition-all text-xs md:text-sm">
                         <RefreshCcw className="w-3.5 h-3.5 md:w-4 md:h-4" />
-                        Richieste Rimborso
+                        Rimborsi
+                    </TabsTrigger>
+                    <TabsTrigger value="deletions" className="rounded-xl data-[state=active]:bg-white data-[state=active]:text-black data-[state=inactive]:text-white gap-2 py-2 md:py-1 transition-all text-xs md:text-sm">
+                        <Trash2 className="w-3.5 h-3.5 md:w-4 md:h-4" />
+                        Eliminazioni
+                        {deletionRequests.filter(d => !d.is_read).length > 0 && (
+                            <Badge variant="destructive" className="h-5 px-1.5 min-w-[20px] justify-center text-[10px]">
+                                {deletionRequests.filter(d => !d.is_read).length}
+                            </Badge>
+                        )}
                     </TabsTrigger>
                 </TabsList>
 
@@ -416,6 +452,80 @@ export default function AdminRequests() {
                         <div className="text-center py-20 border-2 border-dashed border-white/10 rounded-[2.5rem] bg-black">
                             <RefreshCcw className="w-12 h-12 text-neutral-700 mx-auto mb-4 hover:text-brand transition-colors" />
                             <p className="text-white font-black uppercase italic tracking-tighter text-xl">Nessuna richiesta di rimborso pendente</p>
+                        </div>
+                    )}
+                </TabsContent>
+
+                <TabsContent value="deletions" className="space-y-4">
+                    {deletionRequests.length > 0 ? (
+                        <div className="grid gap-6 lg:grid-cols-2">
+                            {deletionRequests.map((req) => (
+                                <Card key={req.id} className={`bg-black border-white/20 rounded-[2.5rem] overflow-hidden flex flex-col hover:border-white/40 transition-all duration-500 group ${!req.is_read ? 'border-red-500/40 bg-red-500/5' : ''}`}>
+                                    <CardHeader className="bg-white/5 p-6 flex flex-row items-center justify-between border-b border-white/10 group-hover:bg-white/[0.08] transition-colors">
+                                        <div className="flex items-center gap-3">
+                                            <div className="p-2.5 bg-red-500/10 rounded-xl">
+                                                <Trash2 className="w-5 h-5 text-red-500" />
+                                            </div>
+                                            <div className="min-w-0">
+                                                <CardTitle className="text-sm font-black uppercase italic tracking-tight text-white truncate max-w-[150px] md:max-w-none">
+                                                    {req.profiles?.full_name || 'Utente'}
+                                                </CardTitle>
+                                                <CardDescription className="text-[10px] text-white font-bold truncate max-w-[150px] md:max-w-none">
+                                                    {req.profiles?.email}
+                                                </CardDescription>
+                                            </div>
+                                        </div>
+                                        <Badge className={`uppercase text-[9px] font-black tracking-widest px-2.5 py-1 rounded-lg border-none ${req.is_read ? 'bg-neutral-600 text-white' : 'bg-red-500 text-white shadow-lg shadow-red-500/20'}`}>
+                                            {req.is_read ? 'Elaborata' : 'In Attesa'}
+                                        </Badge>
+                                    </CardHeader>
+                                    <CardContent className="p-6 space-y-5 flex-1">
+                                        <div className="space-y-2">
+                                            <label className="text-[10px] uppercase font-black text-white tracking-[0.2em] flex items-center gap-1.5 opacity-90">
+                                                <AlertTriangle className="w-3 h-3 text-red-500" />
+                                                Richiesta Eliminazione Account
+                                            </label>
+                                            <p className="text-sm text-white/70 leading-relaxed font-medium">
+                                                L&apos;utente ha richiesto l&apos;eliminazione completa del proprio account e di tutti i dati associati.
+                                            </p>
+                                        </div>
+
+                                        <div className="pt-4 border-t border-white/10">
+                                            <div className="space-y-1">
+                                                <label className="text-[9px] uppercase font-black text-white/50 tracking-widest block">Data Richiesta</label>
+                                                <p className="text-xs text-white font-black italic uppercase tracking-tight flex items-center gap-1.5">
+                                                    <Clock className="w-3 h-3 text-brand" />
+                                                    {new Date(req.created_at).toLocaleString('it-IT', { day: '2-digit', month: '2-digit', year: '2-digit', hour: '2-digit', minute: '2-digit' })}
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </CardContent>
+                                    {!req.is_read && (
+                                        <CardFooter className="p-6 pt-0 flex gap-3">
+                                            <Button
+                                                className="flex-1 bg-red-600 hover:bg-red-500 text-white font-black uppercase italic tracking-tighter rounded-2xl h-11 transition-all shadow-lg hover:shadow-red-600/20"
+                                                onClick={() => handleDeletion(req.id, req.user_id)}
+                                                disabled={!!actionLoading}
+                                            >
+                                                {actionLoading === req.id ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Elimina Account'}
+                                            </Button>
+                                            <Button
+                                                variant="outline"
+                                                className="flex-1 border-white/20 hover:border-white/40 text-white font-black uppercase italic tracking-tighter rounded-2xl h-11 transition-all"
+                                                onClick={() => handleMarkAsRead(req.id)}
+                                                disabled={!!actionLoading}
+                                            >
+                                                Ignora
+                                            </Button>
+                                        </CardFooter>
+                                    )}
+                                </Card>
+                            ))}
+                        </div>
+                    ) : (
+                        <div className="text-center py-20 border-2 border-dashed border-white/10 rounded-[2.5rem] bg-black">
+                            <Trash2 className="w-12 h-12 text-neutral-700 mx-auto mb-4 hover:text-brand transition-colors" />
+                            <p className="text-white font-black uppercase italic tracking-tighter text-xl">Nessuna richiesta di eliminazione</p>
                         </div>
                     )}
                 </TabsContent>

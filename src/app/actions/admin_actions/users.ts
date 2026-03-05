@@ -325,3 +325,79 @@ export async function updateOneTimePurchaseStatus(id: string, newStatus: string)
     revalidatePath('/dashboard')
     return { success: true }
 }
+
+export async function getAccountDeletionRequests() {
+    const isSuperAdmin = await isAdmin()
+    if (!isSuperAdmin) throw new Error('Unauthorized')
+
+    const supabase = await createClient()
+
+    const { data: notifications, error } = await supabase
+        .from('admin_notifications')
+        .select('*, profiles(full_name, email)')
+        .eq('type', 'account_deletion')
+        .order('created_at', { ascending: false })
+
+    if (error) return []
+    return notifications || []
+}
+
+export async function processAccountDeletion(notificationId: string, userId: string) {
+    const isSuperAdmin = await isAdmin()
+    if (!isSuperAdmin) throw new Error('Unauthorized')
+
+    const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+
+    if (!serviceRoleKey || !supabaseUrl) {
+        throw new Error('Server configuration error')
+    }
+
+    const sudo = createSupabaseClient(supabaseUrl, serviceRoleKey)
+
+    // 1. Cancel active Stripe subscriptions
+    const { data: subs } = await sudo
+        .from('user_subscriptions')
+        .select('stripe_subscription_id')
+        .eq('user_id', userId)
+        .in('status', ['active', 'trialing'])
+
+    if (subs && subs.length > 0) {
+        const Stripe = (await import('stripe')).default
+        const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', {
+            apiVersion: '2025-12-15.clover' as unknown as import('stripe').Stripe.LatestApiVersion,
+        })
+        for (const sub of subs) {
+            if (sub.stripe_subscription_id) {
+                try {
+                    await stripe.subscriptions.cancel(sub.stripe_subscription_id)
+                } catch {
+                    // Continue even if Stripe cancellation fails
+                }
+            }
+        }
+    }
+
+    // 2. Delete user data (cascade through related tables)
+    await sudo.from('video_watch_progress').delete().eq('user_id', userId)
+    await sudo.from('user_badges').delete().eq('user_id', userId)
+    await sudo.from('user_notifications').delete().eq('user_id', userId)
+    await sudo.from('user_subscriptions').delete().eq('user_id', userId)
+    await sudo.from('one_time_purchases').delete().eq('user_id', userId)
+    await sudo.from('refund_requests').delete().eq('user_id', userId)
+    await sudo.from('admin_notifications').delete().eq('user_id', userId)
+    await sudo.from('profiles').delete().eq('id', userId)
+
+    // 3. Delete auth user
+    await sudo.auth.admin.deleteUser(userId)
+
+    // 4. Mark the notification as processed
+    const supabase = await createClient()
+    await supabase
+        .from('admin_notifications')
+        .update({ is_read: true })
+        .eq('id', notificationId)
+
+    revalidatePath('/admin')
+    return { success: true }
+}

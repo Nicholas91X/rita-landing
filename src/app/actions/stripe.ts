@@ -185,8 +185,8 @@ export async function requestRefund(id: string, reason: string, type: 'subscript
     const now = new Date().getTime()
     const diffDays = (now - createdAt) / (1000 * 60 * 60 * 24)
 
-    if (diffDays > 4) {
-        throw new Error('Non è possibile richiedere un rimborso dopo 4 giorni.')
+    if (diffDays > 14) {
+        throw new Error('Non è possibile richiedere un rimborso dopo 14 giorni dall\'acquisto.')
     }
 
     if (!reason || reason.length > 500) {

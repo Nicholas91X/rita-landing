@@ -20,10 +20,10 @@ export default function Footer() {
           </span>
         </div>
         <div className="flex items-center gap-4">
-          <a className="underline" href="#privacy">
+          <a className="underline" href="/privacy">
             Privacy
           </a>
-          <a className="underline" href="#terms">
+          <a className="underline" href="/terms">
             Termini
           </a>
         </div>
