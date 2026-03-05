@@ -18,7 +18,7 @@ export default function PrivacyPage() {
                         <p>
                             Il Titolare del trattamento dei dati personali è <strong>Rita Zanicchi</strong>, con sede operativa
                             in <strong>[INDIRIZZO DA COMPLETARE]</strong>, P.IVA <strong>[P.IVA DA COMPLETARE]</strong>,
-                            email: <strong>info@ritazanicchi-pt.it</strong> (di seguito &quot;Titolare&quot;).
+                            email: <strong>info@fitandsmile.it</strong> (di seguito &quot;Titolare&quot;).
                         </p>
                     </div>
 
@@ -96,7 +96,7 @@ export default function PrivacyPage() {
                             <li><strong>Opposizione</strong> — opporsi al trattamento basato sul legittimo interesse</li>
                         </ul>
                         <p className="mt-3">
-                            Per esercitare questi diritti, scrivere a <strong>info@ritazanicchi-pt.it</strong>.
+                            Per esercitare questi diritti, scrivere a <strong>info@fitandsmile.it</strong>.
                             Il Titolare risponderà entro 30 giorni dal ricevimento della richiesta.
                         </p>
                         <p className="mt-3">

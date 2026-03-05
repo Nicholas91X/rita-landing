@@ -8,7 +8,7 @@ export async function GET(
 
     const bunnyVideoId = params.videoId
     const cdnHostname = process.env.NEXT_PUBLIC_BUNNY_CDN_HOSTNAME
-    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3002'
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.fitandsmile.it'
 
     if (!cdnHostname || !bunnyVideoId) {
         return NextResponse.json({ error: 'Missing config' }, { status: 500 })

@@ -2,9 +2,9 @@ import { Resend } from 'resend'
 
 const resend = new Resend(process.env.RESEND_API_KEY || 'placeholder')
 
-const FROM_EMAIL = 'Rita Workout <noreply@ritazanicchi-pt.it>'
-const SUPPORT_EMAIL = 'info@ritazanicchi-pt.it'
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://ritazanicchi-pt.it'
+const FROM_EMAIL = 'Rita Workout <noreply@fitandsmile.it>'
+const SUPPORT_EMAIL = 'info@fitandsmile.it'
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://fitandsmile.it'
 
 // Shared email wrapper with brand styling
 function emailLayout(content: string) {
@@ -28,7 +28,7 @@ function emailLayout(content: string) {
     <tr><td style="background:#f8f5f2;padding:24px 40px;text-align:center;border-top:1px solid #e8e0d8;">
         <p style="margin:0 0 8px;color:#846047;font-size:12px;">Rita Zanicchi - Personal Trainer</p>
         <p style="margin:0;color:#a89888;font-size:11px;">
-            <a href="${SITE_URL}" style="color:#846047;text-decoration:underline;">ritazanicchi-pt.it</a>
+            <a href="${SITE_URL}" style="color:#846047;text-decoration:underline;">fitandsmile.it</a>
             &nbsp;&middot;&nbsp;
             <a href="mailto:${SUPPORT_EMAIL}" style="color:#846047;text-decoration:underline;">${SUPPORT_EMAIL}</a>
         </p>

@@ -16,7 +16,7 @@ export default function TermsPage() {
                     <div>
                         <h2 className="text-xl font-bold text-[var(--foreground)] mt-10 mb-3">1. Definizioni</h2>
                         <ul className="list-disc pl-6 space-y-2 mt-3">
-                            <li><strong>&quot;Piattaforma&quot;</strong> — il sito web ritazanicchi-pt.it e l&apos;applicazione web Rita Workout</li>
+                            <li><strong>&quot;Piattaforma&quot;</strong> — il sito web fitandsmile.it e l&apos;applicazione web Rita Workout</li>
                             <li><strong>&quot;Titolare&quot;</strong> / <strong>&quot;Fornitore&quot;</strong> — Rita Zanicchi, con sede in <strong>[INDIRIZZO DA COMPLETARE]</strong>, P.IVA <strong>[P.IVA DA COMPLETARE]</strong></li>
                             <li><strong>&quot;Utente&quot;</strong> — qualsiasi persona fisica che accede alla Piattaforma e/o acquista i Servizi</li>
                             <li><strong>&quot;Servizi&quot;</strong> — i pacchetti di video-allenamento, percorsi personalizzati e contenuti digitali disponibili sulla Piattaforma</li>
@@ -94,7 +94,7 @@ export default function TermsPage() {
                         <p className="mt-3">
                             Per esercitare il diritto di recesso, l&apos;Utente può utilizzare la funzione
                             &quot;Richiedi Rimborso&quot; disponibile nella sezione Billing della dashboard,
-                            oppure inviare una comunicazione a <strong>info@ritazanicchi-pt.it</strong>.
+                            oppure inviare una comunicazione a <strong>info@fitandsmile.it</strong>.
                         </p>
 
                         <div className="bg-[var(--foreground)]/5 border border-[var(--foreground)]/10 rounded-xl p-4 mt-4">
@@ -182,7 +182,7 @@ export default function TermsPage() {
                         <h2 className="text-xl font-bold text-[var(--foreground)] mt-10 mb-3">13. Contatti</h2>
                         <p>
                             Per qualsiasi domanda relativa ai presenti Termini, scrivere a:{' '}
-                            <strong>info@ritazanicchi-pt.it</strong>
+                            <strong>info@fitandsmile.it</strong>
                         </p>
                     </div>
                 </section>

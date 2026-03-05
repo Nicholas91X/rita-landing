@@ -8,7 +8,7 @@ import Footer from "@/components/Footer";
 export const metadata: Metadata = {
   title: "Rita Zanicchi · Personal Trainer",
   description: "Allenamenti brevi ed efficaci per donne over 50. Ritrova lucidità ed energia con il metodo Fit & Smile.",
-  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "https://ritazanicchi-pt.it"),
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "https://www.fitandsmile.it"),
   openGraph: {
     type: "website",
     url: "/",

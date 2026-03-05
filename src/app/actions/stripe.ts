@@ -61,7 +61,7 @@ export async function createCheckoutSession(packageId: string) {
     const isLoyaltyEligible = hasActiveOrTrialingSub
 
     // 3. Create Stripe Checkout Session
-    const origin = (await headers()).get('origin') || 'http://localhost:3000'
+    const origin = (await headers()).get('origin') || process.env.NEXT_PUBLIC_SITE_URL || 'https://www.fitandsmile.it'
 
     const isSubscription = pkg.payment_mode !== 'payment' // Default to subscription if null
 
@@ -136,7 +136,7 @@ export async function createPortalSession() {
         throw new Error('No Stripe customer found for this user. Purchase a package first.')
     }
 
-    const origin = (await headers()).get('origin') || 'http://localhost:3000'
+    const origin = (await headers()).get('origin') || process.env.NEXT_PUBLIC_SITE_URL || 'https://www.fitandsmile.it'
 
     const session = await stripe.billingPortal.sessions.create({
         customer: sub.stripe_customer_id,

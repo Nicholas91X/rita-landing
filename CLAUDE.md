@@ -62,7 +62,7 @@ Content is hierarchical: **Levels → Courses → Packages**. Users purchase pac
 
 Public (client-safe):
 - `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`
-- `NEXT_PUBLIC_SITE_URL` (defaults to `https://ritazanicchi-pt.it`)
+- `NEXT_PUBLIC_SITE_URL` (defaults to `https://fitandsmile.it`)
 - `NEXT_PUBLIC_MAINTENANCE_MODE` (`'true'` to enable)
 - `NEXT_PUBLIC_BUNNY_CDN_HOSTNAME`
 
