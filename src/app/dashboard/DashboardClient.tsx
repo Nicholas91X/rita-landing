@@ -116,7 +116,6 @@ export default function DashboardClient({ levels }: { levels: Level[] }) {
                     levels={levels}
                     progress={libraryProgress}
                     userProfile={userProfile}
-                    userName={firstName}
                 />
             case '1to1':
                 return <OneToOneSection />

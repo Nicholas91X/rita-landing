@@ -46,10 +46,9 @@ interface TrainingSectionProps {
     levels: Level[]
     progress: LibraryProgress[]
     userProfile: DashboardProfile | null
-    userName: string
 }
 
-export default function TrainingSection({ levels, progress, userProfile, userName: _userName }: TrainingSectionProps) {
+export default function TrainingSection({ levels, progress, userProfile }: TrainingSectionProps) {
     const searchParams = useSearchParams()
     const [subTab, setSubTab] = useState<'my-trainings' | 'new-trainings'>('my-trainings')
 

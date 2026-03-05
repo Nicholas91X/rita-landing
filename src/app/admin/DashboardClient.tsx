@@ -53,7 +53,7 @@ type AdminStatsData = {
     };
 };
 
-export default function AdminDashboardClient({ packages, libraryId, stats }: { packages: Package[], libraryId?: string, stats?: AdminStatsData }) {
+export default function AdminDashboardClient({ packages, stats }: { packages: Package[], libraryId?: string, stats?: AdminStatsData }) {
     const [activeTab, setActiveTab] = useState<'library' | 'packages' | 'payments' | 'requests' | 'users' | 'one-to-one' | 'broadcast'>('library')
 
     // Video State

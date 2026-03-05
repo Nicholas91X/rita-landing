@@ -114,8 +114,8 @@ export async function POST(req: Request) {
                     // `items.data[0].current_period_end`, NOT at the subscription root level.
                     // For trialing subscriptions, `trial_end` is also available at root.
                     // We fallback gracefully to avoid `new Date(NaN)` → "Invalid time value" crashes.
-                    const rawPeriodEnd = (stripeSub.items?.data?.[0] as any)?.current_period_end
-                        ?? (stripeSub as any).trial_end
+                    const rawPeriodEnd = (stripeSub.items?.data?.[0] as unknown as Record<string, number>)?.current_period_end
+                        ?? (stripeSub as unknown as Record<string, number>).trial_end
                         ?? null
                     periodEnd = rawPeriodEnd
                         ? new Date(rawPeriodEnd * 1000).toISOString()
@@ -269,8 +269,8 @@ export async function POST(req: Request) {
             .update({
                 status: subscription.status,
                 current_period_end: (() => {
-                    const rawEnd = (subscription.items?.data?.[0] as any)?.current_period_end
-                        ?? (subscription as any).trial_end
+                    const rawEnd = (subscription.items?.data?.[0] as unknown as Record<string, number>)?.current_period_end
+                        ?? (subscription as unknown as Record<string, number>).trial_end
                         ?? null
                     return rawEnd
                         ? new Date(rawEnd * 1000).toISOString()

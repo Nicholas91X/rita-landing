@@ -178,5 +178,6 @@ export async function getBunnyConfig() {
 
     return {
         libraryId: process.env.BUNNY_LIBRARY_ID?.trim(),
+        apiKey: process.env.BUNNY_LIBRARY_API_KEY?.trim(),
     }
 }
