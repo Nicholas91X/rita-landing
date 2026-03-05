@@ -548,15 +548,25 @@ export async function recoverPassword(email: string) {
 export async function findEmail(fullName: string) {
     const supabase = await createClient()
 
-    // We use a broader search to help the user find themselves
+    // Require at least 3 characters to prevent enumeration
+    const trimmed = fullName.trim()
+    if (trimmed.length < 3) {
+        throw new Error('Inserisci almeno 3 caratteri per la ricerca.')
+    }
+
+    // Require both first and last name
+    const parts = trimmed.split(/\s+/)
+    if (parts.length < 2) {
+        throw new Error('Inserisci nome e cognome completi per la ricerca.')
+    }
+
     const { data: profiles, error } = await supabase
         .from('profiles')
         .select('email')
-        .ilike('full_name', `%${fullName}%`)
-        .limit(5)
+        .ilike('full_name', `%${trimmed}%`)
+        .limit(3)
 
     if (error) {
-        console.error('Error finding email:', error)
         throw new Error('Errore durante la ricerca. Riprova più tardi.')
     }
 
@@ -564,18 +574,50 @@ export async function findEmail(fullName: string) {
         throw new Error('Nessun utente trovato con questo nome.')
     }
 
-    // Mask the emails: n*******@domain.com
+    // Mask emails more aggressively: n****e@g***l.com
     const maskedEmails = profiles.map(p => {
         if (!p.email) return null
         const [local, domain] = p.email.split('@')
-        if (!domain) return p.email // Should not happen
+        if (!domain) return p.email
         const maskedLocal = local.length > 2
-            ? local[0] + '*'.repeat(local.length - 2) + local[local.length - 1]
-            : local[0] + '*';
-        return `${maskedLocal}@${domain}`
+            ? local[0] + '*'.repeat(Math.min(local.length - 2, 4)) + local[local.length - 1]
+            : '**'
+        const [domainName, domainExt] = domain.split('.')
+        const maskedDomain = domainName.length > 2
+            ? domainName[0] + '*'.repeat(Math.min(domainName.length - 2, 3)) + domainName[domainName.length - 1]
+            : '**'
+        return `${maskedLocal}@${maskedDomain}.${domainExt}`
     }).filter(p => p !== null) as string[]
 
     return { success: true, maskedEmails }
+}
+
+export async function requestAccountDeletion() {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+
+    if (!user) throw new Error('Non autorizzato')
+
+    // Create an admin notification for manual processing
+    // Full deletion requires service_role access to delete auth user + cascade data
+    await supabase.from('admin_notifications').insert({
+        type: 'account_deletion',
+        user_id: user.id,
+        data: {
+            email: user.email,
+            requestedAt: new Date().toISOString()
+        }
+    })
+
+    // Notify the user
+    await supabase.from('user_notifications').insert({
+        user_id: user.id,
+        title: 'Richiesta di eliminazione account',
+        message: 'La tua richiesta di eliminazione account è stata presa in carico. Verrai contattata via email entro 30 giorni come previsto dal GDPR.',
+        type: 'account'
+    })
+
+    return { success: true }
 }
 
 export async function getPassportStamps() {

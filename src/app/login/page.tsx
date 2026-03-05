@@ -19,6 +19,7 @@ export default function LoginPage() {
     const [error, setError] = useState<string | null>(null)
     const [message, setMessage] = useState<string | null>(null)
     const [maskedEmails, setMaskedEmails] = useState<string[]>([])
+    const [acceptedTerms, setAcceptedTerms] = useState(false)
 
     const supabase = createClient()
 
@@ -154,6 +155,23 @@ export default function LoginPage() {
                                     </button>
                                 </div>
                             )}
+
+                            {mode === 'signup' && (
+                                <label className="flex items-start gap-3 cursor-pointer">
+                                    <input
+                                        type="checkbox"
+                                        checked={acceptedTerms}
+                                        onChange={(e) => setAcceptedTerms(e.target.checked)}
+                                        className="mt-1 h-4 w-4 rounded border-[var(--foreground)]/20 accent-[var(--brand)]"
+                                    />
+                                    <span className="text-xs text-[var(--foreground)]/60 leading-relaxed">
+                                        Ho letto e accetto i{' '}
+                                        <a href="/terms" target="_blank" className="text-[var(--brand)] underline hover:opacity-80">Termini e Condizioni</a>
+                                        {' '}e la{' '}
+                                        <a href="/privacy" target="_blank" className="text-[var(--brand)] underline hover:opacity-80">Privacy Policy</a>.
+                                    </span>
+                                </label>
+                            )}
                         </div>
 
                         {error && (
@@ -177,8 +195,8 @@ export default function LoginPage() {
 
                         <Button
                             type="submit"
-                            disabled={loading}
-                            className="w-full py-6 text-lg rounded-xl bg-[var(--brand)] hover:opacity-90 text-white font-semibold shadow-lg shadow-[var(--brand)]/20 transition-all"
+                            disabled={loading || (mode === 'signup' && !acceptedTerms)}
+                            className="w-full py-6 text-lg rounded-xl bg-[var(--brand)] hover:opacity-90 text-white font-semibold shadow-lg shadow-[var(--brand)]/20 transition-all disabled:opacity-50"
                         >
                             {loading ? (
                                 <Loader2 className="h-6 w-6 animate-spin" />

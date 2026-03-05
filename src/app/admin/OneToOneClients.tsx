@@ -206,8 +206,7 @@ export default function OneToOneClients() {
                                                             setClients(clients.map(c => c.id === client.id ? { ...c, document_url: res.url } : c))
                                                             toast.success('File caricato con successo', { id: toastId })
                                                         }
-                                                    } catch (err) {
-                                                        console.error(err)
+                                                    } catch {
                                                         toast.error('Errore caricamento', { id: toastId })
                                                     }
                                                 }}

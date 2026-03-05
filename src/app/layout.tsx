@@ -15,11 +15,13 @@ export const metadata: Metadata = {
     locale: "it_IT",
     title: "Rita Zanicchi · Personal Trainer",
     description: "Allenamenti brevi ed efficaci per donne over 50. Ritrova lucidità ed energia con il metodo Fit & Smile.",
+    images: [{ url: "/hero/rita-hero.jpg", width: 1200, height: 630, alt: "Rita Zanicchi - Personal Trainer" }],
   },
   twitter: {
     card: "summary_large_image",
     title: "Rita Zanicchi · Personal Trainer",
     description: "Allenamenti brevi ed efficaci per donne over 50. Ritrova lucidità ed energia con il metodo Fit & Smile.",
+    images: ["/hero/rita-hero.jpg"],
   },
   icons: {
     icon: "/icon.png",

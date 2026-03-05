@@ -90,9 +90,9 @@ export async function createCheckoutSession(packageId: string) {
 
     // Apply Loyalty Discount (Coupon ID should be provided by user or created in Stripe)
     // Placeholder: 'LOYALTY_PROMO' - User needs to create this in Stripe or provide real ID
-    if (isLoyaltyEligible) {
+    if (isLoyaltyEligible && process.env.STRIPE_LOYALTY_COUPON_ID) {
         sessionParams.discounts = [
-            { coupon: process.env.STRIPE_LOYALTY_COUPON_ID || 'LOYALTY_PROMO' }
+            { coupon: process.env.STRIPE_LOYALTY_COUPON_ID }
         ]
     }
 

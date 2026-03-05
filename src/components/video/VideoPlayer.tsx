@@ -3,6 +3,7 @@
 import { useEffect, useState, useRef } from 'react'
 import { getSignedVideoUrl, saveVideoProgress } from '@/app/actions/video'
 import { AlertCircle, Loader2 } from 'lucide-react'
+import { logger } from '@/lib/logger'
 
 interface VideoPlayerProps {
     videoId: string
@@ -52,7 +53,7 @@ export default function VideoPlayer({ videoId, initialTime = 0, onProgressUpdate
                 }
             } catch (_err) {
                 if (mounted) {
-                    console.error('Failed to get signed URL:', _err)
+                    logger.error('Failed to get signed URL:', _err)
                     setError('Errore di caricamento video.')
                 }
             } finally {
@@ -163,7 +164,7 @@ export default function VideoPlayer({ videoId, initialTime = 0, onProgressUpdate
                                 setStatus('connected')
                                 onProgressUpdateRef.current?.()
                             } catch (saveErr) {
-                                console.error('Save failed:', saveErr)
+                                logger.error('Save failed:', saveErr)
                                 setStatus('error')
                             }
                         }
@@ -189,7 +190,7 @@ export default function VideoPlayer({ videoId, initialTime = 0, onProgressUpdate
                     }
                 }
             } catch (outerErr) {
-                console.error('Video message handler error:', outerErr)
+                logger.error('Video message handler error:', outerErr)
             }
         }
 

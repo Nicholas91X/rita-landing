@@ -5,7 +5,7 @@ import { Card, CardContent, CardFooter } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
 import Image from 'next/image'
-import { PlayCircle, Dumbbell, CheckCircle2, Calendar, Users, ArrowRight } from 'lucide-react'
+import { PlayCircle, Dumbbell, CheckCircle2, Calendar, ArrowRight } from 'lucide-react'
 import { LibraryProgress } from '@/app/actions/video'
 
 export default function LibrarySection({
@@ -161,21 +161,8 @@ export default function LibrarySection({
                                                 </div>
                                             </div>
 
-                                            <div className="flex items-center justify-between pt-4">
-                                                <div className="flex -space-x-2">
-                                                    <div className="w-8 h-8 rounded-full border-2 border-white bg-[#e5e7eb]" />
-                                                    <div className="w-8 h-8 rounded-full border-2 border-white bg-[#d1d5db]" />
-                                                    <div className="flex items-center justify-center w-8 h-8 rounded-full border-2 border-white bg-[#f3efec] text-[10px] font-bold text-neutral-500">
-                                                        +2k
-                                                    </div>
-                                                </div>
-
-                                                <div className="flex items-center gap-2">
-                                                    <span className="text-sm font-medium text-neutral-400">Su Misura</span>
-                                                    <div className="w-6 h-6 rounded-full border-2 border-[#846047]/30 flex items-center justify-center">
-                                                        <div className="w-3 h-3 bg-[#846047] rounded-full" />
-                                                    </div>
-                                                </div>
+                                            <div className="flex items-center justify-end pt-4">
+                                                <span className="text-sm font-medium text-neutral-400">Su Misura</span>
                                             </div>
                                         </CardContent>
                                     </Link>
@@ -252,44 +239,24 @@ export default function LibrarySection({
                                                                     {pkg.description || "Il Percorso di introduzione al Pilates Linfodrenante per ritrovare equilibrio e vitalità."}
                                                                 </p>
 
-                                                                <div className="flex flex-col gap-2.5 pt-2">
-                                                                    <div className="flex items-center gap-2.5 text-neutral-400 text-sm">
-                                                                        <Calendar className="w-4 h-4 opacity-70" />
-                                                                        <span>2 Mesi</span>
-                                                                    </div>
-                                                                    <div className="flex items-center gap-2.5 text-neutral-400 text-sm">
-                                                                        <Users className="w-4 h-4 opacity-70" />
-                                                                        <span>Nessun attrezzo</span>
-                                                                    </div>
-                                                                </div>
+                                                                {pkg.subtitle && (
+                                                                    <p className="text-xs text-neutral-400 pt-2">{pkg.subtitle}</p>
+                                                                )}
 
-                                                                <div className="flex items-center justify-between pt-6">
-                                                                    <div className="flex -space-x-2.5">
-                                                                        <div className="w-8 h-8 rounded-full border-2 border-white bg-neutral-200" />
-                                                                        <div className="w-8 h-8 rounded-full border-2 border-white bg-neutral-300" />
-                                                                        <div className="w-8 h-8 rounded-full border-2 border-white bg-neutral-400" />
-                                                                        <div className="flex items-center justify-center w-8 h-8 rounded-full border-2 border-white bg-[#f3efec] text-[9px] font-black text-neutral-500">
-                                                                            +9.683
-                                                                        </div>
-                                                                    </div>
-
-                                                                    <div className="flex items-center gap-3">
-                                                                        <span className="text-xs font-bold text-neutral-400 uppercase tracking-widest">Facile</span>
-                                                                        <div className="relative w-8 h-8">
-                                                                            {/* Circular Progress */}
-                                                                            <svg className="w-8 h-8 transform -rotate-90">
-                                                                                <circle cx="16" cy="16" r="14" stroke="currentColor" strokeWidth="3" fill="transparent" className="text-neutral-100" />
-                                                                                <circle
-                                                                                    cx="16" cy="16" r="14"
-                                                                                    stroke="currentColor" strokeWidth="3" fill="transparent"
-                                                                                    strokeDasharray={2 * Math.PI * 14}
-                                                                                    strokeDashoffset={2 * Math.PI * 14 * (1 - (pkgProgress?.completionPercentage || 0) / 100)}
-                                                                                    className="text-[#846047] transition-all duration-1000"
-                                                                                />
-                                                                            </svg>
-                                                                            <div className="absolute inset-0 flex items-center justify-center text-[8px] font-bold text-[#846047]">
-                                                                                {Math.round(pkgProgress?.completionPercentage || 0)}%
-                                                                            </div>
+                                                                <div className="flex items-center justify-end pt-6">
+                                                                    <div className="relative w-8 h-8">
+                                                                        <svg className="w-8 h-8 transform -rotate-90">
+                                                                            <circle cx="16" cy="16" r="14" stroke="currentColor" strokeWidth="3" fill="transparent" className="text-neutral-100" />
+                                                                            <circle
+                                                                                cx="16" cy="16" r="14"
+                                                                                stroke="currentColor" strokeWidth="3" fill="transparent"
+                                                                                strokeDasharray={2 * Math.PI * 14}
+                                                                                strokeDashoffset={2 * Math.PI * 14 * (1 - (pkgProgress?.completionPercentage || 0) / 100)}
+                                                                                className="text-[#846047] transition-all duration-1000"
+                                                                            />
+                                                                        </svg>
+                                                                        <div className="absolute inset-0 flex items-center justify-center text-[8px] font-bold text-[#846047]">
+                                                                            {Math.round(pkgProgress?.completionPercentage || 0)}%
                                                                         </div>
                                                                     </div>
                                                                 </div>
