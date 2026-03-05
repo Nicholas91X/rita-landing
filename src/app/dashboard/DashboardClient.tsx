@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useMemo, useCallback, Suspense } from 'react'
+import { useState, useEffect, useMemo, useCallback, useRef, Suspense } from 'react'
 import { Level } from '@/app/actions/content'
 import { useSearchParams } from 'next/navigation'
 import DashboardSidebar, { TabType } from './DashboardSidebar'
@@ -60,6 +60,38 @@ export default function DashboardClient({ levels }: { levels: Level[] }) {
     const [libraryProgress, setLibraryProgress] = useState<LibraryProgress[]>([])
     const [userProfile, setUserProfile] = useState<DashboardProfile | null>(null)
     const searchParams = useSearchParams()
+    const touchStartX = useRef<number | null>(null)
+    const touchStartY = useRef<number | null>(null)
+
+    // Tab order for swipe navigation
+    const TAB_ORDER: TabType[] = ['home', 'training', '1to1', 'billing', 'profile']
+
+    const handleTouchStart = useCallback((e: React.TouchEvent) => {
+        touchStartX.current = e.touches[0].clientX
+        touchStartY.current = e.touches[0].clientY
+    }, [])
+
+    const handleTouchEnd = useCallback((e: React.TouchEvent) => {
+        if (touchStartX.current === null || touchStartY.current === null) return
+        const deltaX = e.changedTouches[0].clientX - touchStartX.current
+        const deltaY = Math.abs(e.changedTouches[0].clientY - touchStartY.current)
+        touchStartX.current = null
+        touchStartY.current = null
+
+        // Ignore if mostly vertical scroll
+        if (deltaY > Math.abs(deltaX)) return
+        // Minimum swipe threshold
+        if (Math.abs(deltaX) < 60) return
+
+        const currentIndex = TAB_ORDER.indexOf(activeTab)
+        if (deltaX < 0 && currentIndex < TAB_ORDER.length - 1) {
+            // Swipe left → next tab
+            setActiveTab(TAB_ORDER[currentIndex + 1])
+        } else if (deltaX > 0 && currentIndex > 0) {
+            // Swipe right → prev tab
+            setActiveTab(TAB_ORDER[currentIndex - 1])
+        }
+    }, [activeTab, TAB_ORDER])
 
     // Fetch library progress & user profile
     useEffect(() => {
@@ -142,10 +174,14 @@ export default function DashboardClient({ levels }: { levels: Level[] }) {
             />
 
             {/* Main Content Area */}
-            <main className={cn(
-                "flex-1 pb-24 lg:pb-0 relative overflow-x-hidden transition-all duration-300",
-                isSidebarCollapsed ? "lg:ml-20" : "lg:ml-72"
-            )}>
+            <main
+                className={cn(
+                    "flex-1 pb-24 lg:pb-0 relative overflow-x-hidden transition-all duration-300",
+                    isSidebarCollapsed ? "lg:ml-20" : "lg:ml-72"
+                )}
+                onTouchStart={handleTouchStart}
+                onTouchEnd={handleTouchEnd}
+            >
                 {/* Content Header (Visible only on Desktop for Profile name or breadcrumbs if needed) */}
                 <header className="hidden lg:flex h-14 items-center justify-between px-12 border-b border-[#f3efec] sticky top-0 bg-gradient-to-r from-[#654540] to-[#503530] backdrop-blur-xl z-20 transition-all shadow-md">
                     <div>

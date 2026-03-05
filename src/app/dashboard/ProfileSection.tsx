@@ -414,36 +414,41 @@ export default function ProfileSection({ onProfileUpdate, activeSubTab = 'info' 
 
                             {/* Delete Account */}
                             <Card className="bg-white border-red-100 shadow-xl rounded-[32px] overflow-hidden">
-                                <CardContent className="p-8">
-                                    <div className="flex items-center gap-4">
-                                        <div className="p-3 bg-red-50 rounded-2xl border border-red-100">
-                                            <Trash2 className="w-5 h-5 text-red-500" />
+                                <CardContent className="p-6 md:p-8">
+                                    <div className="flex flex-col gap-4">
+                                        {/* Top: icon + text */}
+                                        <div className="flex items-start gap-4">
+                                            <div className="p-3 bg-red-50 rounded-2xl border border-red-100 shrink-0">
+                                                <Trash2 className="w-5 h-5 text-red-500" />
+                                            </div>
+                                            <div className="flex-1 min-w-0">
+                                                <label className="text-[10px] text-neutral-400 uppercase font-black tracking-widest block mb-1">Zona Pericolosa</label>
+                                                <p className="text-[#2a2e30] font-bold">Elimina il mio account</p>
+                                                <p className="text-xs text-neutral-400 mt-1 leading-relaxed">Questa azione è irreversibile. Tutti i tuoi dati verranno eliminati permanentemente.</p>
+                                            </div>
                                         </div>
-                                        <div className="flex-1">
-                                            <label className="text-[10px] text-neutral-400 uppercase font-black tracking-widest block mb-1">Zona Pericolosa</label>
-                                            <p className="text-[#2a2e30] font-bold">Elimina il mio account</p>
-                                            <p className="text-xs text-neutral-400 mt-1">Questa azione è irreversibile. Tutti i tuoi dati verranno eliminati.</p>
-                                        </div>
+
+                                        {/* Bottom: full-width button */}
                                         <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
                                             <DialogTrigger asChild>
                                                 <Button
                                                     variant="outline"
                                                     disabled={deletionRequested}
-                                                    className="text-red-500 border-red-200 hover:bg-red-50 hover:text-red-600 rounded-xl text-xs font-bold"
+                                                    className="w-full text-red-500 border-red-200 hover:bg-red-50 hover:text-red-600 rounded-xl text-sm font-bold py-3 min-h-[44px]"
                                                 >
-                                                    {deletionRequested ? 'Richiesta inviata' : 'Elimina Account'}
+                                                    {deletionRequested ? '✓ Richiesta inviata' : 'Elimina Account'}
                                                 </Button>
                                             </DialogTrigger>
-                                            <DialogContent className="bg-white border-none rounded-[32px] pointer-events-auto">
+                                            <DialogContent className="bg-white border-none rounded-[32px] pointer-events-auto mx-4">
                                                 <DialogHeader>
                                                     <DialogTitle className="text-red-600 font-black uppercase tracking-tight">Conferma Eliminazione</DialogTitle>
                                                     <DialogDescription>
                                                         Sei sicura di voler eliminare il tuo account? Questa azione è irreversibile e comporta la cancellazione di tutti i tuoi dati personali, progressi e abbonamenti attivi.
                                                     </DialogDescription>
                                                 </DialogHeader>
-                                                <DialogFooter>
-                                                    <Button variant="ghost" onClick={() => setIsDeleteDialogOpen(false)}>Annulla</Button>
-                                                    <Button onClick={handleDeleteAccount} disabled={saving} className="bg-red-500 text-white hover:bg-red-600 rounded-xl">
+                                                <DialogFooter className="flex-col gap-2 sm:flex-row">
+                                                    <Button variant="ghost" onClick={() => setIsDeleteDialogOpen(false)} className="w-full sm:w-auto">Annulla</Button>
+                                                    <Button onClick={handleDeleteAccount} disabled={saving} className="w-full sm:w-auto bg-red-500 text-white hover:bg-red-600 rounded-xl">
                                                         {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Conferma Eliminazione'}
                                                     </Button>
                                                 </DialogFooter>
