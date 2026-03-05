@@ -47,8 +47,12 @@ export default function RootLayout({
         <Footer />
         <SeoJsonLd />
         <Toaster richColors position="top-right" toastOptions={{ className: 'mt-14' }} />
+        <Analytics />
+        <SpeedInsights />
       </body>
     </html>
   );
 }
 import { Toaster } from "sonner";
+import { Analytics } from "@vercel/analytics/next";
+import { SpeedInsights } from "@vercel/speed-insights/next";
