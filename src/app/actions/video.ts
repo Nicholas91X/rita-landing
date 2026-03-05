@@ -59,7 +59,7 @@ export async function getSignedVideoUrl(videoUuid: string) {
 export async function getSignedThumbnailUrls(videoIds: string[]): Promise<Record<string, string>> {
     const cdnHostname = process.env.NEXT_PUBLIC_BUNNY_CDN_HOSTNAME
     const securityKey = process.env.BUNNY_STREAM_API_KEY
-    const expirationTime = 3600 * 6 // 6 ore
+    const expirationTime = 3600 * 2 // 2 ore
 
     if (!cdnHostname || !securityKey) return {}
 
@@ -86,15 +86,21 @@ export async function saveVideoProgress(videoId: string, progressSeconds: number
 
     if (!user) throw new Error('Non autorizzato')
 
-    const isCompleted = progressSeconds >= (durationSeconds * 0.95) // 95% is considered completed
+    // Cap values to prevent client-side manipulation
+    const cappedProgress = Math.max(0, Math.floor(progressSeconds))
+    const cappedDuration = Math.max(1, Math.floor(durationSeconds))
+    // Ensure progress doesn't exceed duration
+    const safeProgress = Math.min(cappedProgress, cappedDuration)
+
+    const isCompleted = safeProgress >= (cappedDuration * 0.95) // 95% is considered completed
 
     const { error: upsertError } = await supabase
         .from('video_watch_progress')
         .upsert({
             user_id: user.id,
             video_id: videoId,
-            progress_seconds: Math.floor(progressSeconds),
-            duration_seconds: Math.floor(durationSeconds),
+            progress_seconds: safeProgress,
+            duration_seconds: cappedDuration,
             is_completed: isCompleted,
             last_watched_at: new Date().toISOString()
         }, {

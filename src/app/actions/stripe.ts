@@ -161,6 +161,7 @@ export async function requestRefund(id: string, reason: string, type: 'subscript
             .from('user_subscriptions')
             .select('created_at, packages(name)')
             .eq('id', id)
+            .eq('user_id', user.id)
             .single()
 
         if (!subData) throw new Error('Abbonamento non trovato')
@@ -171,6 +172,7 @@ export async function requestRefund(id: string, reason: string, type: 'subscript
             .from('one_time_purchases')
             .select('created_at, packages(name)')
             .eq('id', id)
+            .eq('user_id', user.id)
             .single()
 
         if (!purchaseData) throw new Error('Acquisto non trovato')
@@ -184,6 +186,10 @@ export async function requestRefund(id: string, reason: string, type: 'subscript
 
     if (diffDays > 4) {
         throw new Error('Non è possibile richiedere un rimborso dopo 4 giorni.')
+    }
+
+    if (!reason || reason.length > 500) {
+        throw new Error('Il motivo del rimborso deve essere tra 1 e 500 caratteri.')
     }
 
     const insertData: RefundInsertData = {
@@ -223,11 +229,12 @@ export async function cancelSubscription(subscriptionId: string) {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) throw new Error('Unauthorized')
 
-    // 1. Get subscription info
+    // 1. Get subscription info (with ownership check)
     const { data: sub, error: subError } = await supabase
         .from('user_subscriptions')
         .select('stripe_subscription_id, packages(name)')
         .eq('id', subscriptionId)
+        .eq('user_id', user.id)
         .single()
 
     if (subError || !sub) throw new Error('Abbonamento non trovato')

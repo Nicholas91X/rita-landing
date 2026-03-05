@@ -49,12 +49,14 @@ export async function getAdminUsers(page: number = 1, pageSize: number = 10, sea
         `, { count: 'exact' })
 
     if (search) {
-        if (search.includes('@') || search.length > 3 && !search.includes(' ')) {
-            // Optimize for email or unambiguous single-word search (prefix matching)
-            query = query.or(`email.ilike.${search}%,full_name.ilike.${search}%`)
-        } else {
-            // Fallback to broad search
-            query = query.or(`full_name.ilike.%${search}%,email.ilike.%${search}%`)
+        // Sanitize search input: escape special Supabase filter characters
+        const sanitized = search.replace(/[%_\\*(),.]/g, '')
+        if (sanitized.length > 0) {
+            if (sanitized.includes('@') || (sanitized.length > 3 && !sanitized.includes(' '))) {
+                query = query.or(`email.ilike.${sanitized}%,full_name.ilike.${sanitized}%`)
+            } else {
+                query = query.or(`full_name.ilike.%${sanitized}%,email.ilike.%${sanitized}%`)
+            }
         }
     }
 

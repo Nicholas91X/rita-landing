@@ -434,6 +434,16 @@ export async function updateProfile(formData: FormData) {
     }
 
     if (avatarFile && avatarFile.size > 0) {
+        // Validate file type
+        const allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif']
+        if (!allowedTypes.includes(avatarFile.type)) {
+            throw new Error('Formato file non supportato. Usa JPG, PNG, WebP o GIF.')
+        }
+        // Validate file size (max 5MB)
+        if (avatarFile.size > 5 * 1024 * 1024) {
+            throw new Error('Il file è troppo grande. Massimo 5MB.')
+        }
+
         // 1. Cleanup old avatar if exists
         const { data: currentProfile } = await supabase
             .from('profiles')

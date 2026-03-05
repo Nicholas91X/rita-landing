@@ -63,6 +63,9 @@ export async function createPackage(formData: FormData) {
     const paymentMode = formData.get('payment_mode') as 'subscription' | 'payment' || 'subscription'
     const imageFile = formData.get('image') as File
 
+    if (!name || !description || !courseId) throw new Error('Campi obbligatori mancanti')
+    if (isNaN(priceAmount) || priceAmount < 0 || priceAmount > 99999) throw new Error('Prezzo non valido')
+
     const product = await stripe.products.create({
         name: name,
         description: description,
@@ -128,6 +131,9 @@ export async function updatePackage(id: string, formData: FormData) {
     const paymentMode = formData.get('payment_mode') as 'subscription' | 'payment' || 'subscription'
     const imageFile = formData.get('image') as File
     const removeImage = formData.get('removeImage') === 'true'
+
+    if (!name || !description || !courseId) throw new Error('Campi obbligatori mancanti')
+    if (isNaN(priceAmount) || priceAmount < 0 || priceAmount > 99999) throw new Error('Prezzo non valido')
 
     const supabase = await createClient()
 

@@ -42,6 +42,20 @@ export async function POST(req: Request) {
             )
 
             try {
+                // Verify that the metadata user_id matches the Stripe customer
+                // This prevents metadata tampering attacks
+                if (session.customer) {
+                    const { data: profileByCustomer } = await supabaseAdmin
+                        .from('profiles')
+                        .select('id')
+                        .eq('stripe_customer_id', session.customer as string)
+                        .maybeSingle()
+
+                    if (profileByCustomer && profileByCustomer.id !== userId) {
+                        console.error(`SECURITY: Metadata user_id (${userId}) does not match Stripe customer profile (${profileByCustomer.id})`)
+                        return new NextResponse('User mismatch', { status: 400 })
+                    }
+                }
                 // Fetch actual subscription to get status and period end
                 const mode = session.mode
                 let subscriptionStatus = 'active'
