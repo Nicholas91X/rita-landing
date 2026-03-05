@@ -3,6 +3,7 @@ import { NextResponse } from 'next/server'
 import Stripe from 'stripe'
 import { createClient } from '@supabase/supabase-js'
 import { revalidateTag } from 'next/cache'
+import { sendPurchaseConfirmationEmail } from '@/lib/email'
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || 'sk_test_placeholder', {
     apiVersion: '2025-12-15.clover' as unknown as Stripe.LatestApiVersion,
@@ -191,6 +192,21 @@ export async function POST(req: Request) {
                     message: confirmationMessage,
                     type: isTrial ? 'trial_start' : 'purchase_confirmation'
                 })
+
+                // Send confirmation email
+                if (profile?.email) {
+                    try {
+                        await sendPurchaseConfirmationEmail(
+                            profile.email,
+                            profile.full_name || '',
+                            pkg?.name || 'Pacchetto',
+                            session.amount_total || 0,
+                            isTrial
+                        )
+                    } catch (emailErr) {
+                        console.error('Failed to send purchase confirmation email:', emailErr)
+                    }
+                }
 
                 revalidateTag('admin-stats')
 

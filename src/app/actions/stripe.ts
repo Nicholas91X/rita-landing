@@ -4,6 +4,7 @@ import { createClient } from '@/utils/supabase/server'
 import Stripe from 'stripe'
 import { redirect } from 'next/navigation'
 import { headers } from 'next/headers'
+import { sendRefundRequestEmail } from '@/lib/email'
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || 'sk_test_placeholder', {
     apiVersion: '2025-12-15.clover' as unknown as Stripe.LatestApiVersion,
@@ -220,6 +221,21 @@ export async function requestRefund(id: string, reason: string, type: 'subscript
             [type === 'subscription' ? 'subscriptionId' : 'purchaseId']: id
         }
     })
+
+    // Send confirmation email to user
+    if (user.email) {
+        const { data: profile } = await supabase
+            .from('profiles')
+            .select('full_name')
+            .eq('id', user.id)
+            .single()
+
+        try {
+            await sendRefundRequestEmail(user.email, profile?.full_name || '', packageName)
+        } catch {
+            // Email failure should not block refund request
+        }
+    }
 
     return { success: true }
 }

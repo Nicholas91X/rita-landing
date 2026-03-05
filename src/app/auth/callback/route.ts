@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/utils/supabase/server'
+import { sendWelcomeEmail } from '@/lib/email'
 
 export async function GET(request: Request) {
     const { searchParams, origin } = new URL(request.url)
@@ -16,6 +17,23 @@ export async function GET(request: Request) {
         const { error } = await supabase.auth.exchangeCodeForSession(code)
 
         if (!error) {
+            // Send welcome email for new signups (not email changes)
+            if (type !== 'email_change') {
+                try {
+                    const { data: { user } } = await supabase.auth.getUser()
+                    if (user?.email) {
+                        const { data: profile } = await supabase
+                            .from('profiles')
+                            .select('full_name')
+                            .eq('id', user.id)
+                            .single()
+                        await sendWelcomeEmail(user.email, profile?.full_name || '')
+                    }
+                } catch {
+                    // Welcome email failure should not block auth flow
+                }
+            }
+
             const forwardedHost = request.headers.get('x-forwarded-host')
             const isLocalEnv = process.env.NODE_ENV === 'development'
             if (isLocalEnv) {

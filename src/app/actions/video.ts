@@ -2,6 +2,7 @@
 
 import { createClient } from '@/utils/supabase/server'
 import { createHash } from 'crypto'
+import { sendBadgeEarnedEmail } from '@/lib/email'
 
 export async function getSignedVideoUrl(videoUuid: string) {
     const supabase = await createClient()
@@ -175,7 +176,7 @@ async function checkAndAwardPackageBadge(userId: string, videoId: string) {
                 onConflict: 'user_id,package_id'
             })
 
-        // 5. Send Notification if badge was newly earned
+        // 5. Send Notification + Email if badge was newly earned
         if (!badgeError) {
             await supabase.from('user_notifications').insert({
                 user_id: userId,
@@ -183,6 +184,21 @@ async function checkAndAwardPackageBadge(userId: string, videoId: string) {
                 message: `Complimenti! Hai completato tutti i video di "${pkg.name}" e hai ottenuto il badge ${pkg.badge_type.toUpperCase()}.`,
                 type: 'achievement'
             })
+
+            // Send badge email
+            const { data: profile } = await supabase
+                .from('profiles')
+                .select('email, full_name')
+                .eq('id', userId)
+                .single()
+
+            if (profile?.email) {
+                try {
+                    await sendBadgeEarnedEmail(profile.email, profile.full_name || '', pkg.name, pkg.badge_type)
+                } catch {
+                    // Email failure should not break badge flow
+                }
+            }
         }
     }
 }

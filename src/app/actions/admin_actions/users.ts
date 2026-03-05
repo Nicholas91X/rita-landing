@@ -4,6 +4,7 @@ import { createClient } from '@/utils/supabase/server'
 import { isAdmin } from '@/utils/supabase/admin'
 import { revalidatePath } from 'next/cache'
 import { createClient as createSupabaseClient } from '@supabase/supabase-js'
+import { sendOrderStatusEmail, sendBadgeEarnedEmail } from '@/lib/email'
 
 interface SubscriptionRecord {
     id: string
@@ -299,6 +300,25 @@ export async function updateOneTimePurchaseStatus(id: string, newStatus: string)
             message: `Lo stato del tuo pacchetto "${pkg?.name || 'Sconosciuto'}" è ora: ${friendlyStatus}.`,
             type: 'status_update'
         })
+    }
+
+    // Send email notification to user
+    const { data: userProfile } = await supabase
+        .from('profiles')
+        .select('email, full_name')
+        .eq('id', purchase.user_id)
+        .single()
+
+    if (userProfile?.email) {
+        try {
+            if (newStatus === 'delivered' && pkg?.badge_type) {
+                await sendBadgeEarnedEmail(userProfile.email, userProfile.full_name || '', pkg.name, pkg.badge_type)
+            } else {
+                await sendOrderStatusEmail(userProfile.email, userProfile.full_name || '', pkg?.name || 'Pacchetto', newStatus)
+            }
+        } catch (emailErr) {
+            console.error('Failed to send order status email:', emailErr)
+        }
     }
 
     revalidatePath('/admin')
