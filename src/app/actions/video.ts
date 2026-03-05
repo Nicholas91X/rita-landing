@@ -7,17 +7,17 @@ import { sendBadgeEarnedEmail } from '@/lib/email'
 export async function getSignedVideoUrl(videoUuid: string) {
     const supabase = await createClient()
 
-    // 1. Autenticazione utente
-    const { data: { user } } = await supabase.auth.getUser()
+    // 1 & 2. Autenticazione utente e recupero info video in parallelo
+    const [userRes, videoRes] = await Promise.all([
+        supabase.auth.getUser(),
+        supabase.from('videos').select('bunny_video_id, package_id').eq('id', videoUuid).single()
+    ])
+
+    const user = userRes.data.user
     if (!user) throw new Error('Non autorizzato')
 
-    // 2. Recupera info video e verifica permessi
-    // Usiamo il tuo schema reale: videos -> package_id
-    const { data: videoData, error: videoError } = await supabase
-        .from('videos')
-        .select('bunny_video_id, package_id')
-        .eq('id', videoUuid)
-        .single()
+    const videoData = videoRes.data
+    const videoError = videoRes.error
 
     if (videoError || !videoData) {
         console.error('Video non trovato nel DB:', videoError)

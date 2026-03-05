@@ -143,7 +143,9 @@ export default function VideoPlayer({ videoId, initialTime = 0, onProgressUpdate
 
                 // Progress tracking
                 const isTimeUpdate = eventName.includes('time') || eventName.includes('progress')
-                if (isTimeUpdate) {
+                const isPaused = eventName.includes('pause')
+
+                if (isTimeUpdate || isPaused) {
                     let seconds = -1
                     if (typeof value === 'object' && value !== null) {
                         seconds = value.seconds ?? value.currentTime ?? (Array.isArray(value) && value[0]?.seconds) ?? -1
@@ -155,8 +157,11 @@ export default function VideoPlayer({ videoId, initialTime = 0, onProgressUpdate
                         const currentTime = Math.floor(seconds)
                         const currentDuration = Math.floor(msgDuration || durationRef.current || 0)
 
-                        // Save every 1 second for short videos (delta increased to 1s)
-                        if (currentDuration > 0 && Math.abs(currentTime - lastSavedTime.current) >= 1) {
+                        // Save every 10 seconds, OR immediately if the video is paused
+                        const timeDiff = Math.abs(currentTime - lastSavedTime.current)
+                        const shouldSave = currentDuration > 0 && (timeDiff >= 10 || (isPaused && timeDiff > 0))
+
+                        if (shouldSave) {
                             lastSavedTime.current = currentTime
                             try {
                                 setStatus('saving')
