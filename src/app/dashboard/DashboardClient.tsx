@@ -62,9 +62,22 @@ export default function DashboardClient({ levels }: { levels: Level[] }) {
     const searchParams = useSearchParams()
     const touchStartX = useRef<number | null>(null)
     const touchStartY = useRef<number | null>(null)
+    const [slideDirection, setSlideDirection] = useState<'left' | 'right'>('left')
 
     // Tab order for swipe navigation
     const TAB_ORDER: TabType[] = ['home', 'training', '1to1', 'billing', 'profile']
+
+    // Smart tab navigation: computes direction automatically
+    const navigateToTab = useCallback((tab: TabType, explicitDirection?: 'left' | 'right') => {
+        if (explicitDirection) {
+            setSlideDirection(explicitDirection)
+        } else {
+            const currentIndex = TAB_ORDER.indexOf(activeTab)
+            const newIndex = TAB_ORDER.indexOf(tab)
+            setSlideDirection(newIndex > currentIndex ? 'left' : 'right')
+        }
+        setActiveTab(tab)
+    }, [activeTab, TAB_ORDER])
 
     const handleTouchStart = useCallback((e: React.TouchEvent) => {
         touchStartX.current = e.touches[0].clientX
@@ -86,12 +99,12 @@ export default function DashboardClient({ levels }: { levels: Level[] }) {
         const currentIndex = TAB_ORDER.indexOf(activeTab)
         if (deltaX < 0 && currentIndex < TAB_ORDER.length - 1) {
             // Swipe left → next tab
-            setActiveTab(TAB_ORDER[currentIndex + 1])
+            navigateToTab(TAB_ORDER[currentIndex + 1], 'left')
         } else if (deltaX > 0 && currentIndex > 0) {
             // Swipe right → prev tab
-            setActiveTab(TAB_ORDER[currentIndex - 1])
+            navigateToTab(TAB_ORDER[currentIndex - 1], 'right')
         }
-    }, [activeTab, TAB_ORDER])
+    }, [activeTab, TAB_ORDER, navigateToTab])
 
     // Fetch library progress & user profile
     useEffect(() => {
@@ -167,7 +180,7 @@ export default function DashboardClient({ levels }: { levels: Level[] }) {
             {/* Navigation */}
             <DashboardSidebar
                 activeTab={activeTab}
-                setActiveTab={setActiveTab}
+                setActiveTab={navigateToTab}
                 userProfile={userProfile}
                 isCollapsed={isSidebarCollapsed}
                 setIsCollapsed={setIsSidebarCollapsed}
@@ -292,7 +305,17 @@ export default function DashboardClient({ levels }: { levels: Level[] }) {
                             <p className="text-sm font-bold uppercase tracking-widest">Inizializzazione Dashboard...</p>
                         </div>
                     }>
-                        {content}
+                        <div
+                            key={activeTab}
+                            className={cn(
+                                "animate-in fade-in duration-300 fill-mode-both",
+                                slideDirection === 'left'
+                                    ? 'slide-in-from-right-6'
+                                    : 'slide-in-from-left-6'
+                            )}
+                        >
+                            {content}
+                        </div>
                     </Suspense>
                 </div>
             </main>
