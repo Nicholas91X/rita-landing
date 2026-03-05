@@ -56,6 +56,30 @@ export async function getSignedVideoUrl(videoUuid: string) {
     return `https://iframe.mediadelivery.net/embed/${libraryId}/${bunnyId}?token=${token}&expires=${expires}`
 }
 
+export async function getSignedThumbnailUrls(videoIds: string[]): Promise<Record<string, string>> {
+    const cdnHostname = process.env.NEXT_PUBLIC_BUNNY_CDN_HOSTNAME
+    const securityKey = process.env.BUNNY_STREAM_API_KEY
+    const expirationTime = 3600 * 6 // 6 ore
+
+    if (!cdnHostname || !securityKey) return {}
+
+    const expires = Math.floor(Date.now() / 1000) + expirationTime
+    const result: Record<string, string> = {}
+
+    for (const bunnyVideoId of videoIds) {
+        // Bunny CDN Token Auth V2: sha256(securityKey + fullUrl + expires), Base64 URL-safe encoded
+        const filePath = `/${bunnyVideoId}/preview.webp`
+        const fullUrl = `https://${cdnHostname}${filePath}`
+        const hashableBase = securityKey + fullUrl + expires
+        const rawHash = createHash('sha256').update(hashableBase).digest('base64')
+        // URL-safe Base64: replace +→-, /→_, remove = and \n
+        const token = rawHash.replace(/\n/g, '').replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '')
+        result[bunnyVideoId] = `${fullUrl}?token=${token}&expires=${expires}`
+    }
+
+    return result
+}
+
 export async function saveVideoProgress(videoId: string, progressSeconds: number, durationSeconds: number) {
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()

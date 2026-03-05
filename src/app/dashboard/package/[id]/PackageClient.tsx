@@ -360,7 +360,7 @@ export default function PackageClient({ pkg, videos }: { pkg: Package, videos: V
                                                         <>
                                                             <div className="absolute inset-0 bg-neutral-100" />
                                                             <Image
-                                                                src={imageErrors[v.id] ? "/images/video-placeholder.png" : `https://${process.env.NEXT_PUBLIC_BUNNY_CDN_HOSTNAME}/${v.bunny_video_id}/preview.webp`}
+                                                                src={imageErrors[v.id] ? "/images/video-placeholder.png" : `/api/bunny-thumbnail/${v.bunny_video_id}`}
                                                                 alt={v.title}
                                                                 className={cn(
                                                                     "w-full h-full object-cover transition-opacity duration-300",
