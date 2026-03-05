@@ -98,8 +98,10 @@ export default function LoginPage() {
                         <div className="space-y-4">
                             {mode === 'forgot-email' ? (
                                 <div className="relative">
+                                    <label htmlFor="fullName" className="sr-only">Nome e Cognome</label>
                                     <User className="absolute left-3 top-3 h-5 w-5 text-[var(--foreground)]/40" />
                                     <input
+                                        id="fullName"
                                         type="text"
                                         placeholder="Nome e Cognome"
                                         value={fullName}
@@ -110,8 +112,10 @@ export default function LoginPage() {
                                 </div>
                             ) : (
                                 <div className="relative">
+                                    <label htmlFor="email" className="sr-only">Email</label>
                                     <Mail className="absolute left-3 top-3 h-5 w-5 text-[var(--foreground)]/40" />
                                     <input
+                                        id="email"
                                         type="email"
                                         placeholder="Email"
                                         value={email}
@@ -124,8 +128,10 @@ export default function LoginPage() {
 
                             {(mode === 'login' || mode === 'signup') && (
                                 <div className="relative">
+                                    <label htmlFor="password" className="sr-only">Password</label>
                                     <Lock className="absolute left-3 top-3 h-5 w-5 text-[var(--foreground)]/40" />
                                     <input
+                                        id="password"
                                         type={showPassword ? "text" : "password"}
                                         placeholder="Password"
                                         value={password}
@@ -137,7 +143,8 @@ export default function LoginPage() {
                                     <button
                                         type="button"
                                         onClick={() => setShowPassword(!showPassword)}
-                                        className="absolute right-3 top-3 text-[var(--foreground)]/40 hover:text-[var(--brand)] transition-colors"
+                                        aria-label={showPassword ? "Nascondi password" : "Mostra password"}
+                                        className="absolute right-3 top-3 text-[var(--foreground)]/40 hover:text-[var(--brand)] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand)]/50 rounded-sm"
                                     >
                                         {showPassword ? (
                                             <EyeOff className="h-5 w-5" />

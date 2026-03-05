@@ -75,14 +75,18 @@ export default function ProfileSection({ onProfileUpdate, activeSubTab = 'info' 
     const router = useRouter()
     const supabase = createClient()
 
+    const [fetchError, setFetchError] = useState(false)
+
     useEffect(() => {
         const fetchProfile = async () => {
             try {
+                setFetchError(false)
                 const data = await getUserProfile()
                 setUserData(data)
                 setFormData(prev => ({ ...prev, fullName: data.profile?.full_name || '' }))
             } catch (error) {
                 logger.error('Failed to fetch profile', error)
+                setFetchError(true)
             } finally {
                 setLoading(false)
             }
@@ -176,6 +180,20 @@ export default function ProfileSection({ onProfileUpdate, activeSubTab = 'info' 
         )
     }
 
+    if (fetchError) {
+        return (
+            <div className="flex flex-col items-center justify-center p-20 gap-4 text-neutral-400">
+                <p className="text-lg font-semibold text-red-500">Impossibile caricare il profilo.</p>
+                <Button
+                    onClick={() => { setLoading(true); setFetchError(false); window.location.reload() }}
+                    className="bg-[#846047] text-white hover:bg-[#846047]/90 rounded-xl"
+                >
+                    Ricarica la pagina
+                </Button>
+            </div>
+        )
+    }
+
     return (
         <div className="max-w-4xl space-y-10 animate-in fade-in duration-500">
             {activeSubTab === 'info' && (
@@ -205,7 +223,7 @@ export default function ProfileSection({ onProfileUpdate, activeSubTab = 'info' 
                     <div className="grid grid-cols-1 md:grid-cols-12 gap-10">
                         <div className="md:col-span-4 space-y-6">
                             <Card className="bg-white border-[#846047]/10 shadow-xl overflow-hidden rounded-[32px] p-8 flex flex-col items-center text-center group hover:border-[#846047]/30 transition-colors">
-                                <div className="relative group cursor-pointer" onClick={() => isEditing && document.getElementById('avatar-upload')?.click()}>
+                                <div className="relative group cursor-pointer min-w-[44px] min-h-[44px] active:scale-95 transition-transform" onClick={() => isEditing && document.getElementById('avatar-upload')?.click()}>
                                     {userData?.profile?.avatar_url || formData.avatar ? (
                                         <div className="w-32 h-32 rounded-full border-4 border-[#846047]/10 overflow-hidden mb-6 shadow-2xl relative">
                                             <Image

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, Suspense } from 'react'
+import { useState, useEffect, useMemo, useCallback, Suspense } from 'react'
 import { Level } from '@/app/actions/content'
 import { useSearchParams } from 'next/navigation'
 import DashboardSidebar, { TabType } from './DashboardSidebar'
@@ -97,15 +97,17 @@ export default function DashboardClient({ levels }: { levels: Level[] }) {
         }
     }, [searchParams])
 
-    const fetchUserProfile = async () => {
+    const fetchUserProfile = useCallback(async () => {
         const profile = await getUserProfile()
         setUserProfile(profile)
-    }
+    }, [])
 
-    const renderContent = () => {
+    const firstName = useMemo(() => {
         const fullName = userProfile?.profile?.full_name || ''
-        const firstName = fullName.split(' ')[0] // Extract first name for greeting
+        return fullName.split(' ')[0]
+    }, [userProfile?.profile?.full_name])
 
+    const content = useMemo(() => {
         switch (activeTab) {
             case 'home':
                 return <HomeSection levels={levels} progress={libraryProgress} onShowLibrary={() => setActiveTab('training')} userName={firstName} oneTimePurchases={userProfile?.oneTimePurchases || []} />
@@ -125,7 +127,7 @@ export default function DashboardClient({ levels }: { levels: Level[] }) {
             default:
                 return <HomeSection levels={levels} progress={libraryProgress} onShowLibrary={() => setActiveTab('training')} oneTimePurchases={userProfile?.oneTimePurchases || []} />
         }
-    }
+    }, [activeTab, levels, libraryProgress, userProfile, firstName, profileSubTab, fetchUserProfile])
 
     return (
         <div className="flex min-h-screen bg-[#fff8f3] text-[var(--secondary)] selection:bg-brand/30 relative overflow-x-hidden">
@@ -255,7 +257,7 @@ export default function DashboardClient({ levels }: { levels: Level[] }) {
                             <p className="text-sm font-bold uppercase tracking-widest">Inizializzazione Dashboard...</p>
                         </div>
                     }>
-                        {renderContent()}
+                        {content}
                     </Suspense>
                 </div>
             </main>

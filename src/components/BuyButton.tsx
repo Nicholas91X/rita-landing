@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { createCheckoutSession } from '@/app/actions/stripe'
 import { Button } from '@/components/ui/button'
 import { Loader2 } from 'lucide-react'
+import { toast } from 'sonner'
 
 import { CheckoutConfirmationModal } from './CheckoutConfirmationModal'
 
@@ -36,7 +37,7 @@ export default function BuyButton({
             window.location.href = checkoutUrl
         } catch (error) {
             console.error('Errore durante il checkout:', error)
-            alert("Si è verificato un errore. Riprova più tardi.")
+            toast.error(error instanceof Error ? error.message : "Si è verificato un errore. Riprova più tardi.")
             setIsLoading(false)
         }
     }

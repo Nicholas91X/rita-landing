@@ -35,7 +35,7 @@ export function CheckoutConfirmationModal({
     const discountedPrice = price ? (price * 0.8).toFixed(2) : null
     return (
         <Dialog open={isOpen} onOpenChange={onOpenChange}>
-            <DialogContent className="sm:max-w-[450px] bg-neutral-900 border-neutral-800 text-white rounded-[32px] overflow-hidden p-0">
+            <DialogContent className="sm:max-w-[450px] max-h-[90vh] overflow-y-auto bg-neutral-900 border-neutral-800 text-white rounded-[32px] overflow-hidden p-0 mx-4 sm:mx-auto">
                 <div className="bg-[var(--brand)] h-2 w-full" />
 
                 <div className="p-8 space-y-6">

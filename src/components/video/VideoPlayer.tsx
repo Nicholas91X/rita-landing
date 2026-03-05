@@ -16,6 +16,7 @@ export default function VideoPlayer({ videoId, initialTime = 0, onProgressUpdate
     const [error, setError] = useState<string | null>(null)
     const [iframeLoaded, setIframeLoaded] = useState(false)
     const [status, setStatus] = useState<'idle' | 'connected' | 'saving' | 'error'>('idle')
+    const [loadingLabel, setLoadingLabel] = useState('Caricamento video...')
     const durationRef = useRef<number>(0)
     const lastSavedTime = useRef<number>(0)
     const lastLoadedVideoId = useRef<string | null>(null)
@@ -31,7 +32,10 @@ export default function VideoPlayer({ videoId, initialTime = 0, onProgressUpdate
             try {
                 setLoading(true)
                 setError(null)
+                setLoadingLabel('Caricamento video...')
+                const labelTimer = setTimeout(() => setLoadingLabel('Connessione al server...'), 3000)
                 let signedUrl = await getSignedVideoUrl(videoId)
+                clearTimeout(labelTimer)
 
                 // Add api=true to enable Player.js communication
                 const separator = signedUrl.includes('?') ? '&' : '?'
@@ -184,8 +188,8 @@ export default function VideoPlayer({ videoId, initialTime = 0, onProgressUpdate
                         }
                     }
                 }
-            } catch {
-                // Silent
+            } catch (outerErr) {
+                console.error('Video message handler error:', outerErr)
             }
         }
 
@@ -242,7 +246,7 @@ export default function VideoPlayer({ videoId, initialTime = 0, onProgressUpdate
                     <div className="flex flex-col items-center gap-3">
                         {/* Skeleton-like pulse effect */}
                         <Loader2 className="h-10 w-10 animate-spin text-white/50" />
-                        <p className="text-sm text-white/50 font-light tracking-wide">Caricamento video...</p>
+                        <p className="text-sm text-white/50 font-light tracking-wide">{loadingLabel}</p>
                     </div>
                 </div>
             )}

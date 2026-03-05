@@ -44,7 +44,7 @@ export default function RootLayout({
         {children}
         <Footer />
         <SeoJsonLd />
-        <Toaster richColors position="top-center" />
+        <Toaster richColors position="top-right" toastOptions={{ className: 'mt-14' }} />
       </body>
     </html>
   );

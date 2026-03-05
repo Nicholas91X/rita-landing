@@ -72,7 +72,7 @@ export default function Faq() {
             <AccordionTrigger className="text-lg md:text-xl font-semibold">
               {q}
             </AccordionTrigger>
-            <AccordionContent className="text-[var(--muted-foreground)] leading-relaxed space-y-2">
+            <AccordionContent className="text-[var(--foreground)]/70 leading-relaxed space-y-2">
               {a}
             </AccordionContent>
           </AccordionItem>

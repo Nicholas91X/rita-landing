@@ -54,9 +54,6 @@ export default function ResetPasswordPage() {
                     <h2 className="text-3xl font-bold tracking-tight text-[var(--foreground)]">
                         Nuova Password
                     </h2>
-                    <h2 className="text-3xl font-bold tracking-tight text-[var(--foreground)]">
-                        Nuova Password
-                    </h2>
                     <p className="mt-2 text-sm text-[var(--foreground)]/60">
                         Inserisci la tua nuova password per accedere al tuo account
                     </p>
@@ -67,8 +64,10 @@ export default function ResetPasswordPage() {
                     <form onSubmit={handleSubmit} className="space-y-6">
                         <div className="space-y-4">
                             <div className="relative">
+                                <label htmlFor="new-password" className="sr-only">Nuova Password</label>
                                 <Lock className="absolute left-3 top-3 h-5 w-5 text-[var(--foreground)]/40" />
                                 <input
+                                    id="new-password"
                                     type={showPassword ? "text" : "password"}
                                     placeholder="Nuova Password"
                                     value={password}
@@ -80,7 +79,8 @@ export default function ResetPasswordPage() {
                                 <button
                                     type="button"
                                     onClick={() => setShowPassword(!showPassword)}
-                                    className="absolute right-3 top-3 text-[var(--foreground)]/40 hover:text-[var(--brand)] transition-colors"
+                                    aria-label={showPassword ? "Nascondi password" : "Mostra password"}
+                                    className="absolute right-3 top-3 text-[var(--foreground)]/40 hover:text-[var(--brand)] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand)]/50 rounded-sm"
                                 >
                                     {showPassword ? (
                                         <EyeOff className="h-5 w-5" />
@@ -90,8 +90,10 @@ export default function ResetPasswordPage() {
                                 </button>
                             </div>
                             <div className="relative">
+                                <label htmlFor="confirm-password" className="sr-only">Conferma Password</label>
                                 <Lock className="absolute left-3 top-3 h-5 w-5 text-[var(--foreground)]/40" />
                                 <input
+                                    id="confirm-password"
                                     type={showConfirmPassword ? "text" : "password"}
                                     placeholder="Conferma Password"
                                     value={confirmPassword}
@@ -103,7 +105,8 @@ export default function ResetPasswordPage() {
                                 <button
                                     type="button"
                                     onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                                    className="absolute right-3 top-3 text-[var(--foreground)]/40 hover:text-[var(--brand)] transition-colors"
+                                    aria-label={showConfirmPassword ? "Nascondi password" : "Mostra password"}
+                                    className="absolute right-3 top-3 text-[var(--foreground)]/40 hover:text-[var(--brand)] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand)]/50 rounded-sm"
                                 >
                                     {showConfirmPassword ? (
                                         <EyeOff className="h-5 w-5" />
@@ -112,6 +115,19 @@ export default function ResetPasswordPage() {
                                     )}
                                 </button>
                             </div>
+                            {/* Real-time validation hints */}
+                            {(password || confirmPassword) && (
+                                <div className="space-y-1 text-xs">
+                                    <p className={password.length >= 6 ? 'text-green-600' : 'text-[var(--foreground)]/40'}>
+                                        {password.length >= 6 ? '\u2713' : '\u2022'} Minimo 6 caratteri
+                                    </p>
+                                    {confirmPassword && (
+                                        <p className={password === confirmPassword ? 'text-green-600' : 'text-red-500'}>
+                                            {password === confirmPassword ? '\u2713' : '\u2022'} Le password coincidono
+                                        </p>
+                                    )}
+                                </div>
+                            )}
                         </div>
 
                         {error && (
@@ -142,7 +158,7 @@ export default function ResetPasswordPage() {
                     <div className="mt-6 text-center">
                         <button
                             onClick={() => router.push('/login')}
-                            className="text-sm text-[var(--foreground)]/60 hover:text-[var(--brand)] transition-colors inline-flex items-center gap-2"
+                            className="text-sm text-[var(--foreground)]/60 hover:text-[var(--brand)] transition-colors inline-flex items-center gap-2 underline underline-offset-4 decoration-[var(--foreground)]/20 hover:decoration-[var(--brand)]"
                         >
                             <ArrowLeft className="h-4 w-4" />
                             Torna al login
