@@ -1,12 +1,12 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { createClient } from '@/utils/supabase/client'
 import { Card, CardContent, CardFooter } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Loader2, Sparkles } from 'lucide-react'
 import Image from 'next/image'
 import { createCheckoutSession } from '@/app/actions/stripe'
+import { getOneToOnePackages } from '@/app/actions/user'
 import { toast } from 'sonner'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
@@ -33,30 +33,10 @@ export default function OneToOneSection() {
     useEffect(() => {
         async function fetchPackages() {
             try {
-                const supabase = createClient()
-
-                // 1. Get all 'payment' mode packages
-                const { data: pkgs, error } = await supabase
-                    .from('packages')
-                    .select('*')
-                    .eq('payment_mode', 'payment')
-
-                if (error) throw error
-
-                // 2. Check which ones are purchased
-                const { data: { user } } = await supabase.auth.getUser()
-                if (!user) return
-
-                // Get all user purchases
-                const { data: purchases } = await supabase
-                    .from('one_time_purchases')
-                    .select('*, packages(*)')
-                    .eq('user_id', user.id)
-                    .neq('status', 'refunded')
-                    .order('created_at', { ascending: false })
+                const { packages: pkgs, purchases } = await getOneToOnePackages()
 
                 // Map purchases to package-like items (filter out null packages)
-                const purchaseItems: OneTimePackage[] = (purchases || [])
+                const purchaseItems: OneTimePackage[] = purchases
                     .filter(p => p.packages) // Only include purchases with valid package data
                     .map(p => ({
                         ...p.packages,
@@ -67,7 +47,7 @@ export default function OneToOneSection() {
                     }))
 
                 // Template packages that are available to buy (only if NOT purchased)
-                const templatePackages: OneTimePackage[] = (pkgs || [])
+                const templatePackages: OneTimePackage[] = pkgs
                     .filter(p => !purchaseItems.some(item => item.id === p.id))
                     .map(p => ({
                         ...p,

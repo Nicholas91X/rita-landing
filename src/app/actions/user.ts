@@ -637,3 +637,33 @@ export async function getPassportStamps() {
 
     return packages
 }
+
+export async function getOneToOnePackages() {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) redirect('/login')
+
+    // Get all 'payment' mode packages
+    const { data: pkgs, error: pkgsError } = await supabase
+        .from('packages')
+        .select('*')
+        .eq('payment_mode', 'payment')
+
+    if (pkgsError) throw new Error('Errore nel caricamento dei pacchetti 1:1')
+
+    // Get user purchases for these packages
+    const { data: purchases } = await supabase
+        .from('one_time_purchases')
+        .select('*, packages(*)')
+        .eq('user_id', user.id)
+        .neq('status', 'refunded')
+        .order('created_at', { ascending: false })
+
+    return {
+        packages: pkgs || [],
+        purchases: (purchases || []).map(p => ({
+            ...p,
+            packages: Array.isArray(p.packages) ? p.packages[0] : p.packages
+        }))
+    }
+}
