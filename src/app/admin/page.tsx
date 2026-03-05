@@ -6,9 +6,7 @@ import AdminDashboardClient from './DashboardClient'
 import Section from '@/components/Section'
 import Link from 'next/link'
 import Image from 'next/image'
-import { LogOut } from 'lucide-react'
-import { signOutUser } from '@/app/actions/user'
-import { Button } from '@/components/ui/button'
+import AdminLogoutButton from './AdminLogoutButton'
 
 export default async function AdminPage() {
     const isSuperAdmin = await isAdmin()
@@ -50,16 +48,7 @@ export default async function AdminPage() {
                         </div>
                     </div>
 
-                    <form action={signOutUser}>
-                        <Button
-                            type="submit"
-                            variant="ghost"
-                            className="text-white/60 hover:text-white hover:bg-white/10 gap-2 px-2 h-8 rounded-lg transition-all"
-                        >
-                            <LogOut className="h-3.5 w-3.5" />
-                            <span className="hidden sm:inline text-[10px] font-bold uppercase tracking-wider">Esci</span>
-                        </Button>
-                    </form>
+                    <AdminLogoutButton />
                 </div>
             </div>
 

@@ -13,6 +13,7 @@ import { User, Mail, Shield, LogOut, Loader2, Camera, ChevronLeft, ChevronRight,
 import { createClient } from '@/utils/supabase/client'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
+import TransitionOverlay from '@/components/TransitionOverlay'
 
 interface Profile {
     id: string
@@ -65,6 +66,7 @@ export default function ProfileSection({ onProfileUpdate, activeSubTab = 'info' 
     const [isPasswordDialogOpen, setIsPasswordDialogOpen] = useState(false)
     const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
     const [deletionRequested, setDeletionRequested] = useState(false)
+    const [loggingOut, setLoggingOut] = useState(false)
 
     // Form states
     const [formData, setFormData] = useState({
@@ -97,6 +99,7 @@ export default function ProfileSection({ onProfileUpdate, activeSubTab = 'info' 
     }, [])
 
     const handleLogout = async () => {
+        setLoggingOut(true)
         await supabase.auth.signOut()
         router.push('/')
         router.refresh()
@@ -212,6 +215,7 @@ export default function ProfileSection({ onProfileUpdate, activeSubTab = 'info' 
 
     return (
         <div className="max-w-4xl space-y-10 animate-in fade-in duration-500">
+            <TransitionOverlay show={loggingOut} message="Uscita in corso..." />
             {activeSubTab === 'info' && (
                 <div className="space-y-10 animate-in slide-in-from-left-4 duration-500">
                     {/* ... existing info content ... */}

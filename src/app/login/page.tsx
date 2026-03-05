@@ -6,6 +6,7 @@ import Logo from '@/components/Logo'
 import { Button } from '@/components/ui/button'
 import { Loader2, Mail, Lock, User, ArrowLeft, Eye, EyeOff } from 'lucide-react'
 import { recoverPassword, findEmail } from '@/app/actions/user'
+import TransitionOverlay from '@/components/TransitionOverlay'
 
 type AuthMode = 'login' | 'signup' | 'forgot-password' | 'forgot-email'
 
@@ -20,6 +21,7 @@ export default function LoginPage() {
     const [message, setMessage] = useState<string | null>(null)
     const [maskedEmails, setMaskedEmails] = useState<string[]>([])
     const [acceptedTerms, setAcceptedTerms] = useState(false)
+    const [transitioning, setTransitioning] = useState(false)
 
     const supabase = createClient()
 
@@ -38,7 +40,8 @@ export default function LoginPage() {
                 })
                 if (error) throw error
 
-                window.location.href = '/dashboard'
+                setTransitioning(true)
+                setTimeout(() => { window.location.href = '/dashboard' }, 600)
                 return;
             } else if (mode === 'signup') {
                 const { error, data } = await supabase.auth.signUp({
@@ -73,6 +76,7 @@ export default function LoginPage() {
 
     return (
         <main className="min-h-screen flex flex-col items-center justify-center p-4 bg-[var(--bg)]">
+            <TransitionOverlay show={transitioning} message="Accesso in corso..." />
             <div className="w-full max-w-md space-y-8">
                 {/* Header */}
                 <div className="flex flex-col items-center text-center">

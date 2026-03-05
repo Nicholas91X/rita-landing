@@ -1,5 +1,6 @@
 'use client'
 
+import { useState } from 'react'
 import { LucideIcon, Home, BookOpen, CreditCard, User, LogOut, Sparkles, ChevronLeft, ChevronRight } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import Link from 'next/link'
@@ -7,6 +8,7 @@ import Image from 'next/image'
 import { signOutUser } from '@/app/actions/user'
 import { toast } from 'sonner'
 import { NotificationBell } from './NotificationBell'
+import TransitionOverlay from '@/components/TransitionOverlay'
 
 export type TabType = 'home' | 'training' | 'billing' | 'profile' | '1to1'
 
@@ -56,9 +58,21 @@ export interface DashboardSidebarProps {
 }
 
 export default function DashboardSidebar({ activeTab, setActiveTab, userProfile, isCollapsed, setIsCollapsed }: DashboardSidebarProps) {
+    const [loggingOut, setLoggingOut] = useState(false)
+
+    const handleLogout = async () => {
+        setLoggingOut(true)
+        try {
+            await signOutUser()
+        } catch {
+            setLoggingOut(false)
+            toast.error('Errore durante il logout')
+        }
+    }
 
     return (
         <>
+            <TransitionOverlay show={loggingOut} message="Uscita in corso..." />
             {/* Desktop Sidebar */}
             <aside className={cn(
                 "hidden lg:flex flex-col h-screen fixed left-0 top-0 bg-[var(--brand)] border-r border-white/10 p-6 z-20 shadow-[4px_0_24px_rgba(244,101,48,0.2)] transition-all duration-300",
@@ -118,13 +132,7 @@ export default function DashboardSidebar({ activeTab, setActiveTab, userProfile,
 
                 <div className="pt-6 border-t border-white/10">
                     <button
-                        onClick={async () => {
-                            try {
-                                await signOutUser()
-                            } catch {
-                                toast.error('Errore durante il logout')
-                            }
-                        }}
+                        onClick={handleLogout}
                         className={cn(
                             "w-full flex items-center gap-3 rounded-2xl text-sm font-semibold text-white/90 hover:bg-white/10 transition-all duration-300 group",
                             isCollapsed ? "px-0 justify-center h-12" : "px-4 py-3"
