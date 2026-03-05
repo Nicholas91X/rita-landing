@@ -29,7 +29,7 @@ export async function getSignedVideoUrl(videoUuid: string) {
         .select('id')
         .eq('user_id', user.id)
         .eq('package_id', videoData.package_id)
-        .eq('status', 'active')
+        .in('status', ['active', 'trialing'])
         .maybeSingle()
 
     if (!subscription) {

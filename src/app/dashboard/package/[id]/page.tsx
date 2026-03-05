@@ -27,7 +27,7 @@ export default async function PackagePage(props: {
         .select('id')
         .eq('user_id', user.id)
         .eq('package_id', packageId)
-        .eq('status', 'active')
+        .in('status', ['active', 'trialing'])
         .maybeSingle()
 
     // 3b. Verifica se è un acquisto Una Tantum (se non trovato in subscriptions)

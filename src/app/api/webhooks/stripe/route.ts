@@ -95,8 +95,17 @@ export async function POST(req: Request) {
                     // Subscription Logic
                     const stripeSub = await stripe.subscriptions.retrieve(session.subscription as string)
                     subscriptionStatus = stripeSub.status
-                    periodEnd = new Date((stripeSub as unknown as { current_period_end: number }).current_period_end * 1000).toISOString()
-                    console.log(`Syncing subscription ${session.subscription}: Status ${subscriptionStatus}`)
+                    // NOTE: In the Stripe Node SDK, `current_period_end` lives in
+                    // `items.data[0].current_period_end`, NOT at the subscription root level.
+                    // For trialing subscriptions, `trial_end` is also available at root.
+                    // We fallback gracefully to avoid `new Date(NaN)` → "Invalid time value" crashes.
+                    const rawPeriodEnd = (stripeSub.items?.data?.[0] as any)?.current_period_end
+                        ?? (stripeSub as any).trial_end
+                        ?? null
+                    periodEnd = rawPeriodEnd
+                        ? new Date(rawPeriodEnd * 1000).toISOString()
+                        : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
+                    console.log(`Syncing subscription ${session.subscription}: Status ${subscriptionStatus}, PeriodEnd ${periodEnd}`)
 
                     const { error: upsertError } = await supabaseAdmin
                         .from('user_subscriptions')
@@ -229,7 +238,14 @@ export async function POST(req: Request) {
             .from('user_subscriptions')
             .update({
                 status: subscription.status,
-                current_period_end: new Date((subscription as unknown as { current_period_end: number }).current_period_end * 1000).toISOString(),
+                current_period_end: (() => {
+                    const rawEnd = (subscription.items?.data?.[0] as any)?.current_period_end
+                        ?? (subscription as any).trial_end
+                        ?? null
+                    return rawEnd
+                        ? new Date(rawEnd * 1000).toISOString()
+                        : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
+                })(),
                 cancel_at_period_end: subscription.cancel_at_period_end
             })
             .eq('stripe_subscription_id', subscription.id)
