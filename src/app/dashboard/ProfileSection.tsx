@@ -322,7 +322,7 @@ export default function ProfileSection({ onProfileUpdate, activeSubTab = 'info' 
                                                             Modifica Email
                                                         </Button>
                                                     </DialogTrigger>
-                                                    <DialogContent className="bg-white border-none rounded-[32px] pointer-events-auto">
+                                                    <DialogContent className="bg-white border-none rounded-[28px] sm:rounded-[32px] pointer-events-auto">
                                                         <DialogHeader>
                                                             <DialogTitle className="text-[#2a2e30] font-black uppercase tracking-tight">Modifica Email</DialogTitle>
                                                             <DialogDescription>
@@ -375,7 +375,7 @@ export default function ProfileSection({ onProfileUpdate, activeSubTab = 'info' 
                                                             Cambia Password
                                                         </Button>
                                                     </DialogTrigger>
-                                                    <DialogContent className="bg-white border-none rounded-[32px] pointer-events-auto">
+                                                    <DialogContent className="bg-white border-none rounded-[28px] sm:rounded-[32px] pointer-events-auto">
                                                         <DialogHeader>
                                                             <DialogTitle className="text-[#2a2e30] font-black uppercase tracking-tight">Cambia Password</DialogTitle>
                                                             <DialogDescription>
@@ -439,7 +439,7 @@ export default function ProfileSection({ onProfileUpdate, activeSubTab = 'info' 
                                                     {deletionRequested ? '✓ Richiesta inviata' : 'Elimina Account'}
                                                 </Button>
                                             </DialogTrigger>
-                                            <DialogContent className="bg-white border-none rounded-[32px] pointer-events-auto mx-4">
+                                            <DialogContent className="bg-white border-none rounded-[28px] sm:rounded-[32px] pointer-events-auto">
                                                 <DialogHeader>
                                                     <DialogTitle className="text-red-600 font-black uppercase tracking-tight">Conferma Eliminazione</DialogTitle>
                                                     <DialogDescription>

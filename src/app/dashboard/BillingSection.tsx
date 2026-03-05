@@ -670,7 +670,7 @@ export default function BillingSection() {
 
             {/* Modals */}
             <Dialog open={refundDialog.open} onOpenChange={(open) => !open && setRefundDialog({ open: false, id: null, type: 'subscription' })}>
-                <DialogContent className="bg-white border-neutral-200 text-[#2a2e30] max-w-md rounded-[2.5rem] p-8 shadow-2xl">
+                <DialogContent className="bg-white border-neutral-200 text-[#2a2e30] max-w-md rounded-[2rem] sm:rounded-[2.5rem] p-6 sm:p-8 shadow-2xl">
                     <DialogHeader>
                         <DialogTitle className="text-2xl font-black italic uppercase tracking-tighter flex items-center gap-3 text-[#593e25]">
                             <RefreshCcw className="w-6 h-6 text-[#846047]" />
@@ -720,7 +720,7 @@ export default function BillingSection() {
             </Dialog>
 
             <Dialog open={cancelDialog.open} onOpenChange={(open) => !open && setCancelDialog({ open: false, subId: null })}>
-                <DialogContent className="bg-white border-neutral-200 text-[#2a2e30] max-w-sm rounded-[2.5rem] p-10 shadow-2xl">
+                <DialogContent className="bg-white border-neutral-200 text-[#2a2e30] max-w-sm rounded-[2rem] sm:rounded-[2.5rem] p-6 sm:p-10 shadow-2xl">
                     <div className="flex flex-col items-center text-center space-y-6">
                         <div className="w-20 h-20 rounded-full bg-red-50 flex items-center justify-center shadow-lg shadow-red-500/20">
                             <XCircle className="w-10 h-10 text-white" />

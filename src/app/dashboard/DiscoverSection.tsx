@@ -275,7 +275,7 @@ export default function DiscoverSection({
             </div>
 
             <Dialog open={!!selectedPkg} onOpenChange={(open) => !open && setSelectedPkg(null)}>
-                <DialogContent className="max-w-2xl bg-white border-none rounded-[32px] overflow-hidden p-0">
+                <DialogContent className="max-w-2xl bg-white border-none rounded-[28px] sm:rounded-[32px] overflow-hidden p-0">
                     {selectedPkg && (
                         <div className="flex flex-col max-h-[90vh] overflow-y-auto custom-scrollbar">
                             {/* Booking Style Header Image */}

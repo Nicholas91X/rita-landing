@@ -414,7 +414,7 @@ export default function PackageClient({ pkg, videos }: { pkg: Package, videos: V
             </main>
 
             <Dialog open={showCelebration} onOpenChange={setShowCelebration}>
-                <DialogContent className="bg-[#fdfbf7] border-none rounded-[40px] max-w-lg p-0 overflow-hidden shadow-2xl">
+                <DialogContent className="bg-[#fdfbf7] border-none rounded-[28px] sm:rounded-[40px] max-w-lg p-0 overflow-hidden shadow-2xl">
                     <div className="relative p-10 flex flex-col items-center text-center">
                         <div className="absolute inset-0 opacity-[0.03] pointer-events-none" style={{ backgroundImage: 'radial-gradient(#846047 1px, transparent 1px)', backgroundSize: '20px 20px' }} />
 
