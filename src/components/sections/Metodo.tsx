@@ -126,31 +126,33 @@ export default function Metodo() {
       </div>
 
       {/* Video Section */}
-      <div className="mt-32 max-w-5xl mx-auto px-4">
-        <div className="bg-[#f3efec] rounded-[40px] p-8 md:p-16 overflow-hidden relative group shadow-2xl border border-[#846047]/10">
-          <div className="absolute top-0 right-0 w-96 h-96 bg-[var(--brand)]/5 rounded-full blur-3xl -mr-48 -mt-48"></div>
+      <div className="mt-32 max-w-7xl mx-auto">
+        <div className="bg-[#f3efec] rounded-[40px] overflow-hidden shadow-2xl border border-[#846047]/10 relative group">
 
-          <div className="grid lg:grid-cols-2 gap-12 items-center relative z-10">
-            <div className="space-y-6">
-              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#F46530]/10 border border-[#F46530]/20 text-[#F46530] text-xs font-bold uppercase tracking-widest">
-                Prova Pratica
-              </div>
-              <h3 className="text-3xl md:text-5xl font-black text-[#2a2e30] leading-tight uppercase italic tracking-tighter">
-                Il Risveglio <br /> del Respiro
-              </h3>
-              <p className="text-[#345c72] text-lg md:text-xl italic font-bold leading-relaxed opacity-80">
-                &ldquo;Fallo ora, anche in pigiama. Premi play e sciogliamo insieme le tensioni del collo.&rdquo;
-              </p>
-            </div>
+          {/* Decorative blur blob */}
+          <div className="absolute top-0 right-0 w-96 h-96 bg-[var(--brand)]/5 rounded-full blur-3xl -mr-48 -mt-48 pointer-events-none" />
 
-            <div className="relative aspect-video w-full rounded-[2rem] overflow-hidden bg-black border-4 border-[#345c72]/10 shadow-2xl">
-              <video
-                src="https://hel1.your-objectstorage.com/nicholas-bucket/rita-zanicchi/videos/video_respirazione_landing.mp4"
-                controls
-                className="w-full h-full object-cover"
-                poster="https://hel1.your-objectstorage.com/nicholas-bucket/rita-zanicchi/metodo/step-1.png"
-              />
+          {/* Text area */}
+          <div className="relative z-10 px-6 pt-8 pb-6 md:px-10 md:pt-10 md:pb-8">
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#F46530]/10 border border-[#F46530]/20 text-[#F46530] text-xs font-bold uppercase tracking-widest mb-5">
+              Prova Pratica
             </div>
+            <h3 className="text-4xl md:text-6xl font-black text-[#2a2e30] leading-tight uppercase italic tracking-tighter mb-4">
+              Il Risveglio <br /> del Respiro
+            </h3>
+            <p className="text-[#345c72] text-lg md:text-xl italic font-bold leading-relaxed opacity-80 max-w-2xl">
+              &ldquo;Fallo ora, anche in pigiama. Premi play e sciogliamo insieme le tensioni del collo.&rdquo;
+            </p>
+          </div>
+
+          {/* Video — flush con i bordi inferiori e laterali della card */}
+          <div className="relative w-full aspect-[16/9] md:aspect-[21/9] bg-black">
+            <video
+              src="https://hel1.your-objectstorage.com/nicholas-bucket/rita-zanicchi/videos/video_respirazione_landing.mp4"
+              controls
+              className="w-full h-full object-cover"
+              poster="https://hel1.your-objectstorage.com/nicholas-bucket/rita-zanicchi/metodo/step-1.png"
+            />
           </div>
         </div>
       </div>
