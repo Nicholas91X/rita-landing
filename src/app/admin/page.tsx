@@ -3,7 +3,6 @@ import { getAdminStats } from '@/app/actions/admin_actions/sales'
 import { isAdmin } from '@/utils/supabase/admin'
 import { redirect } from 'next/navigation'
 import AdminDashboardClient from './DashboardClient'
-import Section from '@/components/Section'
 import Link from 'next/link'
 import Image from 'next/image'
 import AdminLogoutButton from './AdminLogoutButton'
@@ -20,7 +19,7 @@ export default async function AdminPage() {
     const libraryId = process.env.BUNNY_LIBRARY_ID
 
     return (
-        <main className="min-h-screen bg-[#2A2E30] pb-20">
+        <main className="min-h-screen bg-black pb-20">
             <div className="bg-slate-900 border-b border-white/10 text-white sticky top-0 z-50 backdrop-blur-md bg-slate-900/90 shadow-lg">
                 <div className="container mx-auto px-4 md:px-8 py-2 flex items-start justify-between">
                     <div className="flex items-start gap-4">
@@ -52,13 +51,7 @@ export default async function AdminPage() {
                 </div>
             </div>
 
-            <Section>
-                <div className="container mx-auto px-4 md:px-8">
-                    <div className="grid grid-cols-1 gap-8">
-                        <AdminDashboardClient packages={packages} libraryId={libraryId} stats={stats} />
-                    </div>
-                </div>
-            </Section>
+            <AdminDashboardClient packages={packages} libraryId={libraryId} stats={stats} />
         </main>
     )
 }
