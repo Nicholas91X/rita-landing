@@ -1,7 +1,6 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { createClient } from '@/utils/supabase/client'
 import {
     Table,
     TableBody,
@@ -22,7 +21,7 @@ import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import { Loader2, ExternalLink, Search, FileText, UploadCloud } from 'lucide-react'
 import { toast } from 'sonner'
-import { uploadClientDocument, updateOneTimePurchaseStatus } from '@/app/actions/admin_actions/users'
+import { uploadClientDocument, updateOneTimePurchaseStatus, getOneToOneClients, updateOneTimePurchaseDocumentUrl } from '@/app/actions/admin_actions/users'
 import Link from 'next/link'
 import { logger } from '@/lib/logger'
 
@@ -54,18 +53,7 @@ export default function OneToOneClients() {
 
     async function loadClients() {
         try {
-            const supabase = createClient()
-            const { data, error } = await supabase
-                .from('one_time_purchases')
-                .select(`
-                    *,
-                    profiles:user_id (full_name, email),
-                    packages:package_id (name)
-                `)
-                .neq('status', 'refunded')
-                .order('created_at', { ascending: false })
-
-            if (error) throw error
+            const data = await getOneToOneClients()
             setClients(data as unknown as OneTimeClient[])
         } catch (error: unknown) {
             logger.error('Error loading clients:', error)
@@ -92,14 +80,8 @@ export default function OneToOneClients() {
 
     async function updateDocumentUrl(id: string, url: string) {
         try {
-            const supabase = createClient()
-            const { error } = await supabase
-                .from('one_time_purchases')
-                .update({ document_url: url })
-                .eq('id', id)
-
-            if (error) throw error
-
+            const res = await updateOneTimePurchaseDocumentUrl(id, url)
+            if (!res.success) throw new Error()
             setClients(clients.map(c => c.id === id ? { ...c, document_url: url } : c))
             toast.success('Link salvato')
         } catch {

@@ -1,10 +1,32 @@
 'use server'
 
-import { createClient } from '@/utils/supabase/server'
+import { createClient, createServiceRoleClient } from '@/utils/supabase/server'
 import { isAdmin } from '@/utils/supabase/admin'
 import { revalidatePath } from 'next/cache'
 import { createClient as createSupabaseClient } from '@supabase/supabase-js'
 import { sendOrderStatusEmail, sendBadgeEarnedEmail } from '@/lib/email'
+
+export async function getOneToOneClients() {
+    const isSuperAdmin = await isAdmin()
+    if (!isSuperAdmin) throw new Error('Unauthorized')
+
+    // Use service role to bypass RLS
+    const supabase = await createServiceRoleClient()
+
+    const { data, error } = await supabase
+        .from('one_time_purchases')
+        .select(`
+            *,
+            profiles:user_id (full_name, email),
+            packages:package_id (name)
+        `)
+        .neq('status', 'refunded')
+        .order('created_at', { ascending: false })
+
+    if (error) throw new Error('Errore nel caricamento clienti 1:1')
+    return data || []
+}
+
 
 interface SubscriptionRecord {
     id: string
@@ -180,6 +202,21 @@ export async function uploadClientDocument(formData: FormData) {
 
     revalidatePath('/admin')
     return { success: true, url: publicUrl }
+}
+
+export async function updateOneTimePurchaseDocumentUrl(id: string, url: string) {
+    const isSuperAdmin = await isAdmin()
+    if (!isSuperAdmin) throw new Error('Unauthorized')
+
+    const supabase = await createServiceRoleClient()
+    const { error } = await supabase
+        .from('one_time_purchases')
+        .update({ document_url: url })
+        .eq('id', id)
+
+    if (error) throw new Error('Errore salvataggio link documento')
+    revalidatePath('/admin')
+    return { success: true }
 }
 
 export async function getAdminNotifications(page: number = 1, pageSize: number = 6) {
