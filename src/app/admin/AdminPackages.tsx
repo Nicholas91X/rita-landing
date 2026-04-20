@@ -118,13 +118,14 @@ export default function AdminPackages() {
         }
 
         try {
-            if (editingPackage) {
-                await updatePackage(editingPackage.id, data)
-                toast.success('Pacchetto aggiornato')
-            } else {
-                await createPackage(data)
-                toast.success('Pacchetto creato')
+            const result = editingPackage
+                ? await updatePackage(editingPackage.id, data)
+                : await createPackage(data)
+            if (!result.ok) {
+                toast.error(result.message)
+                return
             }
+            toast.success(editingPackage ? 'Pacchetto aggiornato' : 'Pacchetto creato')
             setIsDialogOpen(false)
             loadPackages()
         } catch (error: unknown) {

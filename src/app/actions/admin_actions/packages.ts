@@ -4,6 +4,9 @@ import { createClient } from '@/utils/supabase/server'
 import { isAdmin } from '@/utils/supabase/admin'
 import Stripe from 'stripe'
 import { revalidateTag } from 'next/cache'
+import { createPackageSchema, updatePackageSchema } from './packages.schemas'
+import { validate, ValidationError, formDataToObject } from '@/lib/security/validation'
+import type { ActionResult } from '@/lib/security/types'
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || 'sk_test_placeholder', {
     apiVersion: '2025-12-15.clover' as unknown as Stripe.LatestApiVersion,
@@ -50,25 +53,29 @@ export async function getAdminCourses() {
     return courses
 }
 
-export async function createPackage(formData: FormData) {
+export async function createPackage(formData: FormData): Promise<ActionResult<{ id: string }>> {
     const isSuperAdmin = await isAdmin()
-    if (!isSuperAdmin) throw new Error('Unauthorized')
+    if (!isSuperAdmin) return { ok: false, message: 'Unauthorized' }
 
-    const name = formData.get('name') as string
-    const title = formData.get('title') as string
-    const description = formData.get('description') as string
-    const priceAmount = parseFloat(formData.get('price') as string)
-    const courseId = formData.get('course_id') as string
-    const badgeType = formData.get('badge_type') as string
-    const paymentMode = formData.get('payment_mode') as 'subscription' | 'payment' || 'subscription'
-    const imageFile = formData.get('image') as File
+    const imageFile = formData.get('image') as File | null
+    const textData = formDataToObject(formData)
+    delete (textData as Record<string, unknown>).image
 
-    if (!name || !description || !courseId) throw new Error('Campi obbligatori mancanti')
-    if (isNaN(priceAmount) || priceAmount < 0 || priceAmount > 99999) throw new Error('Prezzo non valido')
+    let parsed
+    try {
+        parsed = validate(createPackageSchema, textData)
+    } catch (err) {
+        if (err instanceof ValidationError) {
+            return { ok: false, message: 'Dati non validi', fieldErrors: err.fieldErrors }
+        }
+        throw err
+    }
+
+    const { name, title, description, price: priceAmount, course_id: courseId, badge_type: badgeType, payment_mode: paymentMode } = parsed
 
     const product = await stripe.products.create({
-        name: name,
-        description: description,
+        name,
+        description,
     })
 
     const price = await stripe.prices.create({
@@ -81,7 +88,7 @@ export async function createPackage(formData: FormData) {
     })
 
     const supabase = await createClient()
-    let imageUrl = null
+    let imageUrl: string | null = null
 
     if (imageFile && imageFile.size > 0) {
         const fileExt = imageFile.name.split('.').pop()
@@ -98,42 +105,48 @@ export async function createPackage(formData: FormData) {
         }
     }
 
-    const { error } = await supabase
+    const { data: inserted, error } = await supabase
         .from('packages')
         .insert({
-            name: name,
+            name,
             title: title || null,
-            description: description,
+            description,
             price: priceAmount,
             course_id: courseId,
             stripe_product_id: product.id,
             stripe_price_id: price.id,
-            badge_type: badgeType,
+            badge_type: badgeType || null,
             payment_mode: paymentMode,
             image_url: imageUrl
         })
+        .select('id')
+        .single()
 
-    if (error) throw new Error(error.message)
+    if (error) return { ok: false, message: error.message }
     revalidateTag('admin-stats')
-    return { success: true }
+    return { ok: true, data: { id: inserted.id } }
 }
 
-export async function updatePackage(id: string, formData: FormData) {
+export async function updatePackage(id: string, formData: FormData): Promise<ActionResult<void>> {
     const isSuperAdmin = await isAdmin()
-    if (!isSuperAdmin) throw new Error('Unauthorized')
+    if (!isSuperAdmin) return { ok: false, message: 'Unauthorized' }
 
-    const name = formData.get('name') as string
-    const title = formData.get('title') as string
-    const description = formData.get('description') as string
-    const priceAmount = parseFloat(formData.get('price') as string)
-    const courseId = formData.get('course_id') as string
-    const badgeType = formData.get('badge_type') as string
-    const paymentMode = formData.get('payment_mode') as 'subscription' | 'payment' || 'subscription'
-    const imageFile = formData.get('image') as File
-    const removeImage = formData.get('removeImage') === 'true'
+    const imageFile = formData.get('image') as File | null
+    const textData = formDataToObject(formData)
+    delete (textData as Record<string, unknown>).image
 
-    if (!name || !description || !courseId) throw new Error('Campi obbligatori mancanti')
-    if (isNaN(priceAmount) || priceAmount < 0 || priceAmount > 99999) throw new Error('Prezzo non valido')
+    let parsed
+    try {
+        parsed = validate(updatePackageSchema, textData)
+    } catch (err) {
+        if (err instanceof ValidationError) {
+            return { ok: false, message: 'Dati non validi', fieldErrors: err.fieldErrors }
+        }
+        throw err
+    }
+
+    const { name, title, description, price: priceAmount, course_id: courseId, badge_type: badgeType, payment_mode: paymentMode } = parsed
+    const removeImage = parsed.removeImage === 'true'
 
     const supabase = await createClient()
 
@@ -143,7 +156,7 @@ export async function updatePackage(id: string, formData: FormData) {
         .eq('id', id)
         .single()
 
-    if (!currentPkg) throw new Error('Package not found')
+    if (!currentPkg) return { ok: false, message: 'Package not found' }
 
     let newStripePriceId = currentPkg.stripe_price_id
     let newImageUrl = currentPkg.image_url
@@ -198,19 +211,19 @@ export async function updatePackage(id: string, formData: FormData) {
     const { error } = await supabase
         .from('packages')
         .update({
-            name: name,
+            name,
             title: title || null,
-            description: description,
+            description,
             price: priceAmount,
             course_id: courseId,
             stripe_price_id: newStripePriceId,
-            badge_type: badgeType,
+            badge_type: badgeType || null,
             payment_mode: paymentMode,
             image_url: newImageUrl
         })
         .eq('id', id)
 
-    if (error) throw new Error(error.message)
+    if (error) return { ok: false, message: error.message }
     revalidateTag('admin-stats')
-    return { success: true }
+    return { ok: true, data: undefined }
 }
