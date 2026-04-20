@@ -29,6 +29,7 @@ interface BillingSubscription {
     id: string;
     status: string;
     current_period_end: string;
+    cancel_at_period_end: boolean | null;
     created_at: string;
     next_invoice: string;
     amount: number;
@@ -308,7 +309,9 @@ export default function BillingSection() {
                                 <CardHeader className="pb-4">
                                     <div className="flex justify-between items-start">
                                         <CardTitle className="text-lg font-black text-[var(--dash-heading)] line-clamp-1 italic uppercase tracking-tight">{sub.packages?.name}</CardTitle>
-                                        {sub.status === 'active' ? (
+                                        {sub.cancel_at_period_end ? (
+                                            <span className="px-2 py-0.5 rounded-full bg-orange-500/10 text-orange-600 text-[10px] font-bold border border-orange-500/20 uppercase whitespace-nowrap" title={`Attivo fino al ${new Date(sub.current_period_end).toLocaleDateString('it-IT')}`}>Cancellato</span>
+                                        ) : sub.status === 'active' ? (
                                             <span className="px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 text-[10px] font-bold border border-emerald-500/20 uppercase">Attivo</span>
                                         ) : sub.status === 'trialing' ? (
                                             <span className="px-2 py-0.5 rounded-full bg-blue-500/10 text-blue-600 text-[10px] font-bold border border-blue-500/20 uppercase">In Prova</span>
@@ -338,7 +341,7 @@ export default function BillingSection() {
                                         </div>
                                         <div className="flex flex-col">
                                             <span className="text-[10px] text-[var(--dash-muted-light)] uppercase font-black tracking-wider">
-                                                {sub.status === 'active' ? 'Prossimo Rinnovo' : 'Fino a'}
+                                                {sub.cancel_at_period_end ? 'Attivo Fino Al' : sub.status === 'active' ? 'Prossimo Rinnovo' : 'Fino a'}
                                             </span>
                                             <span className="font-bold text-[var(--dash-text)]">{new Date(sub.next_invoice).toLocaleDateString('it-IT')}</span>
                                         </div>
@@ -384,7 +387,7 @@ export default function BillingSection() {
                                 </CardContent>
                                 <CardFooter className="pt-2 pb-6 px-6 flex flex-col gap-3">
                                     <div className="flex items-center gap-2 w-full mt-2">
-                                        {['active', 'trialing'].includes(sub.status) && (
+                                        {['active', 'trialing'].includes(sub.status) && !sub.cancel_at_period_end && (
                                             <Button
                                                 variant="outline"
                                                 size="sm"
