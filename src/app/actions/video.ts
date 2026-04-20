@@ -27,17 +27,31 @@ export async function getSignedVideoUrl(videoUuid: string) {
         throw new Error('Video non trovato')
     }
 
-    // 3. Verifica se l'utente ha sbloccato QUEL pacchetto specifico
-    const { data: subscription } = await supabase
-        .from('user_subscriptions')
-        .select('id')
-        .eq('user_id', user.id)
-        .eq('package_id', videoData.package_id)
-        .in('status', ['active', 'trialing'])
-        .maybeSingle()
+    // 3. Verifica se l'utente ha sbloccato QUEL pacchetto specifico (subscription o one-time)
+    const [subRes, purchaseRes] = await Promise.all([
+        supabase
+            .from('user_subscriptions')
+            .select('id, current_period_end')
+            .eq('user_id', user.id)
+            .eq('package_id', videoData.package_id)
+            .in('status', ['active', 'trialing'])
+            .maybeSingle(),
+        supabase
+            .from('one_time_purchases')
+            .select('id')
+            .eq('user_id', user.id)
+            .eq('package_id', videoData.package_id)
+            .neq('status', 'refunded')
+            .maybeSingle(),
+    ])
 
-    if (!subscription) {
-        throw new Error('Abbonamento non attivo per questo pacchetto')
+    // Subscription valida se status attivo/trialing e periodo non ancora scaduto
+    const now = Date.now()
+    const subActive = !!(subRes.data && (!subRes.data.current_period_end || new Date(subRes.data.current_period_end).getTime() > now))
+    const purchaseActive = !!purchaseRes.data
+
+    if (!subActive && !purchaseActive) {
+        throw new Error('Accesso non autorizzato per questo pacchetto')
     }
 
     // 4. Generazione URL firmato per Bunny.net

@@ -38,21 +38,27 @@ export async function getContentHierarchy() {
     if (!user) redirect('/login')
 
     // 1. Recupera gli ID dei pacchetti acquistati (inclusi quelli in prova)
-    // 1a. Recupera gli ID degli abbonamenti attivi
+    // 1a. Recupera gli ID degli abbonamenti attivi (periodo non scaduto)
     const { data: subs } = await supabase
         .from('user_subscriptions')
-        .select('package_id')
+        .select('package_id, current_period_end')
         .eq('user_id', user.id)
         .in('status', ['active', 'trialing'])
 
-    // 1b. Recupera gli ID degli acquisti una tantum
+    const nowMs = Date.now()
+    const activeSubIds = (subs || [])
+        .filter(s => !s.current_period_end || new Date(s.current_period_end).getTime() > nowMs)
+        .map(s => s.package_id)
+
+    // 1b. Recupera gli ID degli acquisti una tantum non rimborsati
     const { data: oneTime } = await supabase
         .from('one_time_purchases')
         .select('package_id')
         .eq('user_id', user.id)
+        .neq('status', 'refunded')
 
     const purchasedIds = [
-        ...(subs?.map(s => s.package_id) || []),
+        ...activeSubIds,
         ...(oneTime?.map(p => p.package_id) || [])
     ]
 

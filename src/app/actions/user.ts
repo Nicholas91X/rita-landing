@@ -113,15 +113,16 @@ export async function getUserSubscriptionInfo() {
     const { data: subs, error } = await supabase
         .from('user_subscriptions')
         .select(`
-            id, 
-            status, 
+            id,
+            status,
             current_period_end,
+            cancel_at_period_end,
             created_at,
             stripe_customer_id,
             stripe_subscription_id,
             amount,
-            packages ( 
-                name, 
+            packages (
+                name,
                 description,
                 price,
                 image_url
@@ -171,6 +172,7 @@ export async function getUserSubscriptionInfo() {
         id: string
         status: string
         current_period_end: string
+        cancel_at_period_end: boolean | null
         created_at: string
         stripe_customer_id: string | null
         stripe_subscription_id: string | null
