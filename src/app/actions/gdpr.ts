@@ -82,8 +82,15 @@ export async function requestAccountDeletionGdpr(): Promise<ActionResult<void>> 
   const h = await headers()
   const ip = h.get("x-forwarded-for")?.split(",")[0].trim() ?? "unknown"
 
+  // Build the confirm URL from the incoming request so preview deploys get
+  // links pointing back to the preview (not to production), and so a future
+  // alternate domain works without code changes.
+  const host = h.get("x-forwarded-host") ?? h.get("host")
+  const proto = h.get("x-forwarded-proto") ?? "https"
+  const baseUrl = host ? `${proto}://${host}` : process.env.NEXT_PUBLIC_SITE_URL
+
   const token = await signDeletionToken(user.id)
-  const confirmUrl = `${process.env.NEXT_PUBLIC_SITE_URL}/auth/confirm-deletion?token=${encodeURIComponent(token)}`
+  const confirmUrl = `${baseUrl}/auth/confirm-deletion?token=${encodeURIComponent(token)}`
 
   try {
     await resend.emails.send({
