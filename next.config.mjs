@@ -20,7 +20,7 @@ const csp = [
   "font-src 'self' https://fonts.gstatic.com",
   "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.stripe.com https://api.pwnedpasswords.com https://*.upstash.io https://vitals.vercel-insights.com https://vercel.live wss://ws-us3.pusher.com",
   "frame-src 'self' https://js.stripe.com https://iframe.mediadelivery.net https://vercel.live",
-  "media-src 'self' blob: https://*.b-cdn.net https://iframe.mediadelivery.net",
+  "media-src 'self' blob: https://*.b-cdn.net https://iframe.mediadelivery.net https://hel1.your-objectstorage.com",
   "worker-src 'self' blob:",
   "form-action 'self' https://checkout.stripe.com",
   "base-uri 'self'",

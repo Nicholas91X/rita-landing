@@ -12,6 +12,15 @@ export type SessionInfo = {
   is_current: boolean
 }
 
+type RpcSessionRow = {
+  id: string
+  user_agent: string | null
+  ip: string | null
+  created_at: string
+  updated_at: string | null
+  not_after: string | null
+}
+
 async function getCurrentSessionId(): Promise<string | null> {
   const supabase = await createClient()
   const { data } = await supabase.auth.getSession()
@@ -32,31 +41,23 @@ export async function listMySessions(): Promise<ActionResult<SessionInfo[]>> {
 
   const currentSessionId = await getCurrentSessionId()
 
-  // Supabase Auth doesn't expose a session-list admin API in this SDK version,
-  // so we query auth.sessions directly with the service-role client.
+  // auth schema is not exposed via PostgREST; use SECURITY DEFINER RPC instead.
   const admin = await createServiceRoleClient()
-  const { data, error } = await admin
-    .schema("auth")
-    .from("sessions")
-    .select("id, user_agent, ip, updated_at, created_at, not_after")
-    .eq("user_id", user.id)
-    .order("updated_at", { ascending: false })
+  const { data, error } = await admin.rpc("list_user_sessions", { p_user_id: user.id })
 
   if (error) {
-    console.error("listMySessions query error:", error)
+    console.error("listMySessions RPC error:", error)
     return { ok: false, message: "Errore durante il caricamento delle sessioni" }
   }
 
-  const now = Date.now()
-  const sessions = (data ?? [])
-    .filter((s) => !s.not_after || new Date(s.not_after).getTime() > now)
-    .map((s) => ({
-      id: s.id as string,
-      user_agent: (s.user_agent as string) ?? "Sconosciuto",
-      ip: (s.ip as string) ?? "—",
-      last_active_at: (s.updated_at as string) ?? (s.created_at as string),
-      is_current: s.id === currentSessionId,
-    }))
+  const rows = (data ?? []) as RpcSessionRow[]
+  const sessions: SessionInfo[] = rows.map((s) => ({
+    id: s.id,
+    user_agent: s.user_agent ?? "Sconosciuto",
+    ip: s.ip ?? "—",
+    last_active_at: s.updated_at ?? s.created_at,
+    is_current: s.id === currentSessionId,
+  }))
 
   return { ok: true, data: sessions }
 }
@@ -67,29 +68,17 @@ export async function revokeSession(sessionId: string): Promise<ActionResult<voi
   if (!user) return { ok: false, message: "Non autorizzato" }
 
   const admin = await createServiceRoleClient()
-  // Verify ownership before deleting (prevents revoking other users' sessions).
-  const { data: owned, error: ownErr } = await admin
-    .schema("auth")
-    .from("sessions")
-    .select("id")
-    .eq("id", sessionId)
-    .eq("user_id", user.id)
-    .maybeSingle()
-
-  if (ownErr || !owned) {
-    return { ok: false, message: "Sessione non trovata" }
-  }
-
-  const { error } = await admin
-    .schema("auth")
-    .from("sessions")
-    .delete()
-    .eq("id", sessionId)
-    .eq("user_id", user.id)
+  const { data, error } = await admin.rpc("revoke_user_session", {
+    p_session_id: sessionId,
+    p_user_id: user.id,
+  })
 
   if (error) {
-    console.error("revokeSession delete error:", error)
+    console.error("revokeSession RPC error:", error)
     return { ok: false, message: "Errore durante la revoca" }
+  }
+  if (!data) {
+    return { ok: false, message: "Sessione non trovata" }
   }
 
   return { ok: true, data: undefined }
@@ -100,7 +89,6 @@ export async function revokeAllOtherSessions(): Promise<ActionResult<void>> {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { ok: false, message: "Non autorizzato" }
 
-  // scope:'others' logs out every session except the current one.
   const { error } = await supabase.auth.signOut({ scope: "others" })
   if (error) {
     console.error("signOut(others) error:", error)
