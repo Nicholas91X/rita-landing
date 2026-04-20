@@ -4,6 +4,7 @@ import Stripe from 'stripe'
 import { createClient } from '@supabase/supabase-js'
 import { revalidateTag } from 'next/cache'
 import { sendPurchaseConfirmationEmail } from '@/lib/email'
+import { claimWebhookEvent } from '@/lib/security/idempotency'
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || 'sk_test_placeholder', {
     apiVersion: '2025-12-15.clover' as unknown as Stripe.LatestApiVersion,
@@ -26,6 +27,25 @@ export async function POST(req: Request) {
         const errorMessage = err instanceof Error ? err.message : 'Unknown error'
         console.error(`Webhook Error: ${errorMessage}`)
         return new NextResponse(`Webhook Error: ${errorMessage}`, { status: 400 })
+    }
+
+    // Idempotency: claim the event by its Stripe ID. If the same event_id was
+    // already processed (Stripe retries, at-least-once semantics), skip and 200.
+    // Uses service-role client because stripe_webhook_events has RLS on.
+    const idempotencyAdmin = createClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.SUPABASE_SERVICE_ROLE_KEY!
+    )
+    try {
+        const { alreadyProcessed } = await claimWebhookEvent(idempotencyAdmin, event)
+        if (alreadyProcessed) {
+            return new NextResponse('Event already processed', { status: 200 })
+        }
+    } catch (err: unknown) {
+        const errorMessage = err instanceof Error ? err.message : 'Unknown error'
+        console.error('Idempotency claim failed:', errorMessage)
+        // Return 500 so Stripe retries — better to reprocess than silently drop.
+        return new NextResponse(`Idempotency error: ${errorMessage}`, { status: 500 })
     }
 
     if (event.type === 'checkout.session.completed') {

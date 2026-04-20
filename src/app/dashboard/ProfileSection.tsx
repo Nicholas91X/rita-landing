@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import Image from 'next/image'
-import { getUserProfile, updateProfile, updateEmail, updatePassword, getPassportStamps, requestAccountDeletion } from '@/app/actions/user'
+import { getUserProfile, updateProfileAction, updateEmail, updatePassword, getPassportStamps, requestAccountDeletion } from '@/app/actions/user'
 import { logger } from '@/lib/logger'
 import UserProfileNotifications from './UserProfileNotifications'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -108,21 +108,35 @@ export default function ProfileSection({ onProfileUpdate, activeSubTab = 'info' 
     }
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        if (e.target.files && e.target.files[0]) {
-            setFormData(prev => ({ ...prev, avatar: e.target.files![0] }))
+        const file = e.target.files?.[0]
+        if (!file) return
+        if (file.size > 5 * 1024 * 1024) {
+            toast.error('Avatar troppo grande (max 5 MB)')
+            e.target.value = ''
+            return
         }
+        if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
+            toast.error('Formato non supportato. Usa JPEG, PNG o WebP.')
+            e.target.value = ''
+            return
+        }
+        setFormData(prev => ({ ...prev, avatar: file }))
     }
 
     const handleSave = async () => {
         setSaving(true)
         try {
             const data = new FormData()
-            data.append('fullName', formData.fullName)
+            data.append('full_name', formData.fullName)
             if (formData.avatar) {
                 data.append('avatar', formData.avatar)
             }
 
-            await updateProfile(data)
+            const result = await updateProfileAction(data)
+            if (!result.ok) {
+                toast.error(result.message)
+                return
+            }
 
             // Refresh data
             const newData = await getUserProfile()
@@ -271,7 +285,7 @@ export default function ProfileSection({ onProfileUpdate, activeSubTab = 'info' 
                                         type="file"
                                         id="avatar-upload"
                                         className="hidden"
-                                        accept="image/*"
+                                        accept="image/jpeg,image/png,image/webp"
                                         onChange={handleFileChange}
                                         disabled={!isEditing}
                                     />

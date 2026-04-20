@@ -180,7 +180,11 @@ export default function BillingSection() {
         if (!cancelDialog.subId) return
         try {
             setActionLoading(cancelDialog.subId)
-            await cancelSubscription(cancelDialog.subId)
+            const result = await cancelSubscription({ subscriptionId: cancelDialog.subId })
+            if (!result.ok) {
+                toast.error(result.message)
+                return
+            }
             toast.success('Rinnovo annullato con successo')
             setCancelDialog({ open: false, subId: null })
             fetchSubs()
@@ -196,7 +200,15 @@ export default function BillingSection() {
         if (!refundReason.trim()) return toast.error('Specifica una motivazione')
         try {
             setIsSubmittingRefund(true)
-            await requestRefund(refundDialog.id!, refundReason, refundDialog.type)
+            const result = await requestRefund({
+                id: refundDialog.id!,
+                reason: refundReason,
+                type: refundDialog.type,
+            })
+            if (!result.ok) {
+                toast.error(result.message)
+                return
+            }
             toast.success('Richiesta di rimborso inviata correttamente')
             setRefundDialog({ open: false, id: null, type: 'subscription' })
             setRefundReason('')

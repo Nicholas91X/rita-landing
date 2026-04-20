@@ -3,6 +3,9 @@
 import { createClient } from '@/utils/supabase/server'
 import { createHash } from 'crypto'
 import { sendBadgeEarnedEmail } from '@/lib/email'
+import { saveVideoProgressSchema } from './video.schemas'
+import { validate, ValidationError } from '@/lib/security/validation'
+import type { ActionResult } from '@/lib/security/types'
 
 export async function getSignedVideoUrl(videoUuid: string) {
     const supabase = await createClient()
@@ -81,15 +84,25 @@ export async function getSignedThumbnailUrls(videoIds: string[]): Promise<Record
     return result
 }
 
-export async function saveVideoProgress(videoId: string, progressSeconds: number, durationSeconds: number) {
+export async function saveVideoProgress(args: unknown): Promise<ActionResult<void>> {
+    let parsed
+    try {
+        parsed = validate(saveVideoProgressSchema, args)
+    } catch (err) {
+        if (err instanceof ValidationError) {
+            return { ok: false, message: 'Dati non validi', fieldErrors: err.fieldErrors }
+        }
+        throw err
+    }
+
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
 
-    if (!user) throw new Error('Non autorizzato')
+    if (!user) return { ok: false, message: 'Non autorizzato' }
 
     // Cap values to prevent client-side manipulation
-    const cappedProgress = Math.max(0, Math.floor(progressSeconds))
-    const cappedDuration = Math.max(1, Math.floor(durationSeconds))
+    const cappedProgress = Math.max(0, Math.floor(parsed.progress_seconds))
+    const cappedDuration = Math.max(1, Math.floor(parsed.duration_seconds))
     // Ensure progress doesn't exceed duration
     const safeProgress = Math.min(cappedProgress, cappedDuration)
 
@@ -99,7 +112,7 @@ export async function saveVideoProgress(videoId: string, progressSeconds: number
         .from('video_watch_progress')
         .upsert({
             user_id: user.id,
-            video_id: videoId,
+            video_id: parsed.video_id,
             progress_seconds: safeProgress,
             duration_seconds: cappedDuration,
             is_completed: isCompleted,
@@ -110,15 +123,15 @@ export async function saveVideoProgress(videoId: string, progressSeconds: number
 
     if (upsertError) {
         console.error('Error saving video progress:', upsertError)
-        throw new Error('Errore durante il salvataggio del progresso: ' + upsertError.message)
+        return { ok: false, message: 'Errore durante il salvataggio del progresso: ' + upsertError.message }
     }
 
     // If video was just completed, check for package completion
     if (isCompleted) {
-        await checkAndAwardPackageBadge(user.id, videoId)
+        await checkAndAwardPackageBadge(user.id, parsed.video_id)
     }
 
-    return { success: true }
+    return { ok: true, data: undefined }
 }
 
 async function checkAndAwardPackageBadge(userId: string, videoId: string) {

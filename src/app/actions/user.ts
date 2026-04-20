@@ -1,10 +1,24 @@
 'use server'
 
-import { createClient } from '@/utils/supabase/server'
+import { createClient, createServiceRoleClient } from '@/utils/supabase/server'
 import { redirect } from 'next/navigation'
 import { unstable_cache } from 'next/cache'
+import { headers } from 'next/headers'
 import Stripe from 'stripe'
 import { reconcileUserBadges } from './video'
+import { signupSchema, loginSchema, forgotPasswordSchema, findEmailSchema, updateProfileSchema } from './user.schemas'
+import { validate, ValidationError, formDataToObject } from '@/lib/security/validation'
+import {
+    enforceRateLimit,
+    signupLimiter,
+    loginIpLimiter,
+    loginEmailLimiter,
+    forgotPasswordLimiter,
+    forgotEmailLimiter,
+    RateLimitError,
+} from '@/lib/security/ratelimit'
+import { assertPasswordNotLeaked, LeakedPasswordError } from '@/lib/security/password'
+import type { ActionResult } from '@/lib/security/types'
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || 'sk_test_placeholder', {
     apiVersion: '2025-12-15.clover' as unknown as Stripe.LatestApiVersion,
@@ -416,32 +430,38 @@ export async function markUserNotificationAsRead(id: string) {
     return { success: true }
 }
 
-export async function updateProfile(formData: FormData) {
+export async function updateProfileAction(
+    formData: FormData,
+): Promise<ActionResult<{ avatar_url?: string }>> {
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
 
-    if (!user) throw new Error('Unauthorized')
+    if (!user) return { ok: false, message: 'Non autorizzato' }
 
-    const fullName = formData.get('fullName') as string
-    const avatarFile = formData.get('avatar') as File
+    const avatarFile = formData.get('avatar') as File | null
+
+    let parsed
+    try {
+        parsed = validate(updateProfileSchema, { full_name: formData.get('full_name') })
+    } catch (err) {
+        if (err instanceof ValidationError) {
+            return { ok: false, message: 'Dati non validi', fieldErrors: err.fieldErrors }
+        }
+        throw err
+    }
 
     const updates: ProfileUpdates = {
         updated_at: new Date().toISOString(),
-    }
-
-    if (fullName) {
-        updates.full_name = fullName
+        full_name: parsed.full_name,
     }
 
     if (avatarFile && avatarFile.size > 0) {
-        // Validate file type
-        const allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif']
+        const allowedTypes = ['image/jpeg', 'image/png', 'image/webp']
         if (!allowedTypes.includes(avatarFile.type)) {
-            throw new Error('Formato file non supportato. Usa JPG, PNG, WebP o GIF.')
+            return { ok: false, message: 'Formato non supportato (JPEG, PNG, WebP)', fieldErrors: { avatar: ['Formato non supportato'] } }
         }
-        // Validate file size (max 5MB)
         if (avatarFile.size > 5 * 1024 * 1024) {
-            throw new Error('Il file è troppo grande. Massimo 5MB.')
+            return { ok: false, message: 'Avatar troppo grande (max 5 MB)', fieldErrors: { avatar: ['Max 5 MB'] } }
         }
 
         // 1. Cleanup old avatar if exists
@@ -478,7 +498,7 @@ export async function updateProfile(formData: FormData) {
 
         if (uploadError) {
             console.error('Error uploading avatar:', uploadError)
-            throw new Error('Errore durante il caricamento della foto')
+            return { ok: false, message: 'Errore durante il caricamento della foto' }
         }
 
         const { data: { publicUrl } } = supabase.storage
@@ -495,10 +515,10 @@ export async function updateProfile(formData: FormData) {
 
     if (error) {
         console.error('Error updating profile:', error)
-        throw new Error('Errore durante l\'aggiornamento del profilo')
+        return { ok: false, message: "Errore durante l'aggiornamento del profilo" }
     }
 
-    return { success: true }
+    return { ok: true, data: { avatar_url: updates.avatar_url } }
 }
 
 export async function updateEmail(email: string) {
@@ -592,15 +612,202 @@ export async function findEmail(fullName: string) {
     return { success: true, maskedEmails }
 }
 
+export async function signUpAction(
+    formData: FormData,
+): Promise<ActionResult<{ needsEmailConfirmation: boolean }>> {
+    // 1. Validate input
+    let parsed
+    try {
+        parsed = validate(signupSchema, formDataToObject(formData))
+    } catch (err) {
+        if (err instanceof ValidationError) {
+            return { ok: false, message: 'Dati non validi', fieldErrors: err.fieldErrors }
+        }
+        throw err
+    }
+
+    // 2. Rate limit (fail-closed for auth)
+    const h = await headers()
+    const ip = h.get('x-forwarded-for')?.split(',')[0].trim() ?? 'unknown'
+    try {
+        await enforceRateLimit(signupLimiter(), `signup:${ip}`)
+    } catch (err) {
+        if (err instanceof RateLimitError) {
+            return {
+                ok: false,
+                message: `Troppe richieste di registrazione. Riprova tra ${err.retryAfter} secondi.`,
+                retryAfter: err.retryAfter,
+            }
+        }
+        return {
+            ok: false,
+            message: 'Servizio temporaneamente non disponibile. Riprova tra qualche minuto.',
+        }
+    }
+
+    // 3. HIBP check (fail-open)
+    try {
+        await assertPasswordNotLeaked(parsed.password)
+    } catch (err) {
+        if (err instanceof LeakedPasswordError) {
+            return {
+                ok: false,
+                message: 'Questa password appare in database pubblici di credenziali compromesse. Usane una diversa — suggerimento: frase o combinazione casuale di 12+ caratteri.',
+                fieldErrors: { password: ['Password compromessa'] },
+            }
+        }
+        // fail-open for other errors (network failures)
+    }
+
+    // 4. Supabase signup
+    const supabase = await createClient()
+    const { data, error } = await supabase.auth.signUp({
+        email: parsed.email,
+        password: parsed.password,
+        options: { data: { full_name: parsed.full_name } },
+    })
+
+    if (error) {
+        return { ok: false, message: error.message }
+    }
+
+    const emailAlreadyExists = data.user?.identities?.length === 0
+    if (emailAlreadyExists) {
+        return { ok: false, message: 'Email già registrata. Effettua il login o recupera la password.' }
+    }
+
+    return { ok: true, data: { needsEmailConfirmation: !data.session } }
+}
+
+export async function logInAction(
+    formData: FormData,
+): Promise<ActionResult<void>> {
+    let parsed
+    try {
+        parsed = validate(loginSchema, formDataToObject(formData))
+    } catch (err) {
+        if (err instanceof ValidationError) {
+            return { ok: false, message: 'Dati non validi', fieldErrors: err.fieldErrors }
+        }
+        throw err
+    }
+
+    const h = await headers()
+    const ip = h.get('x-forwarded-for')?.split(',')[0].trim() ?? 'unknown'
+
+    try {
+        await Promise.all([
+            enforceRateLimit(loginIpLimiter(), `login:ip:${ip}`),
+            enforceRateLimit(loginEmailLimiter(), `login:email:${parsed.email}`),
+        ])
+    } catch (err) {
+        if (err instanceof RateLimitError) {
+            return {
+                ok: false,
+                message: `Troppi tentativi di login falliti. Riprova tra ${err.retryAfter} secondi.`,
+                retryAfter: err.retryAfter,
+            }
+        }
+        return { ok: false, message: 'Servizio temporaneamente non disponibile.' }
+    }
+
+    const supabase = await createClient()
+    const { error } = await supabase.auth.signInWithPassword({
+        email: parsed.email,
+        password: parsed.password,
+    })
+
+    if (error) {
+        return { ok: false, message: 'Email o password errate.' }
+    }
+
+    return { ok: true, data: undefined }
+}
+
+export async function recoverPasswordAction(
+    formData: FormData,
+): Promise<ActionResult<void>> {
+    let parsed
+    try {
+        parsed = validate(forgotPasswordSchema, formDataToObject(formData))
+    } catch (err) {
+        if (err instanceof ValidationError) {
+            return { ok: false, message: 'Email non valida', fieldErrors: err.fieldErrors }
+        }
+        throw err
+    }
+
+    try {
+        await enforceRateLimit(forgotPasswordLimiter(), `forgot-pw:${parsed.email}`)
+    } catch (err) {
+        if (err instanceof RateLimitError) {
+            return {
+                ok: false,
+                message: `Troppe richieste di reset. Riprova tra ${err.retryAfter} secondi.`,
+                retryAfter: err.retryAfter,
+            }
+        }
+        // fail-open
+    }
+
+    const supabase = await createClient()
+    const { error } = await supabase.auth.resetPasswordForEmail(parsed.email, {
+        redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/auth/reset-password`,
+    })
+
+    // Do not leak whether the email exists
+    if (error) {
+        console.warn('Password recovery error:', error.message)
+    }
+    return { ok: true, data: undefined }
+}
+
+export async function findEmailAction(
+    formData: FormData,
+): Promise<ActionResult<{ maskedEmails: string[] }>> {
+    let parsed
+    try {
+        parsed = validate(findEmailSchema, formDataToObject(formData))
+    } catch (err) {
+        if (err instanceof ValidationError) {
+            return { ok: false, message: 'Nome non valido', fieldErrors: err.fieldErrors }
+        }
+        throw err
+    }
+
+    const h = await headers()
+    const ip = h.get('x-forwarded-for')?.split(',')[0].trim() ?? 'unknown'
+
+    try {
+        await enforceRateLimit(forgotEmailLimiter(), `forgot-email:ip:${ip}`)
+    } catch (err) {
+        if (err instanceof RateLimitError) {
+            return {
+                ok: false,
+                message: `Troppe richieste. Riprova tra ${err.retryAfter} secondi.`,
+                retryAfter: err.retryAfter,
+            }
+        }
+    }
+
+    try {
+        const result = await findEmail(parsed.full_name)
+        return { ok: true, data: { maskedEmails: result.maskedEmails } }
+    } catch (err) {
+        const message = err instanceof Error ? err.message : 'Errore durante la ricerca'
+        return { ok: false, message }
+    }
+}
+
 export async function requestAccountDeletion() {
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
 
     if (!user) throw new Error('Non autorizzato')
 
-    // Create an admin notification for manual processing
-    // Full deletion requires service_role access to delete auth user + cascade data
-    await supabase.from('admin_notifications').insert({
+    // Admin notification via service role (migration 06 drops the user-scoped INSERT policy).
+    const supabaseAdmin = await createServiceRoleClient()
+    await supabaseAdmin.from('admin_notifications').insert({
         type: 'account_deletion',
         user_id: user.id,
         data: {
@@ -609,7 +816,7 @@ export async function requestAccountDeletion() {
         }
     })
 
-    // Notify the user
+    // Notify the user (user_notifications is user-scoped, keep regular client)
     await supabase.from('user_notifications').insert({
         user_id: user.id,
         title: 'Richiesta di eliminazione account',
