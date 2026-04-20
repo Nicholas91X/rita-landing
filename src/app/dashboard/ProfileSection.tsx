@@ -4,13 +4,14 @@ import { useState, useEffect } from 'react'
 import Image from 'next/image'
 import { getUserProfile, updateProfileAction, updateEmail, updatePassword, getPassportStamps } from '@/app/actions/user'
 import { requestDataExport, requestAccountDeletionGdpr } from '@/app/actions/gdpr'
+import { listMySessions, revokeSession, revokeAllOtherSessions, type SessionInfo } from '@/app/actions/sessions'
 import { logger } from '@/lib/logger'
 import UserProfileNotifications from './UserProfileNotifications'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
-import { User, Mail, Shield, LogOut, Loader2, Camera, ChevronLeft, ChevronRight, Trash2, Sun, Moon, Download } from 'lucide-react'
+import { User, Mail, Shield, LogOut, Loader2, Camera, ChevronLeft, ChevronRight, Trash2, Sun, Moon, Download, Monitor, X } from 'lucide-react'
 import { createClient } from '@/utils/supabase/client'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
@@ -194,6 +195,53 @@ export default function ProfileSection({ onProfileUpdate, activeSubTab = 'info' 
     }
 
     const [exportPending, setExportPending] = useState(false)
+    const [sessions, setSessions] = useState<SessionInfo[]>([])
+    const [sessionsLoading, setSessionsLoading] = useState(false)
+    const [sessionActionId, setSessionActionId] = useState<string | null>(null)
+
+    const loadSessions = async () => {
+        setSessionsLoading(true)
+        try {
+            const result = await listMySessions()
+            if (result.ok) setSessions(result.data)
+        } finally {
+            setSessionsLoading(false)
+        }
+    }
+
+    useEffect(() => {
+        loadSessions()
+    }, [])
+
+    const handleRevokeSession = async (id: string) => {
+        setSessionActionId(id)
+        try {
+            const result = await revokeSession(id)
+            if (!result.ok) {
+                toast.error(result.message)
+                return
+            }
+            toast.success('Sessione terminata')
+            await loadSessions()
+        } finally {
+            setSessionActionId(null)
+        }
+    }
+
+    const handleRevokeAllOthers = async () => {
+        setSessionActionId('__others__')
+        try {
+            const result = await revokeAllOtherSessions()
+            if (!result.ok) {
+                toast.error(result.message)
+                return
+            }
+            toast.success('Altre sessioni terminate')
+            await loadSessions()
+        } finally {
+            setSessionActionId(null)
+        }
+    }
 
     const handleExportData = async () => {
         setExportPending(true)
@@ -488,6 +536,71 @@ export default function ProfileSection({ onProfileUpdate, activeSubTab = 'info' 
                                                 )}
                                             </div>
                                         </button>
+                                    </div>
+                                </CardContent>
+                            </Card>
+
+                            {/* Active Sessions (Sicurezza) */}
+                            <Card className="bg-[var(--dash-card)] border-[var(--dash-border)] shadow-xl rounded-[32px] overflow-hidden">
+                                <CardContent className="p-6 md:p-8">
+                                    <div className="flex flex-col gap-4">
+                                        <div className="flex items-start gap-4">
+                                            <div className="p-3 bg-[var(--dash-card-header)] rounded-2xl border border-[var(--dash-border)] shrink-0">
+                                                <Monitor className="w-5 h-5 text-[var(--dash-accent)]" />
+                                            </div>
+                                            <div className="flex-1 min-w-0">
+                                                <label className="text-[10px] text-[var(--dash-muted-light)] uppercase font-black tracking-widest block mb-1">Sicurezza</label>
+                                                <p className="text-[var(--dash-text)] font-bold">Sessioni attive</p>
+                                                <p className="text-xs text-[var(--dash-muted-light)] mt-1 leading-relaxed">Dispositivi e browser dove hai effettuato l&apos;accesso.</p>
+                                            </div>
+                                        </div>
+
+                                        {sessionsLoading ? (
+                                            <div className="flex items-center justify-center py-6">
+                                                <Loader2 className="w-5 h-5 animate-spin text-[var(--dash-muted-light)]" />
+                                            </div>
+                                        ) : sessions.length === 0 ? (
+                                            <p className="text-xs text-[var(--dash-muted-light)] text-center py-4">Nessuna sessione attiva.</p>
+                                        ) : (
+                                            <div className="flex flex-col gap-2">
+                                                {sessions.map((s) => (
+                                                    <div key={s.id} className="flex items-center justify-between gap-3 p-3 rounded-xl border border-[var(--dash-border)] bg-[var(--dash-card-header)]">
+                                                        <div className="flex-1 min-w-0">
+                                                            <p className="text-xs font-bold text-[var(--dash-text)] truncate">
+                                                                {s.user_agent}
+                                                                {s.is_current && <span className="ml-2 text-[10px] text-emerald-500 font-bold">· Questa sessione</span>}
+                                                            </p>
+                                                            <p className="text-[10px] text-[var(--dash-muted-light)] mt-0.5">
+                                                                IP: {s.ip} · Ultima attività: {new Date(s.last_active_at).toLocaleString('it-IT')}
+                                                            </p>
+                                                        </div>
+                                                        {!s.is_current && (
+                                                            <Button
+                                                                variant="ghost"
+                                                                size="sm"
+                                                                onClick={() => handleRevokeSession(s.id)}
+                                                                disabled={sessionActionId === s.id}
+                                                                className="text-red-500 hover:text-red-600 hover:bg-red-50 shrink-0"
+                                                                aria-label="Termina sessione"
+                                                            >
+                                                                {sessionActionId === s.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <X className="w-4 h-4" />}
+                                                            </Button>
+                                                        )}
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        )}
+
+                                        {sessions.filter((s) => !s.is_current).length > 0 && (
+                                            <Button
+                                                variant="outline"
+                                                onClick={handleRevokeAllOthers}
+                                                disabled={sessionActionId === '__others__'}
+                                                className="w-full rounded-xl text-sm font-bold py-3 min-h-[44px] border-red-200 text-red-600 hover:bg-red-50"
+                                            >
+                                                {sessionActionId === '__others__' ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Termina tutte le altre sessioni'}
+                                            </Button>
+                                        )}
                                     </div>
                                 </CardContent>
                             </Card>
