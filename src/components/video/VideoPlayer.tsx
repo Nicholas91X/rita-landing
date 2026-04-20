@@ -165,9 +165,18 @@ export default function VideoPlayer({ videoId, initialTime = 0, onProgressUpdate
                             lastSavedTime.current = currentTime
                             try {
                                 setStatus('saving')
-                                await saveVideoProgress(videoId, currentTime, currentDuration)
-                                setStatus('connected')
-                                onProgressUpdateRef.current?.()
+                                const result = await saveVideoProgress({
+                                    video_id: videoId,
+                                    progress_seconds: Math.floor(currentTime),
+                                    duration_seconds: Math.floor(currentDuration),
+                                })
+                                if (!result.ok) {
+                                    logger.error('Save failed:', result.message)
+                                    setStatus('error')
+                                } else {
+                                    setStatus('connected')
+                                    onProgressUpdateRef.current?.()
+                                }
                             } catch (saveErr) {
                                 logger.error('Save failed:', saveErr)
                                 setStatus('error')
@@ -186,9 +195,17 @@ export default function VideoPlayer({ videoId, initialTime = 0, onProgressUpdate
                     if (finalDuration > 0) {
                         try {
                             setStatus('saving')
-                            await saveVideoProgress(videoId, finalDuration, finalDuration)
-                            setStatus('connected')
-                            onProgressUpdateRef.current?.()
+                            const result = await saveVideoProgress({
+                                video_id: videoId,
+                                progress_seconds: finalDuration,
+                                duration_seconds: finalDuration,
+                            })
+                            if (!result.ok) {
+                                setStatus('error')
+                            } else {
+                                setStatus('connected')
+                                onProgressUpdateRef.current?.()
+                            }
                         } catch {
                             setStatus('error')
                         }
