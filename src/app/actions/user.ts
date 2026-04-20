@@ -6,7 +6,7 @@ import { unstable_cache } from 'next/cache'
 import { headers } from 'next/headers'
 import Stripe from 'stripe'
 import { reconcileUserBadges } from './video'
-import { signupSchema, loginSchema, forgotPasswordSchema, findEmailSchema } from './user.schemas'
+import { signupSchema, loginSchema, forgotPasswordSchema, findEmailSchema, updateProfileSchema } from './user.schemas'
 import { validate, ValidationError, formDataToObject } from '@/lib/security/validation'
 import {
     enforceRateLimit,
@@ -430,32 +430,38 @@ export async function markUserNotificationAsRead(id: string) {
     return { success: true }
 }
 
-export async function updateProfile(formData: FormData) {
+export async function updateProfileAction(
+    formData: FormData,
+): Promise<ActionResult<{ avatar_url?: string }>> {
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
 
-    if (!user) throw new Error('Unauthorized')
+    if (!user) return { ok: false, message: 'Non autorizzato' }
 
-    const fullName = formData.get('fullName') as string
-    const avatarFile = formData.get('avatar') as File
+    const avatarFile = formData.get('avatar') as File | null
+
+    let parsed
+    try {
+        parsed = validate(updateProfileSchema, { full_name: formData.get('full_name') })
+    } catch (err) {
+        if (err instanceof ValidationError) {
+            return { ok: false, message: 'Dati non validi', fieldErrors: err.fieldErrors }
+        }
+        throw err
+    }
 
     const updates: ProfileUpdates = {
         updated_at: new Date().toISOString(),
-    }
-
-    if (fullName) {
-        updates.full_name = fullName
+        full_name: parsed.full_name,
     }
 
     if (avatarFile && avatarFile.size > 0) {
-        // Validate file type
-        const allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif']
+        const allowedTypes = ['image/jpeg', 'image/png', 'image/webp']
         if (!allowedTypes.includes(avatarFile.type)) {
-            throw new Error('Formato file non supportato. Usa JPG, PNG, WebP o GIF.')
+            return { ok: false, message: 'Formato non supportato (JPEG, PNG, WebP)', fieldErrors: { avatar: ['Formato non supportato'] } }
         }
-        // Validate file size (max 5MB)
         if (avatarFile.size > 5 * 1024 * 1024) {
-            throw new Error('Il file è troppo grande. Massimo 5MB.')
+            return { ok: false, message: 'Avatar troppo grande (max 5 MB)', fieldErrors: { avatar: ['Max 5 MB'] } }
         }
 
         // 1. Cleanup old avatar if exists
@@ -492,7 +498,7 @@ export async function updateProfile(formData: FormData) {
 
         if (uploadError) {
             console.error('Error uploading avatar:', uploadError)
-            throw new Error('Errore durante il caricamento della foto')
+            return { ok: false, message: 'Errore durante il caricamento della foto' }
         }
 
         const { data: { publicUrl } } = supabase.storage
@@ -509,10 +515,10 @@ export async function updateProfile(formData: FormData) {
 
     if (error) {
         console.error('Error updating profile:', error)
-        throw new Error('Errore durante l\'aggiornamento del profilo')
+        return { ok: false, message: "Errore durante l'aggiornamento del profilo" }
     }
 
-    return { success: true }
+    return { ok: true, data: { avatar_url: updates.avatar_url } }
 }
 
 export async function updateEmail(email: string) {
