@@ -718,6 +718,81 @@ export async function logInAction(
     return { ok: true, data: undefined }
 }
 
+export async function recoverPasswordAction(
+    formData: FormData,
+): Promise<ActionResult<void>> {
+    let parsed
+    try {
+        parsed = validate(forgotPasswordSchema, formDataToObject(formData))
+    } catch (err) {
+        if (err instanceof ValidationError) {
+            return { ok: false, message: 'Email non valida', fieldErrors: err.fieldErrors }
+        }
+        throw err
+    }
+
+    try {
+        await enforceRateLimit(forgotPasswordLimiter(), `forgot-pw:${parsed.email}`)
+    } catch (err) {
+        if (err instanceof RateLimitError) {
+            return {
+                ok: false,
+                message: `Troppe richieste di reset. Riprova tra ${err.retryAfter} secondi.`,
+                retryAfter: err.retryAfter,
+            }
+        }
+        // fail-open
+    }
+
+    const supabase = await createClient()
+    const { error } = await supabase.auth.resetPasswordForEmail(parsed.email, {
+        redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/auth/reset-password`,
+    })
+
+    // Do not leak whether the email exists
+    if (error) {
+        console.warn('Password recovery error:', error.message)
+    }
+    return { ok: true, data: undefined }
+}
+
+export async function findEmailAction(
+    formData: FormData,
+): Promise<ActionResult<{ maskedEmails: string[] }>> {
+    let parsed
+    try {
+        parsed = validate(findEmailSchema, formDataToObject(formData))
+    } catch (err) {
+        if (err instanceof ValidationError) {
+            return { ok: false, message: 'Nome non valido', fieldErrors: err.fieldErrors }
+        }
+        throw err
+    }
+
+    const h = await headers()
+    const ip = h.get('x-forwarded-for')?.split(',')[0].trim() ?? 'unknown'
+
+    try {
+        await enforceRateLimit(forgotEmailLimiter(), `forgot-email:ip:${ip}`)
+    } catch (err) {
+        if (err instanceof RateLimitError) {
+            return {
+                ok: false,
+                message: `Troppe richieste. Riprova tra ${err.retryAfter} secondi.`,
+                retryAfter: err.retryAfter,
+            }
+        }
+    }
+
+    try {
+        const result = await findEmail(parsed.full_name)
+        return { ok: true, data: { maskedEmails: result.maskedEmails } }
+    } catch (err) {
+        const message = err instanceof Error ? err.message : 'Errore durante la ricerca'
+        return { ok: false, message }
+    }
+}
+
 export async function requestAccountDeletion() {
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()

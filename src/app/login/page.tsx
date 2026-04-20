@@ -4,7 +4,7 @@ import { useState } from 'react'
 import Logo from '@/components/Logo'
 import { Button } from '@/components/ui/button'
 import { Loader2, Mail, Lock, User, ArrowLeft, Eye, EyeOff } from 'lucide-react'
-import { recoverPassword, findEmail, signUpAction, logInAction } from '@/app/actions/user'
+import { signUpAction, logInAction, recoverPasswordAction, findEmailAction } from '@/app/actions/user'
 import TransitionOverlay from '@/components/TransitionOverlay'
 
 type AuthMode = 'login' | 'signup' | 'forgot-password' | 'forgot-email'
@@ -62,11 +62,25 @@ export default function LoginPage() {
                     setMessage('Controlla la tua email per confermare la registrazione.')
                 }
             } else if (mode === 'forgot-password') {
-                await recoverPassword(email)
+                const fd = new FormData()
+                fd.append('email', email)
+                const result = await recoverPasswordAction(fd)
+                if (!result.ok) {
+                    setError(result.message)
+                    setLoading(false)
+                    return
+                }
                 setMessage('Email di ripristino inviata. Controlla la tua casella di posta.')
             } else if (mode === 'forgot-email') {
-                const result = await findEmail(fullName)
-                setMaskedEmails(result.maskedEmails)
+                const fd = new FormData()
+                fd.append('full_name', fullName)
+                const result = await findEmailAction(fd)
+                if (!result.ok) {
+                    setError(result.message)
+                    setLoading(false)
+                    return
+                }
+                setMaskedEmails(result.data.maskedEmails)
                 setMessage('Ecco gli indirizzi email associati al tuo nome:')
             }
         } catch (err: unknown) {
