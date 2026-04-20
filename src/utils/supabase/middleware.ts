@@ -17,6 +17,14 @@ export async function updateSession(request: NextRequest) {
         request,
     })
 
+    // Forward the real browser User-Agent and client IP to Supabase Auth so
+    // auth.sessions records meaningful values in user_agent/ip (otherwise every
+    // session row ends up labeled "node" from the Vercel Edge runtime).
+    const forwardedUa = request.headers.get('user-agent') ?? undefined
+    const forwardedXff = request.headers.get('x-forwarded-for')
+        ?? request.headers.get('x-real-ip')
+        ?? undefined
+
     const supabase = createServerClient(
         process.env.NEXT_PUBLIC_SUPABASE_URL!,
         process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
@@ -35,6 +43,12 @@ export async function updateSession(request: NextRequest) {
                     cookiesToSet.forEach(({ name, value, options }) =>
                         supabaseResponse.cookies.set(name, value, options)
                     )
+                },
+            },
+            global: {
+                headers: {
+                    ...(forwardedUa ? { 'User-Agent': forwardedUa } : {}),
+                    ...(forwardedXff ? { 'x-forwarded-for': forwardedXff } : {}),
                 },
             },
         }
