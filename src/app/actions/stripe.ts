@@ -1,10 +1,14 @@
 'use server'
 
-import { createClient } from '@/utils/supabase/server'
+import { createClient, createServiceRoleClient } from '@/utils/supabase/server'
 import Stripe from 'stripe'
 import { redirect } from 'next/navigation'
 import { headers } from 'next/headers'
 import { sendRefundRequestEmail } from '@/lib/email'
+import { refundRequestSchema, cancelSubscriptionSchema } from './stripe.schemas'
+import { validate, ValidationError } from '@/lib/security/validation'
+import { enforceRateLimit, refundLimiter, RateLimitError } from '@/lib/security/ratelimit'
+import type { ActionResult } from '@/lib/security/types'
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || 'sk_test_placeholder', {
     apiVersion: '2025-12-15.clover' as unknown as Stripe.LatestApiVersion,
@@ -149,11 +153,35 @@ export async function createPortalSession() {
 
     return session.url
 }
-export async function requestRefund(id: string, reason: string, type: 'subscription' | 'purchase' = 'subscription') {
+export async function requestRefund(args: unknown): Promise<ActionResult<void>> {
+    let parsed
+    try {
+        parsed = validate(refundRequestSchema, args)
+    } catch (err) {
+        if (err instanceof ValidationError) {
+            return { ok: false, message: 'Dati non validi', fieldErrors: err.fieldErrors }
+        }
+        throw err
+    }
+
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
-    if (!user) throw new Error('Unauthorized')
+    if (!user) return { ok: false, message: 'Non autorizzato' }
 
+    try {
+        await enforceRateLimit(refundLimiter(), `refund:${user.id}`)
+    } catch (err) {
+        if (err instanceof RateLimitError) {
+            return {
+                ok: false,
+                message: `Hai raggiunto il limite di richieste di rimborso. Riprova tra ${err.retryAfter} secondi.`,
+                retryAfter: err.retryAfter,
+            }
+        }
+        // fail-open on Upstash outage
+    }
+
+    const { id, reason, type } = parsed
     let packageName = 'Pacchetto'
     let createdAt: number
 
@@ -165,7 +193,7 @@ export async function requestRefund(id: string, reason: string, type: 'subscript
             .eq('user_id', user.id)
             .single()
 
-        if (!subData) throw new Error('Abbonamento non trovato')
+        if (!subData) return { ok: false, message: 'Abbonamento non trovato' }
         createdAt = new Date(subData.created_at).getTime()
         packageName = (subData.packages as unknown as { name: string })?.name || 'Pacchetto'
     } else {
@@ -176,21 +204,16 @@ export async function requestRefund(id: string, reason: string, type: 'subscript
             .eq('user_id', user.id)
             .single()
 
-        if (!purchaseData) throw new Error('Acquisto non trovato')
+        if (!purchaseData) return { ok: false, message: 'Acquisto non trovato' }
         createdAt = new Date(purchaseData.created_at).getTime()
         packageName = (purchaseData.packages as unknown as { name: string })?.name || 'Pacchetto'
     }
 
-    // 4 days limit logic (4 * 24 * 60 * 60 * 1000 = 345600000 ms)
     const now = new Date().getTime()
     const diffDays = (now - createdAt) / (1000 * 60 * 60 * 24)
 
     if (diffDays > 14) {
-        throw new Error('Non è possibile richiedere un rimborso dopo 14 giorni dall\'acquisto.')
-    }
-
-    if (!reason || reason.length > 500) {
-        throw new Error('Il motivo del rimborso deve essere tra 1 e 500 caratteri.')
+        return { ok: false, message: "Non è possibile richiedere un rimborso dopo 14 giorni dall'acquisto." }
     }
 
     const insertData: RefundInsertData = {
@@ -209,15 +232,16 @@ export async function requestRefund(id: string, reason: string, type: 'subscript
         .from('refund_requests')
         .insert(insertData)
 
-    if (error) throw new Error('Errore durante la richiesta di rimborso')
+    if (error) return { ok: false, message: 'Errore durante la richiesta di rimborso' }
 
-    // Create Admin Notification
-    await supabase.from('admin_notifications').insert({
+    // Admin Notification via service role (migration 06 drops the user-scoped INSERT policy).
+    const supabaseAdmin = await createServiceRoleClient()
+    await supabaseAdmin.from('admin_notifications').insert({
         type: 'refund_request',
         user_id: user.id,
         data: {
             packageName,
-            reason: reason,
+            reason,
             [type === 'subscription' ? 'subscriptionId' : 'purchaseId']: id
         }
     })
@@ -237,13 +261,24 @@ export async function requestRefund(id: string, reason: string, type: 'subscript
         }
     }
 
-    return { success: true }
+    return { ok: true, data: undefined }
 }
 
-export async function cancelSubscription(subscriptionId: string) {
+export async function cancelSubscription(args: unknown): Promise<ActionResult<void>> {
+    let parsed
+    try {
+        parsed = validate(cancelSubscriptionSchema, args)
+    } catch (err) {
+        if (err instanceof ValidationError) {
+            return { ok: false, message: 'ID non valido', fieldErrors: err.fieldErrors }
+        }
+        throw err
+    }
+    const { subscriptionId } = parsed
+
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
-    if (!user) throw new Error('Unauthorized')
+    if (!user) return { ok: false, message: 'Non autorizzato' }
 
     // 1. Get subscription info (with ownership check)
     const { data: sub, error: subError } = await supabase
@@ -253,7 +288,7 @@ export async function cancelSubscription(subscriptionId: string) {
         .eq('user_id', user.id)
         .single()
 
-    if (subError || !sub) throw new Error('Abbonamento non trovato')
+    if (subError || !sub) return { ok: false, message: 'Abbonamento non trovato' }
 
     // 2. Cancel in Stripe (only if ID exists)
     if (sub.stripe_subscription_id) {
@@ -263,9 +298,7 @@ export async function cancelSubscription(subscriptionId: string) {
             })
         } catch (err) {
             console.error('Stripe error during cancellation:', err)
-            // Continue to update DB anyway to keep things in sync if possible, 
-            // or throw if you want to be strict. Let's throw for Stripe errors.
-            throw new Error('Errore durante la comunicazione con Stripe')
+            return { ok: false, message: 'Errore durante la comunicazione con Stripe' }
         }
     }
 
@@ -275,16 +308,17 @@ export async function cancelSubscription(subscriptionId: string) {
         .update({ cancel_at_period_end: true })
         .eq('id', subscriptionId)
 
-    // 4. Create Admin Notification
-    await supabase.from('admin_notifications').insert({
+    // 4. Admin Notification via service role (migration 06 drops the user-scoped INSERT policy).
+    const supabaseAdmin = await createServiceRoleClient()
+    await supabaseAdmin.from('admin_notifications').insert({
         type: 'cancellation',
         user_id: user.id,
         data: {
             packageName: (sub.packages as unknown as { name: string })?.name || 'Pacchetto',
-            subscriptionId: subscriptionId,
+            subscriptionId,
             wasHeadless: !sub.stripe_subscription_id
         }
     })
 
-    return { success: true }
+    return { ok: true, data: undefined }
 }
