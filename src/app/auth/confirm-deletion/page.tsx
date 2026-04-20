@@ -1,11 +1,11 @@
 "use client"
 
-import { useState } from "react"
+import { Suspense, useState } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { confirmAccountDeletion } from "@/app/actions/gdpr"
 import { toast } from "sonner"
 
-export default function ConfirmDeletionPage() {
+function ConfirmDeletionClient() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const token = searchParams.get("token")
@@ -69,5 +69,13 @@ export default function ConfirmDeletionPage() {
         </button>
       </div>
     </main>
+  )
+}
+
+export default function ConfirmDeletionPage() {
+  return (
+    <Suspense fallback={<main className="max-w-md mx-auto p-8 text-center">Caricamento...</main>}>
+      <ConfirmDeletionClient />
+    </Suspense>
   )
 }
