@@ -1,11 +1,10 @@
 'use client'
 
 import { useState } from 'react'
-import { createClient } from '@/utils/supabase/client'
 import Logo from '@/components/Logo'
 import { Button } from '@/components/ui/button'
 import { Loader2, Mail, Lock, User, ArrowLeft, Eye, EyeOff } from 'lucide-react'
-import { recoverPassword, findEmail, signUpAction } from '@/app/actions/user'
+import { recoverPassword, findEmail, signUpAction, logInAction } from '@/app/actions/user'
 import TransitionOverlay from '@/components/TransitionOverlay'
 
 type AuthMode = 'login' | 'signup' | 'forgot-password' | 'forgot-email'
@@ -23,8 +22,6 @@ export default function LoginPage() {
     const [acceptedTerms, setAcceptedTerms] = useState(false)
     const [transitioning, setTransitioning] = useState(false)
 
-    const supabase = createClient()
-
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
         setLoading(true)
@@ -34,15 +31,20 @@ export default function LoginPage() {
 
         try {
             if (mode === 'login') {
-                const { error } = await supabase.auth.signInWithPassword({
-                    email,
-                    password,
-                })
-                if (error) throw error
+                const fd = new FormData()
+                fd.append('email', email)
+                fd.append('password', password)
+
+                const result = await logInAction(fd)
+                if (!result.ok) {
+                    setError(result.message)
+                    setLoading(false)
+                    return
+                }
 
                 setTransitioning(true)
                 setTimeout(() => { window.location.href = '/dashboard' }, 600)
-                return;
+                return
             } else if (mode === 'signup') {
                 const fd = new FormData()
                 fd.append('email', email)

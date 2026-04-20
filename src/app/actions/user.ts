@@ -673,6 +673,51 @@ export async function signUpAction(
     return { ok: true, data: { needsEmailConfirmation: !data.session } }
 }
 
+export async function logInAction(
+    formData: FormData,
+): Promise<ActionResult<void>> {
+    let parsed
+    try {
+        parsed = validate(loginSchema, formDataToObject(formData))
+    } catch (err) {
+        if (err instanceof ValidationError) {
+            return { ok: false, message: 'Dati non validi', fieldErrors: err.fieldErrors }
+        }
+        throw err
+    }
+
+    const h = await headers()
+    const ip = h.get('x-forwarded-for')?.split(',')[0].trim() ?? 'unknown'
+
+    try {
+        await Promise.all([
+            enforceRateLimit(loginIpLimiter(), `login:ip:${ip}`),
+            enforceRateLimit(loginEmailLimiter(), `login:email:${parsed.email}`),
+        ])
+    } catch (err) {
+        if (err instanceof RateLimitError) {
+            return {
+                ok: false,
+                message: `Troppi tentativi di login falliti. Riprova tra ${err.retryAfter} secondi.`,
+                retryAfter: err.retryAfter,
+            }
+        }
+        return { ok: false, message: 'Servizio temporaneamente non disponibile.' }
+    }
+
+    const supabase = await createClient()
+    const { error } = await supabase.auth.signInWithPassword({
+        email: parsed.email,
+        password: parsed.password,
+    })
+
+    if (error) {
+        return { ok: false, message: 'Email o password errate.' }
+    }
+
+    return { ok: true, data: undefined }
+}
+
 export async function requestAccountDeletion() {
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
