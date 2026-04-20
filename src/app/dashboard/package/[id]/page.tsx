@@ -22,14 +22,18 @@ export default async function PackagePage(props: {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) redirect('/login')
 
-    // 3. Verifica abbonamento usando packageId
-    const { data: sub } = await supabase
+    // 3. Verifica abbonamento usando packageId (attivo/trialing + period non scaduto)
+    const { data: subRow } = await supabase
         .from('user_subscriptions')
-        .select('id')
+        .select('id, current_period_end')
         .eq('user_id', user.id)
         .eq('package_id', packageId)
         .in('status', ['active', 'trialing'])
         .maybeSingle()
+
+    const sub = subRow && (!subRow.current_period_end || new Date(subRow.current_period_end).getTime() > Date.now())
+        ? subRow
+        : null
 
     // 3b. Verifica se è un acquisto Una Tantum (se non trovato in subscriptions)
     let oneTimePurchase = null;
