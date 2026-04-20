@@ -1,6 +1,6 @@
 'use server'
 
-import { createClient } from '@/utils/supabase/server'
+import { createClient, createServiceRoleClient } from '@/utils/supabase/server'
 import { redirect } from 'next/navigation'
 import { unstable_cache } from 'next/cache'
 import { headers } from 'next/headers'
@@ -805,9 +805,9 @@ export async function requestAccountDeletion() {
 
     if (!user) throw new Error('Non autorizzato')
 
-    // Create an admin notification for manual processing
-    // Full deletion requires service_role access to delete auth user + cascade data
-    await supabase.from('admin_notifications').insert({
+    // Admin notification via service role (migration 06 drops the user-scoped INSERT policy).
+    const supabaseAdmin = await createServiceRoleClient()
+    await supabaseAdmin.from('admin_notifications').insert({
         type: 'account_deletion',
         user_id: user.id,
         data: {
@@ -816,7 +816,7 @@ export async function requestAccountDeletion() {
         }
     })
 
-    // Notify the user
+    // Notify the user (user_notifications is user-scoped, keep regular client)
     await supabase.from('user_notifications').insert({
         user_id: user.id,
         title: 'Richiesta di eliminazione account',
