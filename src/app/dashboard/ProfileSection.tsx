@@ -2,14 +2,15 @@
 
 import { useState, useEffect } from 'react'
 import Image from 'next/image'
-import { getUserProfile, updateProfileAction, updateEmail, updatePassword, getPassportStamps, requestAccountDeletion } from '@/app/actions/user'
+import { getUserProfile, updateProfileAction, updateEmail, updatePassword, getPassportStamps } from '@/app/actions/user'
+import { requestDataExport, requestAccountDeletionGdpr } from '@/app/actions/gdpr'
 import { logger } from '@/lib/logger'
 import UserProfileNotifications from './UserProfileNotifications'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
-import { User, Mail, Shield, LogOut, Loader2, Camera, ChevronLeft, ChevronRight, Trash2, Sun, Moon } from 'lucide-react'
+import { User, Mail, Shield, LogOut, Loader2, Camera, ChevronLeft, ChevronRight, Trash2, Sun, Moon, Download } from 'lucide-react'
 import { createClient } from '@/utils/supabase/client'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
@@ -192,13 +193,36 @@ export default function ProfileSection({ onProfileUpdate, activeSubTab = 'info' 
         }
     }
 
+    const [exportPending, setExportPending] = useState(false)
+
+    const handleExportData = async () => {
+        setExportPending(true)
+        try {
+            const result = await requestDataExport()
+            if (!result.ok) {
+                toast.error(result.message)
+                return
+            }
+            window.open(result.data.downloadUrl, '_blank')
+            toast.success("Esportazione pronta — il download si apre in una nuova scheda.")
+        } catch {
+            toast.error("Errore durante la generazione dell'esportazione.")
+        } finally {
+            setExportPending(false)
+        }
+    }
+
     const handleDeleteAccount = async () => {
         setSaving(true)
         try {
-            await requestAccountDeletion()
+            const result = await requestAccountDeletionGdpr()
+            if (!result.ok) {
+                toast.error(result.message)
+                return
+            }
             setDeletionRequested(true)
             setIsDeleteDialogOpen(false)
-            toast.success('Richiesta di eliminazione account inviata con successo.')
+            toast.success("Ti abbiamo inviato un'email per completare la cancellazione.")
         } catch {
             toast.error('Errore durante la richiesta. Riprova più tardi.')
         } finally {
@@ -468,6 +492,32 @@ export default function ProfileSection({ onProfileUpdate, activeSubTab = 'info' 
                                 </CardContent>
                             </Card>
 
+                            {/* Data Export (GDPR) */}
+                            <Card className="bg-[var(--dash-card)] border-[var(--dash-border)] shadow-xl rounded-[32px] overflow-hidden">
+                                <CardContent className="p-6 md:p-8">
+                                    <div className="flex flex-col gap-4">
+                                        <div className="flex items-start gap-4">
+                                            <div className="p-3 bg-[var(--dash-card-header)] rounded-2xl border border-[var(--dash-border)] shrink-0">
+                                                <Download className="w-5 h-5 text-[var(--dash-accent)]" />
+                                            </div>
+                                            <div className="flex-1 min-w-0">
+                                                <label className="text-[10px] text-[var(--dash-muted-light)] uppercase font-black tracking-widest block mb-1">Privacy e Dati</label>
+                                                <p className="text-[var(--dash-text)] font-bold">Scarica tutti i miei dati</p>
+                                                <p className="text-xs text-[var(--dash-muted-light)] mt-1 leading-relaxed">Esportazione GDPR in formato ZIP contenente profilo, acquisti, fatture, progressi e notifiche.</p>
+                                            </div>
+                                        </div>
+                                        <Button
+                                            variant="outline"
+                                            onClick={handleExportData}
+                                            disabled={exportPending}
+                                            className="w-full rounded-xl text-sm font-bold py-3 min-h-[44px] border-[var(--dash-border)] hover:bg-[var(--dash-card-header)]"
+                                        >
+                                            {exportPending ? <Loader2 className="w-4 h-4 animate-spin" /> : '📦 Scarica i miei dati (ZIP)'}
+                                        </Button>
+                                    </div>
+                                </CardContent>
+                            </Card>
+
                             {/* Delete Account */}
                             <Card className="bg-[var(--dash-card)] border-red-100 shadow-xl rounded-[32px] overflow-hidden">
                                 <CardContent className="p-6 md:p-8">
@@ -480,7 +530,7 @@ export default function ProfileSection({ onProfileUpdate, activeSubTab = 'info' 
                                             <div className="flex-1 min-w-0">
                                                 <label className="text-[10px] text-[var(--dash-muted-light)] uppercase font-black tracking-widest block mb-1">Zona Pericolosa</label>
                                                 <p className="text-[var(--dash-text)] font-bold">Elimina il mio account</p>
-                                                <p className="text-xs text-[var(--dash-muted-light)] mt-1 leading-relaxed">Questa azione è irreversibile. Tutti i tuoi dati verranno eliminati permanentemente.</p>
+                                                <p className="text-xs text-[var(--dash-muted-light)] mt-1 leading-relaxed">Ti invieremo un&apos;email con un link di conferma valido 15 minuti. Una volta confermato, l&apos;operazione è irreversibile.</p>
                                             </div>
                                         </div>
 
@@ -497,15 +547,15 @@ export default function ProfileSection({ onProfileUpdate, activeSubTab = 'info' 
                                             </DialogTrigger>
                                             <DialogContent className="bg-[var(--dash-card)] border-none rounded-[28px] sm:rounded-[32px] pointer-events-auto">
                                                 <DialogHeader>
-                                                    <DialogTitle className="text-red-600 font-black uppercase tracking-tight">Conferma Eliminazione</DialogTitle>
+                                                    <DialogTitle className="text-red-600 font-black uppercase tracking-tight">Invia email di conferma</DialogTitle>
                                                     <DialogDescription>
-                                                        Sei sicura di voler eliminare il tuo account? Questa azione è irreversibile e comporta la cancellazione di tutti i tuoi dati personali, progressi e abbonamenti attivi.
+                                                        Ti invieremo un&apos;email con un link di conferma (valido 15 minuti). Dopo aver cliccato il link, tutti i tuoi dati personali, progressi e abbonamenti attivi verranno eliminati in modo irreversibile. Per obbligo fiscale le fatture saranno conservate 10 anni in forma anonima.
                                                     </DialogDescription>
                                                 </DialogHeader>
                                                 <DialogFooter className="flex-col gap-2 sm:flex-row">
                                                     <Button variant="ghost" onClick={() => setIsDeleteDialogOpen(false)} className="w-full sm:w-auto">Annulla</Button>
                                                     <Button onClick={handleDeleteAccount} disabled={saving} className="w-full sm:w-auto bg-red-500 text-white hover:bg-red-600 rounded-xl">
-                                                        {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Conferma Eliminazione'}
+                                                        {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : "Invia email di conferma"}
                                                     </Button>
                                                 </DialogFooter>
                                             </DialogContent>
