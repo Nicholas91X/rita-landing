@@ -3,8 +3,22 @@
 import { createClient } from '@/utils/supabase/server'
 import { redirect } from 'next/navigation'
 import { unstable_cache } from 'next/cache'
+import { headers } from 'next/headers'
 import Stripe from 'stripe'
 import { reconcileUserBadges } from './video'
+import { signupSchema, loginSchema, forgotPasswordSchema, findEmailSchema } from './user.schemas'
+import { validate, ValidationError, formDataToObject } from '@/lib/security/validation'
+import {
+    enforceRateLimit,
+    signupLimiter,
+    loginIpLimiter,
+    loginEmailLimiter,
+    forgotPasswordLimiter,
+    forgotEmailLimiter,
+    RateLimitError,
+} from '@/lib/security/ratelimit'
+import { assertPasswordNotLeaked, LeakedPasswordError } from '@/lib/security/password'
+import type { ActionResult } from '@/lib/security/types'
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || 'sk_test_placeholder', {
     apiVersion: '2025-12-15.clover' as unknown as Stripe.LatestApiVersion,
@@ -590,6 +604,73 @@ export async function findEmail(fullName: string) {
     }).filter(p => p !== null) as string[]
 
     return { success: true, maskedEmails }
+}
+
+export async function signUpAction(
+    formData: FormData,
+): Promise<ActionResult<{ needsEmailConfirmation: boolean }>> {
+    // 1. Validate input
+    let parsed
+    try {
+        parsed = validate(signupSchema, formDataToObject(formData))
+    } catch (err) {
+        if (err instanceof ValidationError) {
+            return { ok: false, message: 'Dati non validi', fieldErrors: err.fieldErrors }
+        }
+        throw err
+    }
+
+    // 2. Rate limit (fail-closed for auth)
+    const h = await headers()
+    const ip = h.get('x-forwarded-for')?.split(',')[0].trim() ?? 'unknown'
+    try {
+        await enforceRateLimit(signupLimiter(), `signup:${ip}`)
+    } catch (err) {
+        if (err instanceof RateLimitError) {
+            return {
+                ok: false,
+                message: `Troppe richieste di registrazione. Riprova tra ${err.retryAfter} secondi.`,
+                retryAfter: err.retryAfter,
+            }
+        }
+        return {
+            ok: false,
+            message: 'Servizio temporaneamente non disponibile. Riprova tra qualche minuto.',
+        }
+    }
+
+    // 3. HIBP check (fail-open)
+    try {
+        await assertPasswordNotLeaked(parsed.password)
+    } catch (err) {
+        if (err instanceof LeakedPasswordError) {
+            return {
+                ok: false,
+                message: 'Questa password appare in database pubblici di credenziali compromesse. Usane una diversa — suggerimento: frase o combinazione casuale di 12+ caratteri.',
+                fieldErrors: { password: ['Password compromessa'] },
+            }
+        }
+        // fail-open for other errors (network failures)
+    }
+
+    // 4. Supabase signup
+    const supabase = await createClient()
+    const { data, error } = await supabase.auth.signUp({
+        email: parsed.email,
+        password: parsed.password,
+        options: { data: { full_name: parsed.full_name } },
+    })
+
+    if (error) {
+        return { ok: false, message: error.message }
+    }
+
+    const emailAlreadyExists = data.user?.identities?.length === 0
+    if (emailAlreadyExists) {
+        return { ok: false, message: 'Email già registrata. Effettua il login o recupera la password.' }
+    }
+
+    return { ok: true, data: { needsEmailConfirmation: !data.session } }
 }
 
 export async function requestAccountDeletion() {

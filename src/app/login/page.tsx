@@ -5,7 +5,7 @@ import { createClient } from '@/utils/supabase/client'
 import Logo from '@/components/Logo'
 import { Button } from '@/components/ui/button'
 import { Loader2, Mail, Lock, User, ArrowLeft, Eye, EyeOff } from 'lucide-react'
-import { recoverPassword, findEmail } from '@/app/actions/user'
+import { recoverPassword, findEmail, signUpAction } from '@/app/actions/user'
 import TransitionOverlay from '@/components/TransitionOverlay'
 
 type AuthMode = 'login' | 'signup' | 'forgot-password' | 'forgot-email'
@@ -44,18 +44,19 @@ export default function LoginPage() {
                 setTimeout(() => { window.location.href = '/dashboard' }, 600)
                 return;
             } else if (mode === 'signup') {
-                const { error, data } = await supabase.auth.signUp({
-                    email,
-                    password,
-                    options: {
-                        emailRedirectTo: `${window.location.origin}/auth/callback`,
-                    },
-                })
-                if (error) throw error
+                const fd = new FormData()
+                fd.append('email', email)
+                fd.append('password', password)
+                fd.append('full_name', fullName)
+                if (acceptedTerms) fd.append('terms_accepted', 'on')
 
-                if (data.user && data.user.identities && data.user.identities.length === 0) {
-                    setError('Utente già registrato. Prova ad accedere.')
-                } else {
+                const result = await signUpAction(fd)
+                if (!result.ok) {
+                    setError(result.message)
+                    setLoading(false)
+                    return
+                }
+                if (result.data.needsEmailConfirmation) {
                     setMessage('Controlla la tua email per confermare la registrazione.')
                 }
             } else if (mode === 'forgot-password') {
@@ -116,19 +117,37 @@ export default function LoginPage() {
                                     />
                                 </div>
                             ) : (
-                                <div className="relative">
-                                    <label htmlFor="email" className="sr-only">Email</label>
-                                    <Mail className="absolute left-3 top-3 h-5 w-5 text-[var(--foreground)]/40" />
-                                    <input
-                                        id="email"
-                                        type="email"
-                                        placeholder="Email"
-                                        value={email}
-                                        onChange={(e) => setEmail(e.target.value)}
-                                        required
-                                        className="w-full pl-10 pr-4 py-3 bg-[var(--bg)] border border-[var(--foreground)]/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-[var(--brand)]/50 transition-all"
-                                    />
-                                </div>
+                                <>
+                                    {mode === 'signup' && (
+                                        <div className="relative">
+                                            <label htmlFor="fullNameSignup" className="sr-only">Nome e Cognome</label>
+                                            <User className="absolute left-3 top-3 h-5 w-5 text-[var(--foreground)]/40" />
+                                            <input
+                                                id="fullNameSignup"
+                                                type="text"
+                                                placeholder="Nome e Cognome"
+                                                value={fullName}
+                                                onChange={(e) => setFullName(e.target.value)}
+                                                required
+                                                minLength={2}
+                                                className="w-full pl-10 pr-4 py-3 bg-[var(--bg)] border border-[var(--foreground)]/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-[var(--brand)]/50 transition-all"
+                                            />
+                                        </div>
+                                    )}
+                                    <div className="relative">
+                                        <label htmlFor="email" className="sr-only">Email</label>
+                                        <Mail className="absolute left-3 top-3 h-5 w-5 text-[var(--foreground)]/40" />
+                                        <input
+                                            id="email"
+                                            type="email"
+                                            placeholder="Email"
+                                            value={email}
+                                            onChange={(e) => setEmail(e.target.value)}
+                                            required
+                                            className="w-full pl-10 pr-4 py-3 bg-[var(--bg)] border border-[var(--foreground)]/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-[var(--brand)]/50 transition-all"
+                                        />
+                                    </div>
+                                </>
                             )}
 
                             {(mode === 'login' || mode === 'signup') && (
