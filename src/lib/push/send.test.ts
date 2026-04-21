@@ -17,7 +17,7 @@ describe("sendPush", () => {
   })
 
   it("calls web-push.sendNotification with serialized payload and TTL 86400", async () => {
-    const webpush = (await import("web-push")).default as {
+    const webpush = (await import("web-push")).default as unknown as {
       setVapidDetails: ReturnType<typeof vi.fn>
       sendNotification: ReturnType<typeof vi.fn>
     }
@@ -36,7 +36,7 @@ describe("sendPush", () => {
   })
 
   it("calls setVapidDetails once per module load with env values", async () => {
-    const webpush = (await import("web-push")).default as {
+    const webpush = (await import("web-push")).default as unknown as {
       setVapidDetails: ReturnType<typeof vi.fn>
     }
     await import("./send")
