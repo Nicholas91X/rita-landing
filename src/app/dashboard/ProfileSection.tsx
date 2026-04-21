@@ -7,6 +7,7 @@ import { requestDataExport, requestAccountDeletionGdpr } from '@/app/actions/gdp
 import { listMySessions, revokeSession, revokeAllOtherSessions, type SessionInfo } from '@/app/actions/sessions'
 import { logger } from '@/lib/logger'
 import UserProfileNotifications from './UserProfileNotifications'
+import { PushPreferencesSection } from '@/components/push/PushPreferencesSection'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -686,7 +687,10 @@ export default function ProfileSection({ onProfileUpdate, activeSubTab = 'info' 
                 </div>
             )}
             {activeSubTab === 'notifications' && (
-                <UserProfileNotifications />
+                <div className="space-y-8">
+                    <UserProfileNotifications />
+                    <PushPreferencesSection />
+                </div>
             )}
         </div >
     )
