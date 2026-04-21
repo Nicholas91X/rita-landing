@@ -19,6 +19,10 @@ import Image from 'next/image'
 import { NotificationBell } from './NotificationBell'
 import PWAInstallPrompt from '@/components/PWAInstallPrompt'
 import { DashboardThemeProvider } from './ThemeContext'
+import { usePushPromptOrchestrator } from '@/hooks/usePushPromptOrchestrator'
+import { useHeartbeat } from '@/hooks/useHeartbeat'
+import { NotificationSoftPrompt } from '@/components/push/NotificationSoftPrompt'
+import { IosInstallDialog } from '@/components/push/IosInstallDialog'
 
 interface DashboardProfile {
     user: {
@@ -64,6 +68,9 @@ export default function DashboardClient({ levels }: { levels: Level[] }) {
     const touchStartX = useRef<number | null>(null)
     const touchStartY = useRef<number | null>(null)
     const [slideDirection, setSlideDirection] = useState<'left' | 'right'>('left')
+
+    const { prompt, dismiss, acceptedSoftPrompt } = usePushPromptOrchestrator(true)
+    useHeartbeat(true)
 
     // Tab order for swipe navigation
     const TAB_ORDER: TabType[] = ['home', 'training', '1to1', 'billing', 'profile']
@@ -324,6 +331,14 @@ export default function DashboardClient({ levels }: { levels: Level[] }) {
 
             {/* PWA Install Prompt */}
             <PWAInstallPrompt />
+
+            {/* Push notification prompts (Sub-2) */}
+            <NotificationSoftPrompt
+                open={prompt === 'soft'}
+                onDismiss={dismiss}
+                onAccepted={acceptedSoftPrompt}
+            />
+            <IosInstallDialog open={prompt === 'ios-install'} onDismiss={dismiss} />
         </div>
         </DashboardThemeProvider>
     )
