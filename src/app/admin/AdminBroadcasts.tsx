@@ -1,11 +1,15 @@
 'use client'
 
-import { useState } from 'react'
-import { Bell, Send, Users, Megaphone, Loader2, Info } from 'lucide-react'
+import { useEffect, useState } from 'react'
+import { Bell, Send, Megaphone, Loader2, Info, Users, Layers, Package as PackageIcon } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { toast } from 'sonner'
-import { sendBroadcastNotification } from '@/app/actions/admin_actions/users'
+import {
+    sendBroadcast,
+    countBroadcastRecipients,
+    getBroadcastTargets,
+} from '@/app/actions/admin_actions/broadcasts'
 import {
     Dialog,
     DialogContent,
@@ -16,16 +20,57 @@ import {
 } from "@/components/ui/dialog"
 import { logger } from '@/lib/logger'
 
+type TargetType = 'all' | 'package' | 'level'
+type Channels = { inApp: boolean; push: boolean; email: boolean }
+type TargetOption = { id: string; name: string }
+
 export default function AdminBroadcasts() {
     const [title, setTitle] = useState('')
     const [message, setMessage] = useState('')
-    const [audience, setAudience] = useState<'all' | 'subscribers' | 'one-time'>('all')
+    const [url, setUrl] = useState('/dashboard')
+    const [targetType, setTargetType] = useState<TargetType>('all')
+    const [targetId, setTargetId] = useState<string | undefined>(undefined)
+    const [channels, setChannels] = useState<Channels>({ inApp: true, push: true, email: false })
     const [loading, setLoading] = useState(false)
     const [showConfirm, setShowConfirm] = useState(false)
+    const [counts, setCounts] = useState<{ total: number; withPush: number } | null>(null)
+    const [levels, setLevels] = useState<TargetOption[]>([])
+    const [packages, setPackages] = useState<TargetOption[]>([])
+
+    // Load targeting options on mount
+    useEffect(() => {
+        getBroadcastTargets().then(({ levels: lv, packages: pk }) => {
+            setLevels(lv)
+            setPackages(pk)
+        })
+    }, [])
+
+    // Live recipient count (debounced)
+    useEffect(() => {
+        if (targetType !== 'all' && !targetId) { setCounts(null); return }
+        const t = setTimeout(async () => {
+            const r = await countBroadcastRecipients({ targetType, targetId })
+            setCounts(r)
+        }, 300)
+        return () => clearTimeout(t)
+    }, [targetType, targetId])
+
+    // Reset targetId when switching away from level/package
+    useEffect(() => {
+        if (targetType === 'all') setTargetId(undefined)
+    }, [targetType])
 
     const handleSend = async () => {
         if (!title.trim() || !message.trim()) {
             toast.error('Inserisci titolo e messaggio')
+            return
+        }
+        if (targetType !== 'all' && !targetId) {
+            toast.error('Seleziona un livello o pacchetto')
+            return
+        }
+        if (!channels.inApp && !channels.push) {
+            toast.error('Abilita almeno un canale')
             return
         }
         setShowConfirm(true)
@@ -33,24 +78,34 @@ export default function AdminBroadcasts() {
 
     const confirmSend = async () => {
         setShowConfirm(false)
-
         setLoading(true)
         try {
-            const result = await sendBroadcastNotification(title, message, audience)
-            if (result.success) {
-                toast.success(`Notifica inviata con successo a ${result.count} utenti!`)
+            const result = await sendBroadcast({
+                title, body: message, url, targetType, targetId, channels,
+            })
+            if (result.ok) {
+                const { recipients, inApp, pushSent, pushSkipped, pushFailed } = result.data
+                const pushTotal = pushSent + pushSkipped + pushFailed
+                toast.success(
+                    `Inviato a ${recipients} utenti` +
+                    (channels.inApp ? ` · in-app ${inApp}` : '') +
+                    (channels.push ? ` · push ${pushSent}/${pushTotal}` : '')
+                )
                 setTitle('')
                 setMessage('')
             } else {
-                toast.error('Errore durante l\'invio della notifica')
+                toast.error(result.message)
+                if (result.retryAfter) toast.error(`Riprova tra ${result.retryAfter}s`)
             }
         } catch (error) {
             logger.error('Broadcast error:', error)
-            toast.error('Errore durante l\'invio della notifica')
+            toast.error("Errore durante l'invio della notifica")
         } finally {
             setLoading(false)
         }
     }
+
+    const targetOptions = targetType === 'level' ? levels : targetType === 'package' ? packages : []
 
     return (
         <div className="space-y-8 animate-in slide-in-from-bottom-4 duration-500">
@@ -69,69 +124,105 @@ export default function AdminBroadcasts() {
                             </CardDescription>
                         </CardHeader>
                         <CardContent className="p-8 pt-4 space-y-6">
-                            <div className="space-y-4">
-                                <div className="space-y-2">
-                                    <label className="text-[10px] font-black uppercase text-neutral-300 tracking-widest ml-1">Destinatari</label>
-                                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                                        <button
-                                            onClick={() => setAudience('all')}
-                                            className={`p-4 rounded-2xl border transition-all flex flex-col items-center gap-2 group ${audience === 'all'
-                                                ? 'bg-brand/10 border-brand text-white shadow-[0_0_20px_rgba(244,101,48,0.1)]'
-                                                : 'bg-white/5 border-white/10 text-neutral-400 hover:border-white/20 hover:bg-white/10'
-                                                }`}
-                                        >
-                                            <Users className={`w-5 h-5 ${audience === 'all' ? 'text-brand' : 'opacity-40'}`} />
-                                            <span className="text-[9px] font-black uppercase tracking-widest">Tutti</span>
-                                        </button>
-                                        <button
-                                            onClick={() => setAudience('subscribers')}
-                                            className={`p-4 rounded-2xl border transition-all flex flex-col items-center gap-2 group ${audience === 'subscribers'
-                                                ? 'bg-brand/10 border-brand text-white shadow-[0_0_20px_rgba(244,101,48,0.1)]'
-                                                : 'bg-white/5 border-white/10 text-neutral-400 hover:border-white/20 hover:bg-white/10'
-                                                }`}
-                                        >
-                                            <Bell className={`w-5 h-5 ${audience === 'subscribers' ? 'text-brand' : 'opacity-40'}`} />
-                                            <span className="text-[9px] font-black uppercase tracking-widest">Abbonati</span>
-                                        </button>
-                                        <button
-                                            onClick={() => setAudience('one-time')}
-                                            className={`p-4 rounded-2xl border transition-all flex flex-col items-center gap-2 group ${audience === 'one-time'
-                                                ? 'bg-brand/10 border-brand text-white shadow-[0_0_20px_rgba(244,101,48,0.1)]'
-                                                : 'bg-white/5 border-white/10 text-neutral-400 hover:border-white/20 hover:bg-white/10'
-                                                }`}
-                                        >
-                                            <Send className={`w-5 h-5 ${audience === 'one-time' ? 'text-brand' : 'opacity-40'}`} />
-                                            <span className="text-[9px] font-black uppercase tracking-widest">Single</span>
-                                        </button>
-                                    </div>
-                                </div>
-
-                                <div className="space-y-2">
-                                    <label className="text-[10px] font-black uppercase text-neutral-300 tracking-widest ml-1">Titolo Notifica</label>
-                                    <input
-                                        type="text"
-                                        value={title}
-                                        onChange={(e) => setTitle(e.target.value)}
-                                        placeholder="es: Nuova Masterclass disponibile!"
-                                        className="h-14 w-full rounded-2xl border border-white/10 bg-white/5 px-6 text-sm text-white focus:outline-none focus:border-brand/40 transition-colors font-medium"
+                            {/* Target type radios */}
+                            <div className="space-y-2">
+                                <label className="text-[10px] font-black uppercase text-neutral-300 tracking-widest ml-1">Destinatari</label>
+                                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                    <TargetButton
+                                        active={targetType === 'all'} icon={<Users className="w-5 h-5" />}
+                                        label="Tutti" onClick={() => setTargetType('all')}
                                     />
-                                </div>
-
-                                <div className="space-y-2">
-                                    <label className="text-[10px] font-black uppercase text-neutral-300 tracking-widest ml-1">Messaggio</label>
-                                    <textarea
-                                        value={message}
-                                        onChange={(e) => setMessage(e.target.value)}
-                                        placeholder="Scrivi qui il contenuto del messaggio..."
-                                        rows={5}
-                                        className="flex w-full rounded-2xl border border-white/10 bg-white/5 px-6 py-4 text-sm text-white focus:outline-none focus:border-brand/40 transition-colors font-medium resize-none"
+                                    <TargetButton
+                                        active={targetType === 'level'} icon={<Layers className="w-5 h-5" />}
+                                        label="Livello" onClick={() => setTargetType('level')}
+                                    />
+                                    <TargetButton
+                                        active={targetType === 'package'} icon={<PackageIcon className="w-5 h-5" />}
+                                        label="Pacchetto" onClick={() => setTargetType('package')}
                                     />
                                 </div>
                             </div>
 
+                            {/* Target dropdown when package/level */}
+                            {targetType !== 'all' && (
+                                <div className="space-y-2">
+                                    <label className="text-[10px] font-black uppercase text-neutral-300 tracking-widest ml-1">
+                                        {targetType === 'level' ? 'Seleziona livello' : 'Seleziona pacchetto'}
+                                    </label>
+                                    <select
+                                        value={targetId ?? ''}
+                                        onChange={(e) => setTargetId(e.target.value || undefined)}
+                                        className="h-14 w-full rounded-2xl border border-white/10 bg-white/5 px-6 text-sm text-white focus:outline-none focus:border-brand/40 transition-colors font-medium"
+                                    >
+                                        <option value="">— Seleziona —</option>
+                                        {targetOptions.map((o) => (
+                                            <option key={o.id} value={o.id} className="bg-neutral-900">{o.name}</option>
+                                        ))}
+                                    </select>
+                                </div>
+                            )}
+
+                            {/* Recipient counter */}
+                            {counts && (
+                                <div className="text-xs text-neutral-400 bg-white/5 rounded-xl px-4 py-2 border border-white/10">
+                                    <span className="text-white font-bold">{counts.total}</span> utenti
+                                    {channels.push && <> · <span className="text-white font-bold">{counts.withPush}</span> con push attive</>}
+                                </div>
+                            )}
+
+                            {/* Channels */}
+                            <div className="space-y-2">
+                                <label className="text-[10px] font-black uppercase text-neutral-300 tracking-widest ml-1">Canali</label>
+                                <div className="flex flex-wrap gap-3">
+                                    <ChannelToggle checked={channels.inApp} onChange={(v) => setChannels({ ...channels, inApp: v })} label="In-app" />
+                                    <ChannelToggle checked={channels.push} onChange={(v) => setChannels({ ...channels, push: v })} label="Push" />
+                                    <ChannelToggle checked={channels.email} onChange={() => {}} label="Email (presto)" disabled />
+                                </div>
+                            </div>
+
+                            {/* Title */}
+                            <div className="space-y-2">
+                                <label className="text-[10px] font-black uppercase text-neutral-300 tracking-widest ml-1">Titolo Notifica</label>
+                                <input
+                                    type="text"
+                                    value={title}
+                                    maxLength={50}
+                                    onChange={(e) => setTitle(e.target.value)}
+                                    placeholder="es: Nuova Masterclass disponibile!"
+                                    className="h-14 w-full rounded-2xl border border-white/10 bg-white/5 px-6 text-sm text-white focus:outline-none focus:border-brand/40 transition-colors font-medium"
+                                />
+                                <div className="text-[10px] text-neutral-500 ml-1">{title.length}/50</div>
+                            </div>
+
+                            {/* Body */}
+                            <div className="space-y-2">
+                                <label className="text-[10px] font-black uppercase text-neutral-300 tracking-widest ml-1">Messaggio</label>
+                                <textarea
+                                    value={message}
+                                    maxLength={150}
+                                    onChange={(e) => setMessage(e.target.value)}
+                                    placeholder="Scrivi qui il contenuto del messaggio..."
+                                    rows={4}
+                                    className="flex w-full rounded-2xl border border-white/10 bg-white/5 px-6 py-4 text-sm text-white focus:outline-none focus:border-brand/40 transition-colors font-medium resize-none"
+                                />
+                                <div className="text-[10px] text-neutral-500 ml-1">{message.length}/150</div>
+                            </div>
+
+                            {/* URL */}
+                            <div className="space-y-2">
+                                <label className="text-[10px] font-black uppercase text-neutral-300 tracking-widest ml-1">URL al click</label>
+                                <input
+                                    type="text"
+                                    value={url}
+                                    onChange={(e) => setUrl(e.target.value)}
+                                    placeholder="/dashboard"
+                                    className="h-12 w-full rounded-2xl border border-white/10 bg-white/5 px-6 text-sm text-white focus:outline-none focus:border-brand/40 transition-colors font-medium"
+                                />
+                            </div>
+
                             <Button
                                 onClick={handleSend}
-                                disabled={loading || !title.trim() || !message.trim()}
+                                disabled={loading || !title.trim() || !message.trim() || (targetType !== 'all' && !targetId)}
                                 className="w-full h-16 bg-white hover:bg-white/90 text-black font-black uppercase tracking-widest rounded-2xl transition-all shadow-lg shadow-white/5 gap-3 text-base"
                             >
                                 {loading ? (
@@ -162,15 +253,15 @@ export default function AdminBroadcasts() {
                                 <ul className="text-xs text-neutral-400 space-y-3 font-medium leading-relaxed">
                                     <li className="flex gap-2">
                                         <span className="text-brand font-black">•</span>
-                                        I messaggi verranno visualizzati istantaneamente dagli utenti nel loro campanellino delle notifiche.
+                                        In-app: campanellino. Push: notifica nativa (solo chi ha dato il permesso).
                                     </li>
                                     <li className="flex gap-2">
                                         <span className="text-brand font-black">•</span>
-                                        Usi questo strumento per annunci importanti, nuovi lanci o promemoria generali.
+                                        Utenti con tab aperto negli ultimi 60s non ricevono push (per evitare spam).
                                     </li>
                                     <li className="flex gap-2">
                                         <span className="text-brand font-black">•</span>
-                                        L&apos;invio a grandi gruppi di utenti è automatizzato in background per garantire la stabilità del sistema.
+                                        Limite: 5 broadcast ogni ora per sicurezza.
                                     </li>
                                 </ul>
                             </div>
@@ -207,7 +298,13 @@ export default function AdminBroadcasts() {
                             Conferma Invio
                         </DialogTitle>
                         <DialogDescription className="text-neutral-400 font-medium">
-                            Stai per inviare questa notifica a tutti gli utenti nel gruppo <span className="text-white font-bold uppercase tracking-widest">&quot;{audience === 'all' ? 'Tutti' : audience === 'subscribers' ? 'Abbonati' : 'Single'}&quot;</span>. Questa azione non può essere annullata.
+                            Stai per inviare a{' '}
+                            <span className="text-white font-bold">{counts?.total ?? '?'} utenti</span>
+                            {channels.push && counts && ` (${counts.withPush} con push attive)`}.
+                            <br />
+                            Canali: <span className="text-white font-bold">
+                                {[channels.inApp && 'in-app', channels.push && 'push'].filter(Boolean).join(' + ') || 'nessuno'}
+                            </span>.
                         </DialogDescription>
                     </DialogHeader>
                     <div className="py-4 bg-white/5 rounded-2xl p-4 border border-white/5 space-y-2">
@@ -232,5 +329,53 @@ export default function AdminBroadcasts() {
                 </DialogContent>
             </Dialog>
         </div>
+    )
+}
+
+function TargetButton({ active, icon, label, onClick }: {
+    active: boolean
+    icon: React.ReactNode
+    label: string
+    onClick: () => void
+}) {
+    return (
+        <button
+            onClick={onClick}
+            className={`p-4 rounded-2xl border transition-all flex flex-col items-center gap-2 group ${active
+                ? 'bg-brand/10 border-brand text-white shadow-[0_0_20px_rgba(244,101,48,0.1)]'
+                : 'bg-white/5 border-white/10 text-neutral-400 hover:border-white/20 hover:bg-white/10'
+                }`}
+        >
+            <span className={active ? 'text-brand' : 'opacity-40'}>{icon}</span>
+            <span className="text-[9px] font-black uppercase tracking-widest">{label}</span>
+        </button>
+    )
+}
+
+function ChannelToggle({ checked, onChange, label, disabled }: {
+    checked: boolean
+    onChange: (v: boolean) => void
+    label: string
+    disabled?: boolean
+}) {
+    return (
+        <label className={`flex items-center gap-2 px-4 py-3 rounded-xl border transition-all ${disabled
+            ? 'bg-white/5 border-white/5 text-neutral-600 cursor-not-allowed'
+            : checked
+                ? 'bg-brand/10 border-brand text-white cursor-pointer'
+                : 'bg-white/5 border-white/10 text-neutral-400 hover:border-white/20 cursor-pointer'
+            }`}>
+            <input
+                type="checkbox"
+                checked={checked}
+                disabled={disabled}
+                onChange={(e) => onChange(e.target.checked)}
+                className="h-4 w-4 accent-brand"
+            />
+            <span className="text-xs font-black uppercase tracking-widest flex items-center gap-2">
+                {label === 'Push' && <Bell className="h-3 w-3" />}
+                {label}
+            </span>
+        </label>
     )
 }

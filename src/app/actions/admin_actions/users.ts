@@ -252,6 +252,7 @@ export async function markNotificationAsRead(id: string) {
     await supabase.from('admin_notifications').update({ is_read: true }).eq('id', id)
 }
 
+/** @deprecated Replaced by sendBroadcast in admin_actions/broadcasts.ts (Sub-2). Remove after a full release cycle. */
 export async function sendBroadcastNotification(title: string, message: string, audience: 'all' | 'subscribers' | 'one-time') {
     const isSuperAdmin = await isAdmin()
     if (!isSuperAdmin) throw new Error('Unauthorized')

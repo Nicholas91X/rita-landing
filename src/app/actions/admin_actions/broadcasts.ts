@@ -33,6 +33,24 @@ async function resolveRecipientIds(
   return Array.from(new Set((data ?? []).map((r) => r.user_id as string)))
 }
 
+export async function getBroadcastTargets(): Promise<{
+  levels: Array<{ id: string; name: string }>
+  packages: Array<{ id: string; name: string }>
+}> {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user || !(await assertAdmin(user.id))) return { levels: [], packages: [] }
+  const admin = await createServiceRoleClient()
+  const [lv, pk] = await Promise.all([
+    admin.from("levels").select("id, name").order("name"),
+    admin.from("packages").select("id, name").order("name"),
+  ])
+  return {
+    levels: (lv.data ?? []).map((r) => ({ id: r.id as string, name: r.name as string })),
+    packages: (pk.data ?? []).map((r) => ({ id: r.id as string, name: r.name as string })),
+  }
+}
+
 export async function countBroadcastRecipients(
   input: Pick<BroadcastInput, "targetType" | "targetId">,
 ): Promise<{ total: number; withPush: number }> {
