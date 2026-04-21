@@ -5,6 +5,12 @@ import { createClient } from '@supabase/supabase-js'
 import { revalidateTag } from 'next/cache'
 import { sendPurchaseConfirmationEmail } from '@/lib/email'
 import { claimWebhookEvent } from '@/lib/security/idempotency'
+import { sendToUser } from '@/lib/push/dispatch'
+import {
+    purchaseCompletedPayload,
+    subscriptionRenewedPayload,
+    paymentFailedPayload,
+} from '@/lib/push/payload-templates'
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || 'sk_test_placeholder', {
     apiVersion: '2025-12-15.clover' as unknown as Stripe.LatestApiVersion,
@@ -230,6 +236,23 @@ export async function POST(req: Request) {
 
                 revalidateTag('admin-stats')
 
+                // Sub-2: push notification to the user's subscribed devices.
+                // Wrapped in try/catch so webhook still returns 200 on push failure.
+                try {
+                    await sendToUser(
+                        supabaseAdmin,
+                        userId,
+                        purchaseCompletedPayload({
+                            packageName: pkg?.name || 'Pacchetto',
+                            packageId,
+                            sessionId: session.id,
+                        }),
+                        { category: 'transactional', idempotencyKey: `purchase-${session.id}` },
+                    )
+                } catch (pushErr) {
+                    console.error('[push] purchase dispatch failed', pushErr)
+                }
+
                 console.log(`Successfully processed checkout for User ${userId}`)
 
             } catch (err: unknown) {
@@ -274,6 +297,54 @@ export async function POST(req: Request) {
             })
 
             revalidateTag('admin-stats')
+
+            // Sub-2: push only on renewals (subscription_cycle). First-checkout
+            // invoices are covered by checkout.session.completed path above.
+            if (profile?.id && invoice.billing_reason === 'subscription_cycle') {
+                try {
+                    await sendToUser(
+                        supabaseAdmin,
+                        profile.id,
+                        subscriptionRenewedPayload({ invoiceId: invoice.id as string }),
+                        { category: 'transactional', idempotencyKey: `renewal-${invoice.id}` },
+                    )
+                } catch (pushErr) {
+                    console.error('[push] renewal dispatch failed', pushErr)
+                }
+            }
+        }
+    }
+    else if (event.type === 'invoice.payment_failed') {
+        const invoice = event.data.object as Stripe.Invoice
+        const customerId = typeof invoice.customer === 'string' ? invoice.customer : invoice.customer?.id
+        if (customerId) {
+            const supabaseAdmin = createClient(
+                process.env.NEXT_PUBLIC_SUPABASE_URL!,
+                process.env.SUPABASE_SERVICE_ROLE_KEY!
+            )
+            const { data: profile } = await supabaseAdmin
+                .from('profiles')
+                .select('id')
+                .eq('stripe_customer_id', customerId)
+                .maybeSingle()
+            if (profile?.id) {
+                try {
+                    await sendToUser(
+                        supabaseAdmin,
+                        profile.id,
+                        paymentFailedPayload({ invoiceId: invoice.id as string }),
+                        { category: 'transactional', idempotencyKey: `payment-failed-${invoice.id}` },
+                    )
+                } catch (pushErr) {
+                    console.error('[push] payment_failed dispatch failed', pushErr)
+                }
+                await supabaseAdmin.from('user_notifications').insert({
+                    user_id: profile.id,
+                    type: 'payment_failed',
+                    title: 'Pagamento non riuscito',
+                    message: "Aggiorna il metodo di pagamento per non perdere l'accesso.",
+                })
+            }
         }
     }
     else if (event.type === 'customer.subscription.updated' || event.type === 'customer.subscription.deleted') {
