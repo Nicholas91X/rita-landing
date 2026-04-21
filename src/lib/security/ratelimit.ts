@@ -96,3 +96,23 @@ let _apiCoarseLimiter: Ratelimit | null = null
 export function apiCoarseLimiter(): Ratelimit {
   return (_apiCoarseLimiter ??= makeLimiter("api", 100, "1 m"))
 }
+
+let _pushSubscribeLimiter: Ratelimit | null = null
+export function pushSubscribeLimiter(): Ratelimit {
+  return (_pushSubscribeLimiter ??= makeLimiter("push:subscribe", 10, "1 m"))
+}
+
+let _pushUnsubscribeLimiter: Ratelimit | null = null
+export function pushUnsubscribeLimiter(): Ratelimit {
+  return (_pushUnsubscribeLimiter ??= makeLimiter("push:unsubscribe", 20, "1 m"))
+}
+
+let _heartbeatLimiter: Ratelimit | null = null
+export function heartbeatLimiter(): Ratelimit {
+  return (_heartbeatLimiter ??= makeLimiter("heartbeat", 60, "1 m"))
+}
+
+let _broadcastLimiter: Ratelimit | null = null
+export function broadcastLimiter(): Ratelimit {
+  return (_broadcastLimiter ??= makeLimiter("broadcast", 5, "1 h"))
+}

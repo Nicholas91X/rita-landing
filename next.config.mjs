@@ -4,6 +4,25 @@ const withPWA = withPWAInit({
   dest: "public",
   register: true,
   skipWaiting: true,
+  customWorkerDir: "worker",
+  fallbacks: { document: "/offline" },
+  workboxOptions: {
+    runtimeCaching: [
+      {
+        urlPattern: /^https:\/\/.*\.b-cdn\.net\/.*\.(png|jpg|jpeg|webp)$/,
+        handler: "StaleWhileRevalidate",
+        options: {
+          cacheName: "bunny-thumbnails",
+          expiration: { maxEntries: 100, maxAgeSeconds: 30 * 24 * 3600 },
+        },
+      },
+      {
+        urlPattern: /^\/dashboard(\/.*)?$/,
+        handler: "NetworkFirst",
+        options: { cacheName: "dashboard-shell", networkTimeoutSeconds: 3 },
+      },
+    ],
+  },
   disable: process.env.NODE_ENV === "development",
 });
 
