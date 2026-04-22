@@ -39,3 +39,25 @@ async function makeIcon(size) {
 
 await makeIcon(192)
 await makeIcon(512)
+
+// Android notification badge: must be monochrome white on transparent.
+// Android uses it as the small status-bar icon; if we pass a full-color PNG
+// it's discarded and a generic browser silhouette is shown instead.
+// We render a bold "R" glyph from an SVG — simple, recognizable at 24dp.
+async function makeBadge() {
+  const size = 96
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96">
+    <text x="50%" y="50%" dominant-baseline="central" text-anchor="middle"
+          font-family="Arial, Helvetica, sans-serif" font-size="72"
+          font-weight="900" font-style="italic" fill="#ffffff">R</text>
+  </svg>`
+
+  await sharp(Buffer.from(svg))
+    .resize(size, size)
+    .png({ compressionLevel: 9 })
+    .toFile(path.join(root, "public/icon-badge.png"))
+
+  console.log(`✓ public/icon-badge.png (${size}×${size}, monochrome R glyph)`)
+}
+
+await makeBadge()

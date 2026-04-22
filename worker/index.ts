@@ -27,7 +27,12 @@ self.addEventListener("push", (event: PushEvent) => {
     self.registration.showNotification(payload.title, {
       body: payload.body,
       icon: payload.icon ?? "/icon-192.png",
-      badge: payload.badge ?? "/icon-192.png",
+      // Android uses `badge` as the small status-bar icon and requires it
+      // to be monochrome white on transparent. Passing a full-color PNG
+      // (like icon-192) makes Android discard it and fall back to a generic
+      // browser silhouette. icon-badge.png is a 96×96 white "R" glyph that
+      // the system auto-tints to match the notification accent.
+      badge: payload.badge ?? "/icon-badge.png",
       tag: payload.tag,
       renotify: !!payload.tag,
       data: { url: payload.url ?? "/dashboard", ...(payload.data ?? {}) },
