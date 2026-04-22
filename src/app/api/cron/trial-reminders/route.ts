@@ -14,13 +14,17 @@ export async function GET(req: NextRequest) {
 
   const admin = await createServiceRoleClient()
 
+  // For status='trialing' rows, `current_period_end` holds the Stripe
+  // `trial_end` (the webhook writes it there — see
+  // src/app/api/webhooks/stripe/route.ts `checkout.session.completed`).
+  // There is no dedicated `trial_end` column in `user_subscriptions`.
   const { data: rows, error } = await admin
     .from("user_subscriptions")
-    .select("id, user_id, trial_end, package_id")
+    .select("id, user_id, current_period_end, package_id")
     .eq("status", "trialing")
     .is("trial_reminder_sent_at", null)
-    .gte("trial_end", new Date(Date.now() + 2 * 24 * 3600 * 1000).toISOString())
-    .lte("trial_end", new Date(Date.now() + 3 * 24 * 3600 * 1000).toISOString())
+    .gte("current_period_end", new Date(Date.now() + 2 * 24 * 3600 * 1000).toISOString())
+    .lte("current_period_end", new Date(Date.now() + 3 * 24 * 3600 * 1000).toISOString())
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
 
