@@ -21,6 +21,17 @@ const withPWA = withPWAInit({
         handler: "NetworkFirst",
         options: { cacheName: "dashboard-shell", networkTimeoutSeconds: 3 },
       },
+      // Catch-all for any other same-origin navigation. Required for the
+      // `fallbacks.document` → /offline rule to fire on arbitrary routes
+      // (next-pwa only invokes fallback via `handlerDidError` on registered
+      // routes; without this, uncached URLs go straight to Chrome's native
+      // offline error page).
+      {
+        urlPattern: ({ request, sameOrigin }) =>
+          sameOrigin && request.mode === "navigate",
+        handler: "NetworkFirst",
+        options: { cacheName: "pages", networkTimeoutSeconds: 3 },
+      },
     ],
   },
   disable: process.env.NODE_ENV === "development",

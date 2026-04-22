@@ -18,7 +18,7 @@ export default function OfflinePage() {
         href="/dashboard"
         className="mt-8 px-8 py-4 rounded-2xl bg-brand text-white font-black uppercase tracking-widest text-sm"
       >
-        Torna alla home
+        Torna alla dashboard
       </a>
     </main>
   )
