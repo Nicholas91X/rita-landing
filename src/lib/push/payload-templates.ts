@@ -55,3 +55,39 @@ export function trialReminderPayload(args: { subscriptionId: string }): PushPayl
     tag: `trial-reminder-${args.subscriptionId}`,
   }
 }
+
+export function subscriptionCancelRequestedPayload(args: {
+  subscriptionId: string
+  packageName: string
+  accessUntil: string | null
+}): PushPayload {
+  const untilLabel = args.accessUntil
+    ? new Date(args.accessUntil).toLocaleDateString("it-IT", { day: "numeric", month: "long", year: "numeric" })
+    : null
+  return {
+    title: "Cancellazione registrata",
+    body: untilLabel
+      ? `Continuerai ad avere accesso a ${args.packageName} fino al ${untilLabel}.`
+      : `La cancellazione di ${args.packageName} è stata registrata.`,
+    url: "/dashboard#billing",
+    tag: `cancel-${args.subscriptionId}`,
+  }
+}
+
+export function refundRequestedPayload(args: { requestId: string; packageName: string }): PushPayload {
+  return {
+    title: "Richiesta rimborso ricevuta",
+    body: `Abbiamo ricevuto la tua richiesta per ${args.packageName}. Ti avviseremo quando viene valutata.`,
+    url: "/dashboard#billing",
+    tag: `refund-request-${args.requestId}`,
+  }
+}
+
+export function subscriptionEndedPayload(args: { subscriptionId: string; packageName: string }): PushPayload {
+  return {
+    title: "Abbonamento terminato",
+    body: `Il tuo abbonamento a ${args.packageName} è finito. Rinnovalo per riprendere gli allenamenti.`,
+    url: "/dashboard#billing",
+    tag: `ended-${args.subscriptionId}`,
+  }
+}

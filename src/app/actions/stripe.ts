@@ -9,6 +9,11 @@ import { refundRequestSchema, cancelSubscriptionSchema } from './stripe.schemas'
 import { validate, ValidationError } from '@/lib/security/validation'
 import { enforceRateLimit, refundLimiter, RateLimitError } from '@/lib/security/ratelimit'
 import type { ActionResult } from '@/lib/security/types'
+import { sendToUser } from '@/lib/push/dispatch'
+import {
+    refundRequestedPayload,
+    subscriptionCancelRequestedPayload,
+} from '@/lib/push/payload-templates'
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || 'sk_test_placeholder', {
     apiVersion: '2025-12-15.clover' as unknown as Stripe.LatestApiVersion,
@@ -228,11 +233,13 @@ export async function requestRefund(args: unknown): Promise<ActionResult<void>> 
         insertData.purchase_id = id
     }
 
-    const { error } = await supabase
+    const { data: refundRow, error } = await supabase
         .from('refund_requests')
         .insert(insertData)
+        .select('id')
+        .single()
 
-    if (error) return { ok: false, message: 'Errore durante la richiesta di rimborso' }
+    if (error || !refundRow) return { ok: false, message: 'Errore durante la richiesta di rimborso' }
 
     // Admin Notification via service role (migration 06 drops the user-scoped INSERT policy).
     const supabaseAdmin = await createServiceRoleClient()
@@ -245,6 +252,18 @@ export async function requestRefund(args: unknown): Promise<ActionResult<void>> 
             [type === 'subscription' ? 'subscriptionId' : 'purchaseId']: id
         }
     })
+
+    // Push confirmation to user (Sub-2 follow-up).
+    try {
+        await sendToUser(
+            supabaseAdmin,
+            user.id,
+            refundRequestedPayload({ requestId: refundRow.id as string, packageName }),
+            { category: 'transactional', idempotencyKey: `refund-request-${refundRow.id}` },
+        )
+    } catch (pushErr) {
+        console.error('[push] requestRefund dispatch failed', pushErr)
+    }
 
     // Send confirmation email to user
     if (user.email) {
@@ -283,7 +302,7 @@ export async function cancelSubscription(args: unknown): Promise<ActionResult<vo
     // 1. Get subscription info (with ownership check)
     const { data: sub, error: subError } = await supabase
         .from('user_subscriptions')
-        .select('stripe_subscription_id, packages(name)')
+        .select('stripe_subscription_id, current_period_end, packages(name)')
         .eq('id', subscriptionId)
         .eq('user_id', user.id)
         .single()
@@ -310,15 +329,32 @@ export async function cancelSubscription(args: unknown): Promise<ActionResult<vo
 
     // 4. Admin Notification via service role (migration 06 drops the user-scoped INSERT policy).
     const supabaseAdmin = await createServiceRoleClient()
+    const packageName = (sub.packages as unknown as { name: string })?.name || 'Pacchetto'
     await supabaseAdmin.from('admin_notifications').insert({
         type: 'cancellation',
         user_id: user.id,
         data: {
-            packageName: (sub.packages as unknown as { name: string })?.name || 'Pacchetto',
+            packageName,
             subscriptionId,
             wasHeadless: !sub.stripe_subscription_id
         }
     })
+
+    // 5. Push confirmation to user (Sub-2 follow-up).
+    try {
+        await sendToUser(
+            supabaseAdmin,
+            user.id,
+            subscriptionCancelRequestedPayload({
+                subscriptionId,
+                packageName,
+                accessUntil: sub.current_period_end ?? null,
+            }),
+            { category: 'transactional', idempotencyKey: `cancel-${subscriptionId}` },
+        )
+    } catch (pushErr) {
+        console.error('[push] cancelSubscription dispatch failed', pushErr)
+    }
 
     return { ok: true, data: undefined }
 }

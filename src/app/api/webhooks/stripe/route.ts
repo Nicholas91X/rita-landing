@@ -10,6 +10,7 @@ import {
     purchaseCompletedPayload,
     subscriptionRenewedPayload,
     paymentFailedPayload,
+    subscriptionEndedPayload,
 } from '@/lib/push/payload-templates'
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || 'sk_test_placeholder', {
@@ -374,6 +375,30 @@ export async function POST(req: Request) {
         if (error) {
             console.error('Error updating subscription status:', error)
             return new NextResponse('Error syncing subscription', { status: 500 })
+        }
+
+        // Sub-2 follow-up: push when subscription actually ends (not just updated).
+        // `updated` fires for many reasons (trial→active, cancel flag flip, plan
+        // change) and would be too noisy; `deleted` signals the real end.
+        if (event.type === 'customer.subscription.deleted') {
+            const { data: row } = await supabaseAdmin
+                .from('user_subscriptions')
+                .select('id, user_id, packages(name)')
+                .eq('stripe_subscription_id', subscription.id)
+                .maybeSingle()
+            if (row?.user_id) {
+                try {
+                    const packageName = (row.packages as unknown as { name: string })?.name || 'Pacchetto'
+                    await sendToUser(
+                        supabaseAdmin,
+                        row.user_id,
+                        subscriptionEndedPayload({ subscriptionId: row.id, packageName }),
+                        { category: 'transactional', idempotencyKey: `ended-${subscription.id}` },
+                    )
+                } catch (pushErr) {
+                    console.error('[push] subscription.deleted dispatch failed', pushErr)
+                }
+            }
         }
     }
 
