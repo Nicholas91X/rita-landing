@@ -19,6 +19,7 @@ import {
 } from '@/app/actions/user.schemas'
 import TransitionOverlay from '@/components/TransitionOverlay'
 import { PasswordStrengthMeter } from '@/components/auth/PasswordStrengthMeter'
+import { GoogleSignInButton } from '@/components/auth/GoogleSignInButton'
 
 type AuthMode = 'login' | 'signup' | 'forgot-password' | 'forgot-email'
 
@@ -147,6 +148,12 @@ function LoginForm({ onSuccess }: { onSuccess: () => void }) {
 
     return (
         <form onSubmit={onSubmit} className="space-y-6" noValidate>
+            <GoogleSignInButton termsAccepted={true} mode="login" />
+            <div className="flex items-center gap-4 my-6">
+                <div className="h-px flex-1 bg-neutral-200" />
+                <span className="text-xs text-neutral-500 uppercase tracking-widest">o</span>
+                <div className="h-px flex-1 bg-neutral-200" />
+            </div>
             <div className="space-y-4">
                 <div className="relative">
                     <label htmlFor="email" className="sr-only">Email</label>
@@ -220,6 +227,7 @@ function SignupForm() {
         resolver: zodResolver(signupSchema),
     })
     const passwordValue = watch('password', '')
+    const termsAcceptedValue = watch('terms_accepted') === 'on'
     const [topError, setTopError] = useState<string | null>(null)
     const [successMessage, setSuccessMessage] = useState<string | null>(null)
     const [showPassword, setShowPassword] = useState(false)
@@ -258,6 +266,12 @@ function SignupForm() {
 
     return (
         <form onSubmit={onSubmit} className="space-y-6" noValidate>
+            <GoogleSignInButton termsAccepted={termsAcceptedValue} mode="signup" />
+            <div className="flex items-center gap-4 my-6">
+                <div className="h-px flex-1 bg-neutral-200" />
+                <span className="text-xs text-neutral-500 uppercase tracking-widest">o</span>
+                <div className="h-px flex-1 bg-neutral-200" />
+            </div>
             <div className="space-y-4">
                 <div className="relative">
                     <label htmlFor="fullNameSignup" className="sr-only">Nome e Cognome</label>
