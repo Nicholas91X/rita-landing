@@ -86,20 +86,22 @@ export function EmailVerificationBanner({ onVisibilityChange }: Props = {}) {
   return (
     <div className="fixed top-0 left-0 right-0 z-[100] h-12 bg-orange-500/90 backdrop-blur-sm border-b border-orange-600 text-white px-4 flex items-center gap-3 text-sm font-medium shadow-lg">
       <Mail className="h-4 w-4 shrink-0 text-white" />
-      <span className="flex-1">
-        Conferma la tua email per ricevere aggiornamenti importanti e non perdere l&apos;accesso.
+      <span className="flex-1 truncate min-w-0">
+        <span className="hidden sm:inline">Conferma la tua email per non perdere l&apos;accesso.</span>
+        <span className="sm:hidden">Conferma la tua email.</span>
       </span>
       <button
         onClick={resend}
         disabled={sending}
-        className="px-3 py-1.5 rounded-lg bg-orange-500/20 hover:bg-orange-500/30 font-bold uppercase tracking-widest text-xs disabled:opacity-50"
+        className="shrink-0 px-3 py-1.5 rounded-lg bg-orange-500/20 hover:bg-orange-500/30 font-bold uppercase tracking-widest text-xs disabled:opacity-50"
       >
-        {sending ? "Invio..." : "Rinvia email"}
+        <span className="hidden sm:inline">{sending ? "Invio..." : "Rinvia email"}</span>
+        <span className="sm:hidden">{sending ? "..." : "Rinvia"}</span>
       </button>
       <button
         onClick={dismiss}
         aria-label="Chiudi"
-        className="p-1 rounded-lg hover:bg-orange-500/20"
+        className="shrink-0 p-1 rounded-lg hover:bg-orange-500/20"
       >
         <X className="h-4 w-4" />
       </button>
