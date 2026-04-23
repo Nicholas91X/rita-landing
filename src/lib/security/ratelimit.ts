@@ -116,3 +116,8 @@ let _broadcastLimiter: Ratelimit | null = null
 export function broadcastLimiter(): Ratelimit {
   return (_broadcastLimiter ??= makeLimiter("broadcast", 5, "1 h"))
 }
+
+let _videoPlaybackClaimLimiter: Ratelimit | null = null
+export function videoPlaybackClaimLimiter(): Ratelimit {
+  return (_videoPlaybackClaimLimiter ??= makeLimiter("video:claim", 10, "1 m"))
+}

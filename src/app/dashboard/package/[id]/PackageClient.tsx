@@ -38,7 +38,7 @@ type WatchProgress = {
     last_watched_at: string
 }
 
-export default function PackageClient({ pkg, videos }: { pkg: Package, videos: Video[] }) {
+export default function PackageClient({ pkg, videos, isAdmin = false }: { pkg: Package, videos: Video[], isAdmin?: boolean }) {
     const [activeVideo, setActiveVideo] = useState<Video>(videos[0])
     const [activeWeek, setActiveWeek] = useState(1)
     const [progressData, setProgressData] = useState<Record<string, WatchProgress>>({})
@@ -180,6 +180,7 @@ export default function PackageClient({ pkg, videos }: { pkg: Package, videos: V
                                                 videoId={activeVideo.id}
                                                 initialTime={progressData[activeVideo.id]?.is_completed ? 0 : (progressData[activeVideo.id]?.progress_seconds || 0)}
                                                 onProgressUpdate={fetchProgress}
+                                                isAdmin={isAdmin}
                                             />
                                         )}
                                     </div>

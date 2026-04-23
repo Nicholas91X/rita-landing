@@ -9,6 +9,9 @@ export default defineConfig({
     globals: false,
     include: ["src/**/*.test.ts", "src/**/*.test.tsx"],
     setupFiles: ["src/test-setup.ts"],
+    fakeTimers: {
+      shouldAdvanceTime: true,
+    },
     coverage: {
       provider: "v8",
       include: ["src/lib/security/**/*.ts", "src/lib/gdpr/**/*.ts"],
