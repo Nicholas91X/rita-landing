@@ -58,3 +58,74 @@ describe("cancelSubscription — dedup", () => {
     expect(stripeUpdateSpy).not.toHaveBeenCalled()
   })
 })
+
+describe("requestRefund — dedup", () => {
+  beforeEach(() => vi.resetModules())
+
+  it("rejects with 'già in corso' when a pending row exists", async () => {
+    vi.doMock("@/lib/security/ratelimit", async (importOriginal) => {
+      const original = await importOriginal<typeof import("@/lib/security/ratelimit")>()
+      return {
+        ...original,
+        enforceRateLimit: vi.fn(async () => undefined),
+      }
+    })
+
+    vi.doMock("@/utils/supabase/server", () => ({
+      createClient: vi.fn().mockResolvedValue({
+        auth: { getUser: async () => ({ data: { user: { id: "u1", email: "test@example.com" } } }) },
+        from: (table: string) => {
+          if (table === "user_subscriptions") {
+            return {
+              select: () => ({
+                eq: () => ({
+                  eq: () => ({
+                    single: async () => ({
+                      data: {
+                        created_at: new Date().toISOString(),
+                        packages: { name: "Pilates" },
+                      },
+                      error: null,
+                    }),
+                  }),
+                }),
+              }),
+            }
+          }
+          if (table === "refund_requests") {
+            return {
+              select: () => ({
+                eq: () => ({
+                  eq: () => ({
+                    in: () => ({
+                      maybeSingle: async () => ({
+                        data: { id: "existing-id", status: "pending" },
+                        error: null,
+                      }),
+                    }),
+                  }),
+                }),
+              }),
+            }
+          }
+          return { insert: async () => ({ error: null }) }
+        },
+      }),
+      createServiceRoleClient: vi.fn(),
+    }))
+
+    vi.doMock("@/lib/push/dispatch", () => ({ sendToUser: vi.fn() }))
+
+    // Reimport the module fresh after doMock
+    const { requestRefund } = await import("./stripe")
+    const result = await requestRefund({
+      id: "a0000000-0000-4000-8000-000000000001",
+      reason: "non più interessato",
+      type: "subscription",
+    })
+    expect(result.ok).toBe(false)
+    if (!result.ok) {
+      expect(result.message).toMatch(/già in corso/)
+    }
+  })
+})

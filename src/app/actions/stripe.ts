@@ -221,6 +221,22 @@ export async function requestRefund(args: unknown): Promise<ActionResult<void>> 
         return { ok: false, message: "Non è possibile richiedere un rimborso dopo 14 giorni dall'acquisto." }
     }
 
+    // Sub-3 dedup: reject if an existing refund_requests row for the same
+    // target is already pending or approved. Prevents duplicate admin
+    // notifications + duplicate user push.
+    const targetColumn = type === 'subscription' ? 'subscription_id' : 'purchase_id'
+    const { data: existing } = await supabase
+        .from('refund_requests')
+        .select('id, status')
+        .eq('user_id', user.id)
+        .eq(targetColumn, id)
+        .in('status', ['pending', 'approved'])
+        .maybeSingle()
+
+    if (existing) {
+        return { ok: false, message: 'Richiesta già in corso per questo elemento.' }
+    }
+
     const insertData: RefundInsertData = {
         user_id: user.id,
         reason,
