@@ -9,7 +9,11 @@ const DISMISSED_KEY = "email-verify-dismissed-at"
 const COOLDOWN_MS = 24 * 60 * 60 * 1000
 const POLL_MS = 30_000
 
-export function EmailVerificationBanner() {
+interface Props {
+  onVisibilityChange?: (visible: boolean) => void
+}
+
+export function EmailVerificationBanner({ onVisibilityChange }: Props = {}) {
   const [visible, setVisible] = useState(false)
   const [email, setEmail] = useState<string | null>(null)
   const [sending, setSending] = useState(false)
@@ -49,6 +53,10 @@ export function EmailVerificationBanner() {
     }
   }, [supabase])
 
+  useEffect(() => {
+    onVisibilityChange?.(visible)
+  }, [visible, onVisibilityChange])
+
   const resend = async () => {
     if (!email || sending) return
     setSending(true)
@@ -76,8 +84,8 @@ export function EmailVerificationBanner() {
   if (!visible) return null
 
   return (
-    <div className="w-full bg-orange-500/10 border-b border-orange-500/30 text-orange-100 px-4 py-3 flex items-center gap-3 text-sm font-medium">
-      <Mail className="h-4 w-4 shrink-0 text-orange-400" />
+    <div className="fixed top-0 left-0 right-0 z-[100] h-12 bg-orange-500/90 backdrop-blur-sm border-b border-orange-600 text-white px-4 flex items-center gap-3 text-sm font-medium shadow-lg">
+      <Mail className="h-4 w-4 shrink-0 text-white" />
       <span className="flex-1">
         Conferma la tua email per ricevere aggiornamenti importanti e non perdere l&apos;accesso.
       </span>

@@ -70,6 +70,8 @@ export default function DashboardClient({ levels }: { levels: Level[] }) {
     const touchStartY = useRef<number | null>(null)
     const [slideDirection, setSlideDirection] = useState<'left' | 'right'>('left')
 
+    const [bannerVisible, setBannerVisible] = useState(false)
+
     const { prompt, dismiss, acceptedSoftPrompt } = usePushPromptOrchestrator(true)
     useHeartbeat(true)
 
@@ -185,8 +187,11 @@ export default function DashboardClient({ levels }: { levels: Level[] }) {
     return (
         <DashboardThemeProvider>
             <>
-                <EmailVerificationBanner />
-                <div className="flex min-h-screen bg-[var(--dash-bg)] text-[var(--dash-text)] selection:bg-brand/30 relative overflow-x-hidden transition-colors duration-300">
+                <EmailVerificationBanner onVisibilityChange={setBannerVisible} />
+                <div className={cn(
+                    "flex min-h-screen bg-[var(--dash-bg)] text-[var(--dash-text)] selection:bg-brand/30 relative overflow-x-hidden transition-colors duration-300",
+                    bannerVisible && "pt-12"
+                )}>
             {/* Sfondo chiaro, rimuovo il gradiente scuro */}
 
             {/* Navigation */}
