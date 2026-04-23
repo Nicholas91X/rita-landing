@@ -34,6 +34,31 @@ export async function GET(request: Request) {
                 }
             }
 
+            // Sub-3 sanity check: Google OAuth signup flow must have carried terms=1.
+            // The UI already enforces this, but catch URL-crafting attackers here too.
+            const source = searchParams.get('source')
+            const terms = searchParams.get('terms')
+            if (source === 'google') {
+                const { data: { user: oauthUser } } = await supabase.auth.getUser()
+                if (oauthUser) {
+                    const createdMs = new Date(oauthUser.created_at).getTime()
+                    const isFreshUser = Math.abs(Date.now() - createdMs) < 2000
+                    if (isFreshUser && terms !== '1') {
+                        // Delete the freshly-created user so they can retry cleanly after
+                        // accepting terms. Service-role client; regular client cannot
+                        // touch auth.users directly.
+                        try {
+                            const { createServiceRoleClient } = await import('@/utils/supabase/server')
+                            const admin = await createServiceRoleClient()
+                            await admin.auth.admin.deleteUser(oauthUser.id)
+                        } catch (err) {
+                            console.error('[auth-callback] failed to delete unconsented user', err)
+                        }
+                        return NextResponse.redirect(`${origin}/login?error=terms-missing`)
+                    }
+                }
+            }
+
             const forwardedHost = request.headers.get('x-forwarded-host')
             const isLocalEnv = process.env.NODE_ENV === 'development'
             if (isLocalEnv) {
