@@ -187,6 +187,14 @@ export default function BillingSection() {
                 return
             }
             toast.success('Rinnovo annullato con successo')
+            // Sub-3: optimistic update so the "Cancellato" badge appears
+            // instantly; fetchSubs() below will reconcile with authoritative
+            // DB state.
+            setSubscriptions((prev) =>
+                prev.map((s) =>
+                    s.id === cancelDialog.subId ? { ...s, cancel_at_period_end: true } : s,
+                ),
+            )
             setCancelDialog({ open: false, subId: null })
             fetchSubs()
         } catch (error: unknown) {

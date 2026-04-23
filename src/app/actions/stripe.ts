@@ -14,6 +14,7 @@ import {
     refundRequestedPayload,
     subscriptionCancelRequestedPayload,
 } from '@/lib/push/payload-templates'
+import { claimWithTtl, cacheResult } from '@/lib/security/ttl-idempotency'
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || 'sk_test_placeholder', {
     apiVersion: '2025-12-15.clover' as unknown as Stripe.LatestApiVersion,
@@ -113,10 +114,22 @@ export async function createCheckoutSession(packageId: string) {
         sessionParams.customer_email = user.email
     }
 
+    // Sub-3 idempotency: duplicate submissions within 60s reuse the first
+    // Stripe session URL instead of minting a new one.
+    const idemKey = `checkout:${user.id}:${packageId}`
+    const claim = await claimWithTtl(idemKey, { ttlSeconds: 60 })
+    if (!claim.fresh && claim.payload) {
+        redirect(claim.payload)
+    }
+
     const session = await stripe.checkout.sessions.create(sessionParams)
 
     if (!session.url) {
         throw new Error('Failed to create checkout session')
+    }
+
+    if (session.url) {
+        await cacheResult(idemKey, session.url, 60)
     }
 
     return session.url
@@ -221,6 +234,22 @@ export async function requestRefund(args: unknown): Promise<ActionResult<void>> 
         return { ok: false, message: "Non è possibile richiedere un rimborso dopo 14 giorni dall'acquisto." }
     }
 
+    // Sub-3 dedup: reject if an existing refund_requests row for the same
+    // target is already pending or approved. Prevents duplicate admin
+    // notifications + duplicate user push.
+    const targetColumn = type === 'subscription' ? 'subscription_id' : 'purchase_id'
+    const { data: existing } = await supabase
+        .from('refund_requests')
+        .select('id, status')
+        .eq('user_id', user.id)
+        .eq(targetColumn, id)
+        .in('status', ['pending', 'approved'])
+        .maybeSingle()
+
+    if (existing) {
+        return { ok: false, message: 'Richiesta già in corso per questo elemento.' }
+    }
+
     const insertData: RefundInsertData = {
         user_id: user.id,
         reason,
@@ -302,12 +331,19 @@ export async function cancelSubscription(args: unknown): Promise<ActionResult<vo
     // 1. Get subscription info (with ownership check)
     const { data: sub, error: subError } = await supabase
         .from('user_subscriptions')
-        .select('stripe_subscription_id, current_period_end, packages(name)')
+        .select('stripe_subscription_id, current_period_end, cancel_at_period_end, packages(name)')
         .eq('id', subscriptionId)
         .eq('user_id', user.id)
         .single()
 
     if (subError || !sub) return { ok: false, message: 'Abbonamento non trovato' }
+
+    // Dedup (Sub-3): if this subscription is already flagged for cancel,
+    // don't repeat the Stripe call, DB update, admin_notifications insert,
+    // or push. Treat as idempotent success.
+    if (sub.cancel_at_period_end === true) {
+        return { ok: true, data: undefined }
+    }
 
     // 2. Cancel in Stripe (only if ID exists)
     if (sub.stripe_subscription_id) {

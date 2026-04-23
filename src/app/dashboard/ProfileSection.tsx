@@ -12,12 +12,13 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
-import { User, Mail, Shield, LogOut, Loader2, Camera, ChevronLeft, ChevronRight, Trash2, Sun, Moon, Download, Monitor, X } from 'lucide-react'
+import { User, Mail, Shield, LogOut, Loader2, Camera, ChevronLeft, ChevronRight, Trash2, Sun, Moon, Download, Monitor, X, Eye, EyeOff } from 'lucide-react'
 import { createClient } from '@/utils/supabase/client'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
 import TransitionOverlay from '@/components/TransitionOverlay'
 import { useDashTheme } from './ThemeContext'
+import { PasswordStrengthMeter } from '@/components/auth/PasswordStrengthMeter'
 
 interface Profile {
     id: string
@@ -72,6 +73,10 @@ export default function ProfileSection({ onProfileUpdate, activeSubTab = 'info' 
     const [deletionRequested, setDeletionRequested] = useState(false)
     const [loggingOut, setLoggingOut] = useState(false)
     const { theme, toggleTheme } = useDashTheme()
+
+    // Password visibility states
+    const [showNewPassword, setShowNewPassword] = useState(false)
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false)
 
     // Form states
     const [formData, setFormData] = useState({
@@ -472,20 +477,41 @@ export default function ProfileSection({ onProfileUpdate, activeSubTab = 'info' 
                                                             </DialogDescription>
                                                         </DialogHeader>
                                                         <div className="py-4 space-y-4">
-                                                            <Input
-                                                                type="password"
-                                                                placeholder="Nuova Password (min. 6 caratteri)"
-                                                                value={passwordForm.password}
-                                                                onChange={(e) => setPasswordForm(prev => ({ ...prev, password: e.target.value }))}
-                                                                className="rounded-xl border-[var(--dash-border)]"
-                                                            />
-                                                            <Input
-                                                                type="password"
-                                                                placeholder="Conferma Nuova Password"
-                                                                value={passwordForm.confirmPassword}
-                                                                onChange={(e) => setPasswordForm(prev => ({ ...prev, confirmPassword: e.target.value }))}
-                                                                className="rounded-xl border-[var(--dash-border)]"
-                                                            />
+                                                            <div className="relative">
+                                                                <Input
+                                                                    type={showNewPassword ? "text" : "password"}
+                                                                    placeholder="Nuova Password (min. 6 caratteri)"
+                                                                    value={passwordForm.password}
+                                                                    onChange={(e) => setPasswordForm(prev => ({ ...prev, password: e.target.value }))}
+                                                                    className="rounded-xl border-[var(--dash-border)] pr-12"
+                                                                />
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={() => setShowNewPassword(!showNewPassword)}
+                                                                    aria-label={showNewPassword ? "Nascondi password" : "Mostra password"}
+                                                                    className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--dash-muted)] hover:text-[var(--dash-heading)] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--dash-accent)]/50 rounded-sm"
+                                                                >
+                                                                    {showNewPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                                                                </button>
+                                                            </div>
+                                                            <PasswordStrengthMeter value={passwordForm.password} />
+                                                            <div className="relative">
+                                                                <Input
+                                                                    type={showConfirmPassword ? "text" : "password"}
+                                                                    placeholder="Conferma Nuova Password"
+                                                                    value={passwordForm.confirmPassword}
+                                                                    onChange={(e) => setPasswordForm(prev => ({ ...prev, confirmPassword: e.target.value }))}
+                                                                    className="rounded-xl border-[var(--dash-border)] pr-12"
+                                                                />
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                                                                    aria-label={showConfirmPassword ? "Nascondi password" : "Mostra password"}
+                                                                    className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--dash-muted)] hover:text-[var(--dash-heading)] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--dash-accent)]/50 rounded-sm"
+                                                                >
+                                                                    {showConfirmPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                                                                </button>
+                                                            </div>
                                                         </div>
                                                         <DialogFooter>
                                                             <Button variant="ghost" onClick={() => setIsPasswordDialogOpen(false)}>Annulla</Button>
