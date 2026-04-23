@@ -82,6 +82,24 @@ export async function requestAccountDeletionGdpr(): Promise<ActionResult<void>> 
   const h = await headers()
   const ip = h.get("x-forwarded-for")?.split(",")[0].trim() ?? "unknown"
 
+  // Sub-3 dedup: if the user already has an unused deletion-request audit
+  // entry in the last 24h, return success without issuing a new token.
+  // The old token is still valid (tokens expire per existing spec); reusing
+  // it prevents duplicate emails and audit rows.
+  const admin = await createServiceRoleClient()
+  const { data: existingRequest } = await admin
+    .from('gdpr_audit_log')
+    .select('id')
+    .eq('user_id', user.id)
+    .eq('action', 'delete_request')
+    .gte('created_at', new Date(Date.now() - 24 * 3600 * 1000).toISOString())
+    .limit(1)
+    .maybeSingle()
+
+  if (existingRequest) {
+    return { ok: true, data: undefined }
+  }
+
   // Build the confirm URL from the incoming request so preview deploys get
   // links pointing back to the preview (not to production), and so a future
   // alternate domain works without code changes.
