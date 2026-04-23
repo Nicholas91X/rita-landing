@@ -14,6 +14,7 @@ import {
     refundRequestedPayload,
     subscriptionCancelRequestedPayload,
 } from '@/lib/push/payload-templates'
+import { claimWithTtl, cacheResult } from '@/lib/security/ttl-idempotency'
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || 'sk_test_placeholder', {
     apiVersion: '2025-12-15.clover' as unknown as Stripe.LatestApiVersion,
@@ -113,10 +114,22 @@ export async function createCheckoutSession(packageId: string) {
         sessionParams.customer_email = user.email
     }
 
+    // Sub-3 idempotency: duplicate submissions within 60s reuse the first
+    // Stripe session URL instead of minting a new one.
+    const idemKey = `checkout:${user.id}:${packageId}`
+    const claim = await claimWithTtl(idemKey, { ttlSeconds: 60 })
+    if (!claim.fresh && claim.payload) {
+        redirect(claim.payload)
+    }
+
     const session = await stripe.checkout.sessions.create(sessionParams)
 
     if (!session.url) {
         throw new Error('Failed to create checkout session')
+    }
+
+    if (session.url) {
+        await cacheResult(idemKey, session.url, 60)
     }
 
     return session.url

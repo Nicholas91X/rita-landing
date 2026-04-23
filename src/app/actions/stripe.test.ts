@@ -129,3 +129,79 @@ describe("requestRefund — dedup", () => {
     }
   })
 })
+
+describe("createCheckoutSession — idempotency", () => {
+  beforeEach(() => vi.resetModules())
+
+  it("reuses cached URL on duplicate call within 60s", async () => {
+    const stripeCreateSpy = vi.fn()
+
+    vi.doMock("stripe", () => {
+      const StripeConstructor = function () {
+        return {
+          checkout: { sessions: { create: stripeCreateSpy } },
+        }
+      }
+      return { default: StripeConstructor }
+    })
+
+    vi.doMock("@/lib/security/ttl-idempotency", () => ({
+      claimWithTtl: vi.fn(async () => ({ fresh: false, payload: "https://checkout.stripe.com/cached" })),
+      cacheResult: vi.fn(),
+    }))
+
+    vi.doMock("next/headers", () => ({
+      headers: vi.fn(async () => ({ get: () => "https://example.com" })),
+    }))
+
+    vi.doMock("@/utils/supabase/server", () => ({
+      createClient: vi.fn().mockResolvedValue({
+        auth: { getUser: async () => ({ data: { user: { id: "u1", email: "t@example.com" } } }) },
+        from: (table: string) => {
+          if (table === "packages") {
+            return {
+              select: () => ({
+                eq: () => ({
+                  single: async () => ({
+                    data: {
+                      id: "pkg-1",
+                      name: "Pilates",
+                      price: 2990,
+                      stripe_price_id: "price_xyz",
+                      payment_mode: "payment",
+                    },
+                    error: null,
+                  }),
+                }),
+              }),
+            }
+          }
+          // profiles and user_subscriptions
+          return {
+            select: () => ({
+              eq: () => ({
+                single: async () => ({ data: null, error: null }),
+                maybeSingle: async () => ({ data: null, error: null }),
+              }),
+            }),
+          }
+        },
+      }),
+      createServiceRoleClient: vi.fn(),
+    }))
+
+    const redirectCalls: string[] = []
+    vi.doMock("next/navigation", () => ({
+      redirect: vi.fn((url: string) => {
+        redirectCalls.push(url)
+        throw new Error("NEXT_REDIRECT")
+      }),
+    }))
+
+    const { createCheckoutSession } = await import("./stripe")
+
+    await expect(createCheckoutSession("pkg-1")).rejects.toThrow("NEXT_REDIRECT")
+    expect(stripeCreateSpy).not.toHaveBeenCalled()
+    expect(redirectCalls).toContain("https://checkout.stripe.com/cached")
+  })
+})
