@@ -4,14 +4,18 @@ import { useEffect, useState, useRef } from 'react'
 import { getSignedVideoUrl, saveVideoProgress } from '@/app/actions/video'
 import { AlertCircle, Loader2 } from 'lucide-react'
 import { logger } from '@/lib/logger'
+import { toast } from 'sonner'
+import { useVideoPlaybackLock } from '@/hooks/useVideoPlaybackLock'
+import { PlaybackBlockedDialog } from './PlaybackBlockedDialog'
 
 interface VideoPlayerProps {
     videoId: string
     initialTime?: number
     onProgressUpdate?: () => void
+    isAdmin?: boolean
 }
 
-export default function VideoPlayer({ videoId, initialTime = 0, onProgressUpdate }: VideoPlayerProps) {
+export default function VideoPlayer({ videoId, initialTime = 0, onProgressUpdate, isAdmin = false }: VideoPlayerProps) {
     const [url, setUrl] = useState<string | null>(null)
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState<string | null>(null)
@@ -22,6 +26,7 @@ export default function VideoPlayer({ videoId, initialTime = 0, onProgressUpdate
     const lastSavedTime = useRef<number>(0)
     const lastLoadedVideoId = useRef<string | null>(null)
     const iframeRef = useRef<HTMLIFrameElement>(null)
+    const lock = useVideoPlaybackLock(videoId, isAdmin)
 
     useEffect(() => {
         // Prevent re-fetching when only initialTime changes for the SAME video
@@ -77,6 +82,22 @@ export default function VideoPlayer({ videoId, initialTime = 0, onProgressUpdate
         onProgressUpdateRef.current = onProgressUpdate
     }, [onProgressUpdate])
 
+    // Sub-4: react to lock state changes
+    useEffect(() => {
+        if (lock.state === "taken-over") {
+            // Force pause via Bunny postMessage
+            const msg = { context: "player.js", method: "pause" }
+            iframeRef.current?.contentWindow?.postMessage(msg, "*")
+            iframeRef.current?.contentWindow?.postMessage(JSON.stringify(msg), "*")
+            toast.info("Video messo in pausa: in riproduzione su un altro tuo dispositivo.")
+        }
+        if (lock.state === "error" && lock.retryAfterSec) {
+            toast.error(`Troppi tentativi. Riprova fra ${lock.retryAfterSec}s.`)
+            lock.dismissError()
+        }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [lock.state, lock.retryAfterSec])
+
     // Listen to messages from Bunny.net player
     useEffect(() => {
         let subscriptionCount = 0
@@ -127,6 +148,23 @@ export default function VideoPlayer({ videoId, initialTime = 0, onProgressUpdate
 
                 if (eventName.includes('ready')) {
                     subscribeToEvents()
+                }
+
+                // Sub-4: playback lock — claim on play, release on end, stop heartbeat on pause.
+                // Must be BEFORE the existing progress-tracking logic so the lock is always
+                // up-to-date before progress is saved.
+                const isPlayEvent = eventName.includes("play") && !eventName.includes("pause")
+                const isPauseEvent = eventName.includes("pause")
+                const isEndedForLock = eventName.includes("ended") || eventName.includes("complete") || eventName.includes("finish")
+
+                if (isPlayEvent) {
+                    void lock.onPlay()
+                }
+                if (isPauseEvent) {
+                    lock.onPause()
+                }
+                if (isEndedForLock) {
+                    lock.onEnded()
                 }
 
                 // Duration capture
@@ -239,6 +277,7 @@ export default function VideoPlayer({ videoId, initialTime = 0, onProgressUpdate
                 iframe.removeEventListener('load', subscribeToEvents)
             }
         }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [videoId, status])
 
     if (error) {
@@ -288,6 +327,12 @@ export default function VideoPlayer({ videoId, initialTime = 0, onProgressUpdate
                     title="Video content"
                 />
             )}
+            <PlaybackBlockedDialog
+                open={lock.state === "blocked" || lock.state === "taken-over"}
+                byDeviceLabel={lock.blockedBy?.deviceLabel ?? null}
+                onTakeover={() => { void lock.takeover() }}
+                onDismiss={() => { lock.dismissError() }}
+            />
         </div>
     )
 }

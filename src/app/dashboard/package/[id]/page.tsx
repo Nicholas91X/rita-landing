@@ -5,6 +5,7 @@ import Link from 'next/link'
 import PackageClient from './PackageClient'
 import PersonalView from './PersonalView'
 import { DashboardThemeProvider } from '../../ThemeContext'
+import { isAdmin as checkIsAdmin } from '@/utils/supabase/admin'
 
 export default async function PackagePage(props: {
     params: Promise<{ id: string }>,
@@ -21,6 +22,9 @@ export default async function PackagePage(props: {
     // 2. Verifica autenticazione
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) redirect('/login')
+
+    // Sub-4: check admin status (admins bypass playback lock)
+    const userIsAdmin = await checkIsAdmin(user.id)
 
     // 3. Verifica abbonamento usando packageId (attivo/trialing + period non scaduto)
     const { data: subRow } = await supabase
@@ -109,5 +113,5 @@ export default async function PackagePage(props: {
         )
     }
 
-    return <DashboardThemeProvider><PackageClient pkg={pkg!} videos={videos} /></DashboardThemeProvider>
+    return <DashboardThemeProvider><PackageClient pkg={pkg!} videos={videos} isAdmin={userIsAdmin} /></DashboardThemeProvider>
 }
