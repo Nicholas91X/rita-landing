@@ -18,6 +18,7 @@ import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
 import TransitionOverlay from '@/components/TransitionOverlay'
 import { useDashTheme } from './ThemeContext'
+import { PasswordStrengthMeter } from '@/components/auth/PasswordStrengthMeter'
 
 interface Profile {
     id: string
@@ -479,6 +480,7 @@ export default function ProfileSection({ onProfileUpdate, activeSubTab = 'info' 
                                                                 onChange={(e) => setPasswordForm(prev => ({ ...prev, password: e.target.value }))}
                                                                 className="rounded-xl border-[var(--dash-border)]"
                                                             />
+                                                            <PasswordStrengthMeter value={passwordForm.password} />
                                                             <Input
                                                                 type="password"
                                                                 placeholder="Conferma Nuova Password"
