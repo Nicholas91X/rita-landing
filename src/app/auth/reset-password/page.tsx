@@ -6,6 +6,7 @@ import Logo from '@/components/Logo'
 import { Button } from '@/components/ui/button'
 import { Loader2, Lock, ArrowLeft, Eye, EyeOff } from 'lucide-react'
 import { updatePassword } from '@/app/actions/user'
+import { PasswordStrengthMeter } from '@/components/auth/PasswordStrengthMeter'
 
 export default function ResetPasswordPage() {
     const router = useRouter()
@@ -89,6 +90,7 @@ export default function ResetPasswordPage() {
                                     )}
                                 </button>
                             </div>
+                            <PasswordStrengthMeter value={password} />
                             <div className="relative">
                                 <label htmlFor="confirm-password" className="sr-only">Conferma Password</label>
                                 <Lock className="absolute left-3 top-3 h-5 w-5 text-[var(--foreground)]/40" />
