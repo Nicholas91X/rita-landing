@@ -18,6 +18,7 @@ import {
     type FindEmailInput,
 } from '@/app/actions/user.schemas'
 import TransitionOverlay from '@/components/TransitionOverlay'
+import { PasswordStrengthMeter } from '@/components/auth/PasswordStrengthMeter'
 
 type AuthMode = 'login' | 'signup' | 'forgot-password' | 'forgot-email'
 
@@ -212,11 +213,13 @@ function SignupForm() {
     const {
         register,
         handleSubmit,
+        watch,
         setError,
         formState: { errors, isSubmitting },
     } = useForm<SignupInput>({
         resolver: zodResolver(signupSchema),
     })
+    const passwordValue = watch('password', '')
     const [topError, setTopError] = useState<string | null>(null)
     const [successMessage, setSuccessMessage] = useState<string | null>(null)
     const [showPassword, setShowPassword] = useState(false)
@@ -311,6 +314,7 @@ function SignupForm() {
                         <p className="text-red-500 text-xs mt-1 ml-1">{errors.password.message}</p>
                     )}
                 </div>
+                <PasswordStrengthMeter value={passwordValue} />
 
                 <label className="flex items-start gap-3 cursor-pointer">
                     <input
