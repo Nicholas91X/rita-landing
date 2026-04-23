@@ -807,8 +807,23 @@ export async function requestAccountDeletion() {
 
     if (!user) throw new Error('Non autorizzato')
 
-    // Admin notification via service role (migration 06 drops the user-scoped INSERT policy).
+    // Sub-3 dedup: if the user already has an unprocessed deletion-request
+    // admin_notification from the last 24h, treat this as idempotent success.
     const supabaseAdmin = await createServiceRoleClient()
+    const { data: existingDeletionRequest } = await supabaseAdmin
+        .from('admin_notifications')
+        .select('id')
+        .eq('user_id', user.id)
+        .eq('type', 'account_deletion')
+        .gte('created_at', new Date(Date.now() - 24 * 3600 * 1000).toISOString())
+        .limit(1)
+        .maybeSingle()
+
+    if (existingDeletionRequest) {
+        return { success: true }
+    }
+
+    // Admin notification via service role (migration 06 drops the user-scoped INSERT policy).
     await supabaseAdmin.from('admin_notifications').insert({
         type: 'account_deletion',
         user_id: user.id,
