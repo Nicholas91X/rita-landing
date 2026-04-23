@@ -6,6 +6,7 @@ import { cn } from '@/lib/utils'
 import Link from 'next/link'
 import Image from 'next/image'
 import { signOutUser } from '@/app/actions/user'
+import { unstable_rethrow } from 'next/navigation'
 import { toast } from 'sonner'
 import { NotificationBell } from './NotificationBell'
 import TransitionOverlay from '@/components/TransitionOverlay'
@@ -64,7 +65,13 @@ export default function DashboardSidebar({ activeTab, setActiveTab, userProfile,
         setLoggingOut(true)
         try {
             await signOutUser()
-        } catch {
+        } catch (error) {
+            // Re-throw NEXT_REDIRECT / NEXT_NOT_FOUND so Next.js handles the
+            // navigation signal thrown by `redirect('/login')` inside the
+            // server action. Without this, the generic catch intercepts the
+            // redirect marker and displays a spurious "Errore durante il
+            // logout" toast even though the sign-out actually succeeded.
+            unstable_rethrow(error)
             setLoggingOut(false)
             toast.error('Errore durante il logout')
         }
