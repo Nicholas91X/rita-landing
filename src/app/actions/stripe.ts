@@ -302,12 +302,19 @@ export async function cancelSubscription(args: unknown): Promise<ActionResult<vo
     // 1. Get subscription info (with ownership check)
     const { data: sub, error: subError } = await supabase
         .from('user_subscriptions')
-        .select('stripe_subscription_id, current_period_end, packages(name)')
+        .select('stripe_subscription_id, current_period_end, cancel_at_period_end, packages(name)')
         .eq('id', subscriptionId)
         .eq('user_id', user.id)
         .single()
 
     if (subError || !sub) return { ok: false, message: 'Abbonamento non trovato' }
+
+    // Dedup (Sub-3): if this subscription is already flagged for cancel,
+    // don't repeat the Stripe call, DB update, admin_notifications insert,
+    // or push. Treat as idempotent success.
+    if (sub.cancel_at_period_end === true) {
+        return { ok: true, data: undefined }
+    }
 
     // 2. Cancel in Stripe (only if ID exists)
     if (sub.stripe_subscription_id) {
