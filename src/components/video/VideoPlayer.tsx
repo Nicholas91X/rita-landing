@@ -82,14 +82,19 @@ export default function VideoPlayer({ videoId, initialTime = 0, onProgressUpdate
         onProgressUpdateRef.current = onProgressUpdate
     }, [onProgressUpdate])
 
-    // Sub-4: react to lock state changes
+    // Sub-4: react to lock state changes. For BOTH 'blocked' (second device
+    // attempting to play while another device holds the lock) AND 'taken-over'
+    // (this device lost its lock to another), we must force-pause the Bunny
+    // iframe — otherwise the dialog is cosmetic and the user can dismiss it
+    // while the video keeps playing, defeating the whole anti-sharing feature.
     useEffect(() => {
-        if (lock.state === "taken-over") {
-            // Force pause via Bunny postMessage
+        if (lock.state === "blocked" || lock.state === "taken-over") {
             const msg = { context: "player.js", method: "pause" }
             iframeRef.current?.contentWindow?.postMessage(msg, "*")
             iframeRef.current?.contentWindow?.postMessage(JSON.stringify(msg), "*")
-            toast.info("Video messo in pausa: in riproduzione su un altro tuo dispositivo.")
+            if (lock.state === "taken-over") {
+                toast.info("Video messo in pausa: in riproduzione su un altro tuo dispositivo.")
+            }
         }
         if (lock.state === "error" && lock.retryAfterSec) {
             toast.error(`Troppi tentativi. Riprova fra ${lock.retryAfterSec}s.`)
