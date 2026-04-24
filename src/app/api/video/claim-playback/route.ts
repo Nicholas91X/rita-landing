@@ -23,7 +23,10 @@ interface LockValue {
   startedAt: number
 }
 
-const LOCK_TTL_SECONDS = 90
+// 30s TTL = 3× heartbeat interval (10s). Tolerates 2 missed heartbeats
+// before a stale lock is released. Reduced from 90s to cut cross-device
+// detection latency proportionally.
+const LOCK_TTL_SECONDS = 30
 
 async function isAdmin(userId: string): Promise<boolean> {
   const admin = await createServiceRoleClient()

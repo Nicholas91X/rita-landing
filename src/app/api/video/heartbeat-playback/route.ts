@@ -20,7 +20,9 @@ interface LockValue {
   startedAt: number
 }
 
-const LOCK_TTL_SECONDS = 90
+// 30s TTL = 3× heartbeat interval (10s). Must match the value in
+// claim-playback/route.ts.
+const LOCK_TTL_SECONDS = 30
 
 async function isAdmin(userId: string): Promise<boolean> {
   const admin = await createServiceRoleClient()

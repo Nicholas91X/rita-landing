@@ -158,9 +158,14 @@ export default function VideoPlayer({ videoId, initialTime = 0, onProgressUpdate
                 // Sub-4: playback lock — claim on play, release on end, stop heartbeat on pause.
                 // Must be BEFORE the existing progress-tracking logic so the lock is always
                 // up-to-date before progress is saved.
-                const isPlayEvent = eventName.includes("play") && !eventName.includes("pause")
-                const isPauseEvent = eventName.includes("pause")
-                const isEndedForLock = eventName.includes("ended") || eventName.includes("complete") || eventName.includes("finish")
+                //
+                // Use exact match (not includes) to avoid double-triggering on events whose
+                // name contains "play" as substring (e.g. "playing" / "playback" if Bunny
+                // starts emitting them in the future). Spurious onPlay calls while already
+                // in 'owned' state cause a redundant claim that could race with heartbeats.
+                const isPlayEvent = eventName === "play"
+                const isPauseEvent = eventName === "pause"
+                const isEndedForLock = eventName === "ended" || eventName === "complete" || eventName === "finish"
 
                 if (isPlayEvent) {
                     void lock.onPlay()

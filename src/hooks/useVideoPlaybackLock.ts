@@ -21,7 +21,11 @@ export interface UseVideoPlaybackLockResult {
   dismissError: () => void
 }
 
-const HEARTBEAT_INTERVAL_MS = 30_000
+// Fires every 10s (was 30s). Device losing the lock now detects takeover
+// within one tick, so "Continua qui" on device B pauses device A in ≤10s
+// instead of ≤30s. Upstash cost at 10s cadence: ~360 commands per
+// video-user-hour, well within free-tier budget (10k/day).
+const HEARTBEAT_INTERVAL_MS = 10_000
 
 export function useVideoPlaybackLock(
   videoId: string,
