@@ -39,6 +39,10 @@ export function useVideoPlaybackLock(
   const deviceInfoRef = useRef<ReturnType<typeof getDeviceInfo> | null>(null)
   const videoIdRef = useRef(videoId)
   videoIdRef.current = videoId
+  // Mirror of state for use inside callbacks without triggering useCallback
+  // recomputations. Updated synchronously on every render.
+  const stateRef = useRef<LockState>("idle")
+  stateRef.current = state
 
   const stopHeartbeat = useCallback(() => {
     if (heartbeatTimer.current) {
@@ -72,6 +76,17 @@ export function useVideoPlaybackLock(
 
     if (adminBypass) {
       setState("owned")
+      return
+    }
+
+    // Guard: onPlay fires on every Bunny 'play' postMessage, which can be
+    // emitted in rapid succession during seek, buffering, or autoresume. If
+    // we're already owned (heartbeat keeps TTL fresh), blocked (dialog is
+    // showing), or taken-over (dialog is showing), a re-claim is redundant
+    // and can exhaust the 10/min rate limit.
+    if (stateRef.current === "owned" ||
+        stateRef.current === "blocked" ||
+        stateRef.current === "taken-over") {
       return
     }
 

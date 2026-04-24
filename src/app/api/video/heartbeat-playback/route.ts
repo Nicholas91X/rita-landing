@@ -49,22 +49,14 @@ export async function POST(req: NextRequest) {
     throw err
   }
 
-  const adminFlag = await isAdmin(user.id)
-  console.log("[LOCK-DEBUG heartbeat-admin-check]", JSON.stringify({ userId: user.id, isAdmin: adminFlag }))
-  if (adminFlag) {
+  if (await isAdmin(user.id)) {
     return NextResponse.json({ ok: true }, { status: 200 })
   }
 
   const key = `playing:${user.id}`
+  // Upstash auto-deserialization: get may return either the raw JSON string
+  // or an already-parsed object. See claim-playback/route.ts for notes.
   const raw = await redis().get<string | LockValue>(key)
-
-  console.log("[LOCK-DEBUG heartbeat]", JSON.stringify({
-    userId: user.id,
-    reqDeviceId: parsed.deviceId,
-    reqVideoId: parsed.videoId,
-    rawType: typeof raw,
-    rawValue: raw === null ? null : (typeof raw === "string" ? raw.slice(0, 120) : raw),
-  }))
 
   if (!raw) {
     return NextResponse.json(
