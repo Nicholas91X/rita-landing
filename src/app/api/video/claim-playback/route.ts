@@ -54,7 +54,9 @@ export async function POST(req: NextRequest) {
   }
 
   // Admin bypass — never touch Redis for admins.
-  if (await isAdmin(user.id)) {
+  const adminFlag = await isAdmin(user.id)
+  console.log("[LOCK-DEBUG claim-admin-check]", JSON.stringify({ userId: user.id, isAdmin: adminFlag }))
+  if (adminFlag) {
     return NextResponse.json({ ok: true }, { status: 200 })
   }
 
@@ -71,14 +73,23 @@ export async function POST(req: NextRequest) {
   }
 
   const key = `playing:${user.id}`
-  // Upstash Redis with default automaticDeserialization may return either the
-  // raw JSON string we stored OR an already-parsed object, depending on SDK
-  // version and whether the stored string happens to be valid JSON. Defensive
-  // typeof check keeps this resilient to either behavior.
   const raw = await redis().get<string | LockValue>(key)
   const existing: LockValue | null = raw
     ? (typeof raw === "string" ? JSON.parse(raw) as LockValue : raw)
     : null
+
+  // TEMP DEBUG: surface state on every claim so we can diagnose bypass issues.
+  console.log("[LOCK-DEBUG claim]", JSON.stringify({
+    userId: user.id,
+    reqDeviceId: parsed.deviceId,
+    reqDeviceLabel: parsed.deviceLabel,
+    reqVideoId: parsed.videoId,
+    force: parsed.force ?? false,
+    rawType: typeof raw,
+    rawValue: raw === null ? null : (typeof raw === "string" ? raw.slice(0, 120) : raw),
+    existingDeviceId: existing?.deviceId,
+    existingVideoId: existing?.videoId,
+  }))
 
   if (existing && !parsed.force) {
     const parsedLock = existing
