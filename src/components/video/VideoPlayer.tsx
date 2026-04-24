@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, useRef } from 'react'
+import { useCallback, useEffect, useState, useRef } from 'react'
 import { getSignedVideoUrl, saveVideoProgress } from '@/app/actions/video'
 import { AlertCircle, Loader2 } from 'lucide-react'
 import { logger } from '@/lib/logger'
@@ -82,24 +82,26 @@ export default function VideoPlayer({ videoId, initialTime = 0, onProgressUpdate
         onProgressUpdateRef.current = onProgressUpdate
     }, [onProgressUpdate])
 
+    const forcePauseIframe = useCallback(() => {
+        const msg = { context: "player.js", method: "pause" }
+        iframeRef.current?.contentWindow?.postMessage(msg, "*")
+        iframeRef.current?.contentWindow?.postMessage(JSON.stringify(msg), "*")
+    }, [])
+
     // Sub-4: react to lock state changes. For 'blocked', 'taken-over', AND
-    // 'error' we must force-pause the Bunny iframe — otherwise the dialog/toast
-    // is cosmetic and the user can bypass the feature. The 'error' case covers
-    // rate-limit 429: without a pause, Bunny keeps playing after seek while the
-    // hook resets to 'idle' and no further claims fire, effectively skipping
-    // the lock.
+    // 'error' we force-pause the Bunny iframe. The rate-limit 'error' state
+    // sticks around for the cooldown window and is auto-cleared by the hook;
+    // we do NOT dismiss it here — doing so would let a scrub during cooldown
+    // re-enter onPlay and bypass the lock.
     useEffect(() => {
         if (lock.state === "blocked" || lock.state === "taken-over" || lock.state === "error") {
-            const msg = { context: "player.js", method: "pause" }
-            iframeRef.current?.contentWindow?.postMessage(msg, "*")
-            iframeRef.current?.contentWindow?.postMessage(JSON.stringify(msg), "*")
+            forcePauseIframe()
             if (lock.state === "taken-over") {
                 toast.info("Video messo in pausa: in riproduzione su un altro tuo dispositivo.")
             }
-        }
-        if (lock.state === "error" && lock.retryAfterSec) {
-            toast.error(`Troppi tentativi. Riprova fra ${lock.retryAfterSec}s.`)
-            lock.dismissError()
+            if (lock.state === "error" && lock.retryAfterSec) {
+                toast.error(`Troppi tentativi. Riprova fra ${lock.retryAfterSec}s.`)
+            }
         }
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [lock.state, lock.retryAfterSec])
@@ -169,7 +171,15 @@ export default function VideoPlayer({ videoId, initialTime = 0, onProgressUpdate
                 const isEndedForLock = eventName === "ended" || eventName === "complete" || eventName === "finish"
 
                 if (isPlayEvent) {
-                    void lock.onPlay()
+                    // onPlay returns the final lock state. Bunny keeps playing
+                    // on its own until we tell it otherwise, so any non-'owned'
+                    // result MUST trigger a pause postMessage — otherwise a
+                    // scrub during cooldown or a fire-and-forget short-circuit
+                    // silently defeats the anti-sharing lock.
+                    const resultState = await lock.onPlay()
+                    if (resultState !== "owned") {
+                        forcePauseIframe()
+                    }
                 }
                 if (isPauseEvent) {
                     lock.onPause()

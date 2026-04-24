@@ -14,10 +14,13 @@ export interface UseVideoPlaybackLockResult {
   state: LockState
   blockedBy: { deviceLabel: string } | null
   retryAfterSec: number | null
-  onPlay: () => Promise<void>
+  // onPlay / takeover return the resulting lock state so the caller can
+  // force-pause the underlying iframe when the result is anything other than
+  // 'owned'. The hook has no handle on the DOM iframe itself.
+  onPlay: () => Promise<LockState>
   onPause: () => void
   onEnded: () => void
-  takeover: () => Promise<void>
+  takeover: () => Promise<LockState>
   dismissError: () => void
 }
 
@@ -43,13 +46,13 @@ export function useVideoPlaybackLock(
   // recomputations. Updated synchronously on every render.
   const stateRef = useRef<LockState>("idle")
   stateRef.current = state
-  // Client-side cooldown (epoch ms). When set in the future, onPlay refuses
-  // to call claim regardless of lock state. Needed because dismissError resets
-  // state to 'idle' immediately after a 429, so a subsequent Bunny 'play'
-  // event (e.g. from a scrub) would otherwise fire another claim and keep the
-  // rate-limit toast loop alive — or worse, land on a stale 200 and let the
-  // video play unlocked.
+  // Client-side cooldown (epoch ms). While in the future, onPlay refuses to
+  // call the API. The 'error' state sticks around for the whole cooldown
+  // (instead of being auto-dismissed), so the onPlay guard can short-circuit
+  // purely on state and the caller reliably sees a non-'owned' result to
+  // trigger a pause.
   const rateLimitedUntilRef = useRef<number>(0)
+  const cooldownTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const stopHeartbeat = useCallback(() => {
     if (heartbeatTimer.current) {
@@ -78,31 +81,42 @@ export function useVideoPlaybackLock(
     }, HEARTBEAT_INTERVAL_MS)
   }, [adminBypass, stopHeartbeat])
 
-  const onPlay = useCallback(async () => {
+  const scheduleCooldownClear = useCallback((ms: number) => {
+    if (cooldownTimer.current) clearTimeout(cooldownTimer.current)
+    cooldownTimer.current = setTimeout(() => {
+      rateLimitedUntilRef.current = 0
+      cooldownTimer.current = null
+      // Drop error state back to idle so the block dialog can reappear on the
+      // next play attempt. retryAfterSec clears too.
+      setRetryAfterSec(null)
+      if (stateRef.current === "error") setState("idle")
+    }, ms)
+  }, [])
+
+  const onPlay = useCallback(async (): Promise<LockState> => {
     if (!deviceInfoRef.current) deviceInfoRef.current = getDeviceInfo()
 
     if (adminBypass) {
       setState("owned")
-      return
+      return "owned"
     }
 
     // Guard: onPlay fires on every Bunny 'play' postMessage, which can be
     // emitted in rapid succession during seek, buffering, or autoresume. If
     // we're already owned (heartbeat keeps TTL fresh), blocked (dialog is
-    // showing), or taken-over (dialog is showing), a re-claim is redundant
-    // and can exhaust the 10/min rate limit.
+    // showing), taken-over (dialog is showing), or error (cooldown active),
+    // a re-claim is redundant and can exhaust the 10/min rate limit.
     if (stateRef.current === "owned" ||
         stateRef.current === "blocked" ||
-        stateRef.current === "taken-over") {
-      return
+        stateRef.current === "taken-over" ||
+        stateRef.current === "error") {
+      return stateRef.current
     }
 
-    // Guard: while a prior 429 cooldown is active, refuse to call claim even
-    // if state has been reset to 'idle' by dismissError. Without this, spam-
-    // dismissing the block dialog + scrubbing can exhaust the rate limit and
-    // leave the user in a loop — or bypass the lock entirely.
+    // Defensive: even if state somehow drifted to 'idle' during cooldown
+    // (e.g. stale closure, manual dismissError call), refuse the claim.
     if (Date.now() < rateLimitedUntilRef.current) {
-      return
+      return "error"
     }
 
     const res = await callClaim({
@@ -117,24 +131,26 @@ export function useVideoPlaybackLock(
       setRetryAfterSec(null)
       setState("owned")
       startHeartbeat()
-      return
+      return "owned"
     }
 
     if ("rateLimited" in res && res.rateLimited) {
       rateLimitedUntilRef.current = Date.now() + res.retryAfterSec * 1000
+      scheduleCooldownClear(res.retryAfterSec * 1000)
       setRetryAfterSec(res.retryAfterSec)
       setState("error")
-      return
+      return "error"
     }
 
     if ("blockedBy" in res && res.blockedBy) {
       setBlockedBy(res.blockedBy)
       setState("blocked")
-      return
+      return "blocked"
     }
 
     setState("error")
-  }, [adminBypass, startHeartbeat])
+    return "error"
+  }, [adminBypass, startHeartbeat, scheduleCooldownClear])
 
   const onPause = useCallback(() => {
     stopHeartbeat()
@@ -153,7 +169,7 @@ export function useVideoPlaybackLock(
     setBlockedBy(null)
   }, [adminBypass, stopHeartbeat])
 
-  const takeover = useCallback(async () => {
+  const takeover = useCallback(async (): Promise<LockState> => {
     if (!deviceInfoRef.current) deviceInfoRef.current = getDeviceInfo()
     const res = await callClaim({
       videoId: videoIdRef.current,
@@ -166,18 +182,26 @@ export function useVideoPlaybackLock(
       setRetryAfterSec(null)
       setState("owned")
       startHeartbeat()
-      return
+      return "owned"
     }
     if ("rateLimited" in res && res.rateLimited) {
       rateLimitedUntilRef.current = Date.now() + res.retryAfterSec * 1000
+      scheduleCooldownClear(res.retryAfterSec * 1000)
       setRetryAfterSec(res.retryAfterSec)
       setState("error")
-      return
+      return "error"
     }
     setState("error")
-  }, [startHeartbeat])
+    return "error"
+  }, [startHeartbeat, scheduleCooldownClear])
 
   const dismissError = useCallback(() => {
+    // Only valid dismissal target is the "altro dispositivo" dialog (blocked /
+    // taken-over). The rate-limit 'error' state is controlled by the cooldown
+    // timer and must NOT be dismissed manually — otherwise a scrub during the
+    // cooldown would re-enter onPlay with state='idle' and (were it not for
+    // the rateLimitedUntilRef guard) fire fresh claims.
+    if (stateRef.current === "error") return
     setRetryAfterSec(null)
     setState("idle")
   }, [])
@@ -185,6 +209,7 @@ export function useVideoPlaybackLock(
   useEffect(() => {
     return () => {
       stopHeartbeat()
+      if (cooldownTimer.current) clearTimeout(cooldownTimer.current)
       if (!adminBypass && deviceInfoRef.current) {
         callRelease({
           videoId: videoIdRef.current,

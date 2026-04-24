@@ -92,6 +92,84 @@ describe("useVideoPlaybackLock", () => {
     expect(result.current.state).toBe("idle")
   })
 
+  it("onPlay returns the final lock state so caller can decide to pause", async () => {
+    const { callClaim } = await import("@/lib/video-playback-lock")
+    ;(callClaim as ReturnType<typeof vi.fn>).mockResolvedValue({
+      ok: false,
+      blockedBy: { deviceLabel: "Safari iOS" },
+    })
+    const { result } = renderHook(() => useVideoPlaybackLock("v1", false))
+    let resolved: string | undefined
+    await act(async () => { resolved = await result.current.onPlay() })
+    expect(resolved).toBe("blocked")
+  })
+
+  it("rate-limit 429: onPlay returns 'error' and state sticks during cooldown", async () => {
+    const { callClaim } = await import("@/lib/video-playback-lock")
+    ;(callClaim as ReturnType<typeof vi.fn>).mockResolvedValue({
+      ok: false, rateLimited: true, retryAfterSec: 30,
+    })
+    const { result } = renderHook(() => useVideoPlaybackLock("v1", false))
+    let resolved: string | undefined
+    await act(async () => { resolved = await result.current.onPlay() })
+    expect(resolved).toBe("error")
+    expect(result.current.state).toBe("error")
+    expect(result.current.retryAfterSec).toBe(30)
+
+    // Subsequent play attempt during cooldown: must NOT call claim, returns error
+    ;(callClaim as ReturnType<typeof vi.fn>).mockClear()
+    await act(async () => { resolved = await result.current.onPlay() })
+    expect(resolved).toBe("error")
+    expect(callClaim).not.toHaveBeenCalled()
+  })
+
+  it("cooldown expires: state drops to idle and claim fires again on next onPlay", async () => {
+    const { callClaim } = await import("@/lib/video-playback-lock")
+    ;(callClaim as ReturnType<typeof vi.fn>).mockResolvedValue({
+      ok: false, rateLimited: true, retryAfterSec: 30,
+    })
+    const { result } = renderHook(() => useVideoPlaybackLock("v1", false))
+    await act(async () => { await result.current.onPlay() })
+    expect(result.current.state).toBe("error")
+
+    // Advance past cooldown
+    await act(async () => { await vi.advanceTimersByTimeAsync(31_000) })
+    await waitFor(() => { expect(result.current.state).toBe("idle") })
+
+    // Next play should try claim again
+    ;(callClaim as ReturnType<typeof vi.fn>).mockResolvedValue({ ok: true })
+    await act(async () => { await result.current.onPlay() })
+    expect(callClaim).toHaveBeenCalled()
+    expect(result.current.state).toBe("owned")
+  })
+
+  it("dismissError is a no-op while 'error' cooldown is active", async () => {
+    const { callClaim } = await import("@/lib/video-playback-lock")
+    ;(callClaim as ReturnType<typeof vi.fn>).mockResolvedValue({
+      ok: false, rateLimited: true, retryAfterSec: 30,
+    })
+    const { result } = renderHook(() => useVideoPlaybackLock("v1", false))
+    await act(async () => { await result.current.onPlay() })
+    expect(result.current.state).toBe("error")
+
+    act(() => { result.current.dismissError() })
+    expect(result.current.state).toBe("error")
+    expect(result.current.retryAfterSec).toBe(30)
+  })
+
+  it("dismissError clears blocked state (Annulla on dialog)", async () => {
+    const { callClaim } = await import("@/lib/video-playback-lock")
+    ;(callClaim as ReturnType<typeof vi.fn>).mockResolvedValue({
+      ok: false, blockedBy: { deviceLabel: "Safari iOS" },
+    })
+    const { result } = renderHook(() => useVideoPlaybackLock("v1", false))
+    await act(async () => { await result.current.onPlay() })
+    expect(result.current.state).toBe("blocked")
+
+    act(() => { result.current.dismissError() })
+    expect(result.current.state).toBe("idle")
+  })
+
   it("onPause stops heartbeat without calling release", async () => {
     const { callClaim, callHeartbeat, callRelease } = await import("@/lib/video-playback-lock")
     ;(callClaim as ReturnType<typeof vi.fn>).mockResolvedValue({ ok: true })
