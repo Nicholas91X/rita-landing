@@ -50,9 +50,11 @@ export async function POST(req: NextRequest) {
   }
 
   const key = `playing:${user.id}`
-  const existing = await redis().get<string>(key)
-  if (existing) {
-    const lock = JSON.parse(existing) as LockValue
+  // Upstash auto-deserialization: get may return either the raw JSON string
+  // or an already-parsed object. See claim-playback/route.ts for notes.
+  const raw = await redis().get<string | LockValue>(key)
+  if (raw) {
+    const lock: LockValue = typeof raw === "string" ? (JSON.parse(raw) as LockValue) : raw
     if (lock.deviceId === parsed.deviceId && lock.videoId === parsed.videoId) {
       await redis().del(key)
     }

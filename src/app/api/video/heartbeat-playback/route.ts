@@ -54,15 +54,17 @@ export async function POST(req: NextRequest) {
   }
 
   const key = `playing:${user.id}`
-  const existing = await redis().get<string>(key)
+  // Upstash auto-deserialization: get may return either the raw JSON string
+  // or an already-parsed object. See claim-playback/route.ts for notes.
+  const raw = await redis().get<string | LockValue>(key)
 
-  if (!existing) {
+  if (!raw) {
     return NextResponse.json(
       { ok: false, takenOver: true, byDevice: null },
       { status: 409 },
     )
   }
-  const lock = JSON.parse(existing) as LockValue
+  const lock: LockValue = typeof raw === "string" ? (JSON.parse(raw) as LockValue) : raw
   if (lock.deviceId !== parsed.deviceId || lock.videoId !== parsed.videoId) {
     return NextResponse.json(
       { ok: false, takenOver: true, byDevice: { deviceLabel: lock.deviceLabel } },
@@ -70,7 +72,8 @@ export async function POST(req: NextRequest) {
     )
   }
 
-  // Match — refresh TTL.
-  await redis().set(key, existing, { ex: LOCK_TTL_SECONDS })
+  // Match — refresh TTL. Re-stringify on write so the stored shape stays
+  // consistent regardless of how Upstash returned it above.
+  await redis().set(key, JSON.stringify(lock), { ex: LOCK_TTL_SECONDS })
   return NextResponse.json({ ok: true }, { status: 200 })
 }

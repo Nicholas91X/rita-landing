@@ -71,10 +71,17 @@ export async function POST(req: NextRequest) {
   }
 
   const key = `playing:${user.id}`
-  const existing = await redis().get<string>(key)
+  // Upstash Redis with default automaticDeserialization may return either the
+  // raw JSON string we stored OR an already-parsed object, depending on SDK
+  // version and whether the stored string happens to be valid JSON. Defensive
+  // typeof check keeps this resilient to either behavior.
+  const raw = await redis().get<string | LockValue>(key)
+  const existing: LockValue | null = raw
+    ? (typeof raw === "string" ? JSON.parse(raw) as LockValue : raw)
+    : null
 
   if (existing && !parsed.force) {
-    const parsedLock = JSON.parse(existing) as LockValue
+    const parsedLock = existing
     const sameDevice = parsedLock.deviceId === parsed.deviceId
     if (!sameDevice) {
       return NextResponse.json(
