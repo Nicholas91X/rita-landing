@@ -43,6 +43,13 @@ export function useVideoPlaybackLock(
   // recomputations. Updated synchronously on every render.
   const stateRef = useRef<LockState>("idle")
   stateRef.current = state
+  // Client-side cooldown (epoch ms). When set in the future, onPlay refuses
+  // to call claim regardless of lock state. Needed because dismissError resets
+  // state to 'idle' immediately after a 429, so a subsequent Bunny 'play'
+  // event (e.g. from a scrub) would otherwise fire another claim and keep the
+  // rate-limit toast loop alive — or worse, land on a stale 200 and let the
+  // video play unlocked.
+  const rateLimitedUntilRef = useRef<number>(0)
 
   const stopHeartbeat = useCallback(() => {
     if (heartbeatTimer.current) {
@@ -90,6 +97,14 @@ export function useVideoPlaybackLock(
       return
     }
 
+    // Guard: while a prior 429 cooldown is active, refuse to call claim even
+    // if state has been reset to 'idle' by dismissError. Without this, spam-
+    // dismissing the block dialog + scrubbing can exhaust the rate limit and
+    // leave the user in a loop — or bypass the lock entirely.
+    if (Date.now() < rateLimitedUntilRef.current) {
+      return
+    }
+
     const res = await callClaim({
       videoId: videoIdRef.current,
       deviceId: deviceInfoRef.current.id,
@@ -106,6 +121,7 @@ export function useVideoPlaybackLock(
     }
 
     if ("rateLimited" in res && res.rateLimited) {
+      rateLimitedUntilRef.current = Date.now() + res.retryAfterSec * 1000
       setRetryAfterSec(res.retryAfterSec)
       setState("error")
       return
@@ -153,6 +169,7 @@ export function useVideoPlaybackLock(
       return
     }
     if ("rateLimited" in res && res.rateLimited) {
+      rateLimitedUntilRef.current = Date.now() + res.retryAfterSec * 1000
       setRetryAfterSec(res.retryAfterSec)
       setState("error")
       return

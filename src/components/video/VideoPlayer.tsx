@@ -82,13 +82,14 @@ export default function VideoPlayer({ videoId, initialTime = 0, onProgressUpdate
         onProgressUpdateRef.current = onProgressUpdate
     }, [onProgressUpdate])
 
-    // Sub-4: react to lock state changes. For BOTH 'blocked' (second device
-    // attempting to play while another device holds the lock) AND 'taken-over'
-    // (this device lost its lock to another), we must force-pause the Bunny
-    // iframe — otherwise the dialog is cosmetic and the user can dismiss it
-    // while the video keeps playing, defeating the whole anti-sharing feature.
+    // Sub-4: react to lock state changes. For 'blocked', 'taken-over', AND
+    // 'error' we must force-pause the Bunny iframe — otherwise the dialog/toast
+    // is cosmetic and the user can bypass the feature. The 'error' case covers
+    // rate-limit 429: without a pause, Bunny keeps playing after seek while the
+    // hook resets to 'idle' and no further claims fire, effectively skipping
+    // the lock.
     useEffect(() => {
-        if (lock.state === "blocked" || lock.state === "taken-over") {
+        if (lock.state === "blocked" || lock.state === "taken-over" || lock.state === "error") {
             const msg = { context: "player.js", method: "pause" }
             iframeRef.current?.contentWindow?.postMessage(msg, "*")
             iframeRef.current?.contentWindow?.postMessage(JSON.stringify(msg), "*")
