@@ -1,4 +1,5 @@
 import Hero from "@/components/sections/Hero";
+import LeadMagnetRibbon from "@/components/sections/LeadMagnetRibbon";
 import Metodo from "@/components/sections/Metodo";
 import PerChi from "@/components/sections/PerChi";
 import Storia from "@/components/sections/Storia";
@@ -50,6 +51,7 @@ export default async function Page() {
       />
 
       <Hero />
+      <LeadMagnetRibbon />
       <Metodo />
       <PerChi />
       <Storia isLoggedIn={!!user} hasUsedTrial={hasUsedTrial} />
