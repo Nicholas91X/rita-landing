@@ -4,6 +4,7 @@ import { useState, useEffect, useMemo, useCallback, useRef, Suspense } from 'rea
 import { Level } from '@/app/actions/content'
 import { useSearchParams } from 'next/navigation'
 import DashboardSidebar, { TabType } from './DashboardSidebar'
+import DashboardShell from './DashboardShell'
 import HomeSection from './HomeSection'
 import TrainingSection from './TrainingSection'
 import BillingSection from './BillingSection'
@@ -17,13 +18,6 @@ import { logger } from '@/lib/logger'
 import Image from 'next/image'
 
 import { NotificationBell } from './NotificationBell'
-import PWAInstallPrompt from '@/components/PWAInstallPrompt'
-import { DashboardThemeProvider } from './ThemeContext'
-import { usePushPromptOrchestrator } from '@/hooks/usePushPromptOrchestrator'
-import { useHeartbeat } from '@/hooks/useHeartbeat'
-import { NotificationSoftPrompt } from '@/components/push/NotificationSoftPrompt'
-import { IosInstallDialog } from '@/components/push/IosInstallDialog'
-import { EmailVerificationBanner } from '@/components/auth/EmailVerificationBanner'
 
 interface DashboardProfile {
     user: {
@@ -59,7 +53,7 @@ interface DashboardProfile {
     }>;
 }
 
-export default function DashboardClient({ levels }: { levels: Level[] }) {
+export default function StandardDashboardClient({ levels }: { levels: Level[] }) {
     const [activeTab, setActiveTab] = useState<TabType>('home')
     const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false)
     const [profileSubTab, setProfileSubTab] = useState<'info' | 'badges' | 'notifications'>('info')
@@ -69,11 +63,6 @@ export default function DashboardClient({ levels }: { levels: Level[] }) {
     const touchStartX = useRef<number | null>(null)
     const touchStartY = useRef<number | null>(null)
     const [slideDirection, setSlideDirection] = useState<'left' | 'right'>('left')
-
-    const [bannerVisible, setBannerVisible] = useState(false)
-
-    const { prompt, dismiss, acceptedSoftPrompt } = usePushPromptOrchestrator(true)
-    useHeartbeat(true)
 
     // Tab order for swipe navigation
     const TAB_ORDER: TabType[] = ['home', 'training', '1to1', 'billing', 'profile']
@@ -185,13 +174,7 @@ export default function DashboardClient({ levels }: { levels: Level[] }) {
     }, [activeTab, levels, libraryProgress, userProfile, firstName, profileSubTab, fetchUserProfile])
 
     return (
-        <DashboardThemeProvider>
-            <>
-                <EmailVerificationBanner onVisibilityChange={setBannerVisible} />
-                <div className={cn(
-                    "flex min-h-screen bg-[var(--dash-bg)] text-[var(--dash-text)] selection:bg-brand/30 relative overflow-x-hidden transition-colors duration-300",
-                    bannerVisible && "pt-12"
-                )}>
+        <DashboardShell>
             {/* Sfondo chiaro, rimuovo il gradiente scuro */}
 
             {/* Navigation */}
@@ -336,19 +319,6 @@ export default function DashboardClient({ levels }: { levels: Level[] }) {
                     </Suspense>
                 </div>
             </main>
-
-            {/* PWA Install Prompt */}
-            <PWAInstallPrompt />
-
-            {/* Push notification prompts (Sub-2) */}
-            <NotificationSoftPrompt
-                open={prompt === 'soft'}
-                onDismiss={dismiss}
-                onAccepted={acceptedSoftPrompt}
-            />
-            <IosInstallDialog open={prompt === 'ios-install'} onDismiss={dismiss} />
-        </div>
-            </>
-        </DashboardThemeProvider>
+        </DashboardShell>
     )
 }
