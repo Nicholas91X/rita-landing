@@ -857,11 +857,14 @@ export async function requestAccountDeletion() {
 
 export async function getPassportStamps() {
     const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
 
-    // Fetch all packages that have a badge type defined to populate the passport slots
+    // Slots: visible (non-hidden) packages with a badge_type, plus any
+    // hidden_from_discover package whose badge the current user already earned
+    // (so an upgraded lead still sees their "leggerezza" stamp).
     const { data: packages, error } = await supabase
         .from('packages')
-        .select('id, name, badge_type')
+        .select('id, name, badge_type, hidden_from_discover')
         .not('badge_type', 'is', null)
         .order('name')
 
@@ -870,7 +873,21 @@ export async function getPassportStamps() {
         return []
     }
 
-    return packages
+    if (!user) {
+        return (packages || []).filter((p: { hidden_from_discover: boolean }) => !p.hidden_from_discover)
+    }
+
+    const { data: earnedBadges } = await supabase
+        .from('user_badges')
+        .select('package_id')
+        .eq('user_id', user.id)
+
+    const earnedPkgIds = new Set((earnedBadges || []).map((b: { package_id: string }) => b.package_id))
+
+    return (packages || []).filter(
+        (p: { id: string; hidden_from_discover: boolean }) =>
+            !p.hidden_from_discover || earnedPkgIds.has(p.id),
+    )
 }
 
 export async function getOneToOnePackages() {
