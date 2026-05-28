@@ -118,8 +118,44 @@ export default function PrivacyPage() {
                         </p>
                     </div>
 
+                    <div id="newsletter">
+                        <h2 className="text-xl font-bold text-[var(--foreground)] mt-10 mb-3">9. Newsletter e contenuti gratuiti (Lead Magnet)</h2>
+                        <p>
+                            Quando lasci il tuo nome ed email tramite la pagina &ldquo;Inizia gratis&rdquo;
+                            (<code>/lezioni-gratis</code>), i tuoi dati vengono memorizzati sui server Supabase
+                            del Titolare per crearti un account &ldquo;lead&rdquo; e darti accesso ai 3 video gratuiti
+                            del &ldquo;Rituale della Leggerezza&rdquo;. L&apos;accesso ai video &egrave; valido per
+                            <strong> 14 giorni</strong>, al termine dei quali ti invitiamo a completare la
+                            registrazione impostando una password.
+                        </p>
+                        <p className="mt-3">
+                            Al momento della richiesta ti vengono presentati due consensi distinti:
+                        </p>
+                        <ul className="list-disc pl-6 space-y-2 mt-3">
+                            <li>
+                                <strong>Consenso operativo</strong> (obbligatorio) &mdash; necessario per creare
+                                l&apos;account e ricevere il magic link di accesso. Base giuridica:
+                                esecuzione di misure precontrattuali su tua richiesta (Art. 6.1.b GDPR).
+                            </li>
+                            <li>
+                                <strong>Consenso marketing</strong> (facoltativo) &mdash; ci autorizza a inviarti
+                                occasionalmente consigli, novit&agrave; e offerte di Fit&amp;Smile via email
+                                (es. i promemoria di scadenza del lead magnet, comunicazioni promozionali).
+                                Base giuridica: consenso (Art. 6.1.a GDPR). Puoi revocarlo in qualsiasi momento
+                                scrivendo a <strong>info@fitandsmile.it</strong> o cliccando sul link di
+                                disiscrizione presente in ogni email.
+                            </li>
+                        </ul>
+                        <p className="mt-3">
+                            I dati dei lead che non completano la registrazione (non impostano una password)
+                            vengono conservati per <strong>24 mesi</strong>, dopo i quali vengono automaticamente
+                            eliminati. Se completi la registrazione diventando utente standard, si applica
+                            la conservazione prevista al punto 6.
+                        </p>
+                    </div>
+
                     <div>
-                        <h2 className="text-xl font-bold text-[var(--foreground)] mt-10 mb-3">9. Sicurezza</h2>
+                        <h2 className="text-xl font-bold text-[var(--foreground)] mt-10 mb-3">10. Sicurezza</h2>
                         <p>
                             Il Titolare adotta misure tecniche e organizzative adeguate per proteggere i dati personali,
                             tra cui: crittografia in transito (TLS/HTTPS), autenticazione sicura, controllo degli accessi
@@ -128,7 +164,7 @@ export default function PrivacyPage() {
                     </div>
 
                     <div>
-                        <h2 className="text-xl font-bold text-[var(--foreground)] mt-10 mb-3">10. Modifiche alla Privacy Policy</h2>
+                        <h2 className="text-xl font-bold text-[var(--foreground)] mt-10 mb-3">11. Modifiche alla Privacy Policy</h2>
                         <p>
                             Il Titolare si riserva di modificare la presente informativa. In caso di modifiche sostanziali,
                             l&apos;utente verrà informato tramite notifica nell&apos;area riservata o via email.
