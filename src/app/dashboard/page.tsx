@@ -29,6 +29,18 @@ export default async function DashboardPage() {
 
     const isLead = profile?.account_type === 'lead'
 
+    // Lead-completion modal: one-shot, fires the first time the lead has
+    // earned any badge while completion_modal_shown_at is still null.
+    // (Leads can only earn the Lezioni Gratis badge, so this is unambiguous.)
+    let showCompletionModal = false
+    if (isLead && profile?.completion_modal_shown_at == null) {
+        const { count } = await supabase
+            .from('user_badges')
+            .select('id', { count: 'exact', head: true })
+            .eq('user_id', user.id)
+        showCompletionModal = (count ?? 0) > 0
+    }
+
     return (
         <main className="min-h-screen bg-[var(--secondary)]">
             <Suspense fallback={
@@ -41,6 +53,7 @@ export default async function DashboardPage() {
                     <LeadDashboardClient
                         levels={levels}
                         leadExpiresAt={profile?.lead_expires_at ?? null}
+                        showCompletionModal={showCompletionModal}
                     />
                 ) : (
                     <StandardDashboardClient levels={levels} />

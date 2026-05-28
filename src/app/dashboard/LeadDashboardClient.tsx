@@ -17,6 +17,7 @@ import ProfileSection from './ProfileSection'
 import LeadCountdownBanner from './lead/LeadCountdownBanner'
 import LeadProfileUpsellCard from './lead/LeadProfileUpsellCard'
 import UpgradeModal from './lead/UpgradeModal'
+import LeadCompletionModal from './lead/LeadCompletionModal'
 import TransitionOverlay from '@/components/TransitionOverlay'
 
 interface LeadDashboardProfile {
@@ -41,9 +42,14 @@ type LeadTab = 'library' | 'profile'
 interface LeadDashboardClientProps {
     levels: Level[]
     leadExpiresAt: string | null
+    showCompletionModal: boolean
 }
 
-export default function LeadDashboardClient({ levels, leadExpiresAt }: LeadDashboardClientProps) {
+export default function LeadDashboardClient({
+    levels,
+    leadExpiresAt,
+    showCompletionModal,
+}: LeadDashboardClientProps) {
     const [activeTab, setActiveTab] = useState<LeadTab>('library')
     const [libraryProgress, setLibraryProgress] = useState<LibraryProgress[]>([])
     const [userProfile, setUserProfile] = useState<LeadDashboardProfile | null>(null)
@@ -158,6 +164,10 @@ export default function LeadDashboardClient({ levels, leadExpiresAt }: LeadDashb
             </div>
 
             <UpgradeModal open={upgradeOpen} onOpenChange={setUpgradeOpen} />
+            <LeadCompletionModal
+                shouldShow={showCompletionModal}
+                onUpgradeClick={() => setUpgradeOpen(true)}
+            />
         </DashboardShell>
     )
 }
