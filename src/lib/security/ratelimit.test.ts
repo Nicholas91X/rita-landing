@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from "vitest"
-import { RateLimitError, enforceRateLimit } from "./ratelimit"
+import { RateLimitError, enforceRateLimit, leadFormLimiter } from "./ratelimit"
 import type { Ratelimit } from "@upstash/ratelimit"
 
 function makeMockLimiter(result: {
@@ -51,5 +51,24 @@ describe("enforceRateLimit", () => {
     })
     await enforceRateLimit(limiter, "my-key")
     expect(limiter.limit).toHaveBeenCalledWith("my-key")
+  })
+})
+
+describe("leadFormLimiter", () => {
+  it("returns a limiter for the email scope", () => {
+    const l = leadFormLimiter("email")
+    expect(l).toBeDefined()
+    expect(typeof l.limit).toBe("function")
+  })
+
+  it("returns a limiter for the ip scope", () => {
+    const l = leadFormLimiter("ip")
+    expect(l).toBeDefined()
+    expect(typeof l.limit).toBe("function")
+  })
+
+  it("returns the same instance for the same scope (memoized)", () => {
+    expect(leadFormLimiter("email")).toBe(leadFormLimiter("email"))
+    expect(leadFormLimiter("ip")).toBe(leadFormLimiter("ip"))
   })
 })

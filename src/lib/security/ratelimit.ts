@@ -121,3 +121,12 @@ let _videoPlaybackClaimLimiter: Ratelimit | null = null
 export function videoPlaybackClaimLimiter(): Ratelimit {
   return (_videoPlaybackClaimLimiter ??= makeLimiter("video:claim", 10, "1 m"))
 }
+
+let _leadFormEmailLimiter: Ratelimit | null = null
+let _leadFormIpLimiter: Ratelimit | null = null
+export function leadFormLimiter(scope: "email" | "ip"): Ratelimit {
+  if (scope === "email") {
+    return (_leadFormEmailLimiter ??= makeLimiter("lead:email", 1, "1 h"))
+  }
+  return (_leadFormIpLimiter ??= makeLimiter("lead:ip", 5, "24 h"))
+}
