@@ -11,84 +11,112 @@ type QueryResult = {
   error?: { message: string } | null
 }
 
-type AdminFromBuilder = ReturnType<typeof makeFromBuilder>
+type Filter = { op: string; args: unknown[] }
 
-function makeFromBuilder(initial: QueryResult = { count: 0, data: [], error: null }) {
-  const state = {
-    table: '' as string,
-    filters: [] as Array<{ op: string; args: unknown[] }>,
-    rangeArgs: null as null | [number, number],
-    orderArgs: null as null | [string, { ascending: boolean }],
-    selectArgs: null as null | [string, Record<string, unknown> | undefined],
-    updatePayload: null as null | Record<string, unknown>,
-    upsertPayload: null as null | unknown,
-    result: initial as QueryResult,
+interface BuilderState {
+  filters: Filter[]
+  rangeArgs: null | [number, number]
+  orderArgs: null | [string, { ascending: boolean }]
+  selectArgs: null | [string, Record<string, unknown> | undefined]
+  updatePayload: null | Record<string, unknown>
+  upsertPayload: null | unknown
+  result: QueryResult
+}
+
+interface AdminFromBuilder {
+  _state: BuilderState
+  select: (cols: string, opts?: Record<string, unknown>) => AdminFromBuilder
+  eq: (col: string, val: unknown) => AdminFromBuilder
+  neq: (col: string, val: unknown) => AdminFromBuilder
+  gte: (col: string, val: unknown) => AdminFromBuilder
+  lte: (col: string, val: unknown) => AdminFromBuilder
+  lt: (col: string, val: unknown) => AdminFromBuilder
+  is: (col: string, val: unknown) => AdminFromBuilder
+  not: (col: string, op: string, val: unknown) => AdminFromBuilder
+  or: (expr: string) => AdminFromBuilder
+  ilike: (col: string, val: unknown) => AdminFromBuilder
+  order: (col: string, opts: { ascending: boolean }) => AdminFromBuilder
+  range: (from: number, to: number) => AdminFromBuilder
+  single: () => Promise<QueryResult>
+  maybeSingle: () => Promise<QueryResult>
+  update: (payload: Record<string, unknown>) => AdminFromBuilder
+  upsert: (payload: unknown) => AdminFromBuilder
+  then: (resolve: (v: QueryResult) => unknown) => Promise<unknown>
+}
+
+function makeFromBuilder(initial: QueryResult = { count: 0, data: [], error: null }): AdminFromBuilder {
+  const state: BuilderState = {
+    filters: [],
+    rangeArgs: null,
+    orderArgs: null,
+    selectArgs: null,
+    updatePayload: null,
+    upsertPayload: null,
+    result: initial,
   }
-  const chain: Record<string, unknown> = {
+  const chain: AdminFromBuilder = {
     _state: state,
-    select: vi.fn((cols: string, opts?: Record<string, unknown>) => {
+    select: (cols, opts) => {
       state.selectArgs = [cols, opts]
       return chain
-    }),
-    eq: vi.fn((col: string, val: unknown) => {
+    },
+    eq: (col, val) => {
       state.filters.push({ op: 'eq', args: [col, val] })
       return chain
-    }),
-    neq: vi.fn((col: string, val: unknown) => {
+    },
+    neq: (col, val) => {
       state.filters.push({ op: 'neq', args: [col, val] })
       return chain
-    }),
-    gte: vi.fn((col: string, val: unknown) => {
+    },
+    gte: (col, val) => {
       state.filters.push({ op: 'gte', args: [col, val] })
       return chain
-    }),
-    lte: vi.fn((col: string, val: unknown) => {
+    },
+    lte: (col, val) => {
       state.filters.push({ op: 'lte', args: [col, val] })
       return chain
-    }),
-    lt: vi.fn((col: string, val: unknown) => {
+    },
+    lt: (col, val) => {
       state.filters.push({ op: 'lt', args: [col, val] })
       return chain
-    }),
-    is: vi.fn((col: string, val: unknown) => {
+    },
+    is: (col, val) => {
       state.filters.push({ op: 'is', args: [col, val] })
       return chain
-    }),
-    not: vi.fn((col: string, op: string, val: unknown) => {
+    },
+    not: (col, op, val) => {
       state.filters.push({ op: 'not', args: [col, op, val] })
       return chain
-    }),
-    or: vi.fn((expr: string) => {
+    },
+    or: (expr) => {
       state.filters.push({ op: 'or', args: [expr] })
       return chain
-    }),
-    ilike: vi.fn((col: string, val: unknown) => {
+    },
+    ilike: (col, val) => {
       state.filters.push({ op: 'ilike', args: [col, val] })
       return chain
-    }),
-    order: vi.fn((col: string, opts: { ascending: boolean }) => {
+    },
+    order: (col, opts) => {
       state.orderArgs = [col, opts]
       return chain
-    }),
-    range: vi.fn((from: number, to: number) => {
+    },
+    range: (from, to) => {
       state.rangeArgs = [from, to]
       return chain
-    }),
-    single: vi.fn(() => Promise.resolve(state.result)),
-    maybeSingle: vi.fn(() => Promise.resolve(state.result)),
-    update: vi.fn((payload: Record<string, unknown>) => {
+    },
+    single: () => Promise.resolve(state.result),
+    maybeSingle: () => Promise.resolve(state.result),
+    update: (payload) => {
       state.updatePayload = payload
       return chain
-    }),
-    upsert: vi.fn((payload: unknown) => {
+    },
+    upsert: (payload) => {
       state.upsertPayload = payload
       return chain
-    }),
-    then: (resolve: (v: QueryResult) => unknown) => Promise.resolve(state.result).then(resolve),
+    },
+    then: (resolve) => Promise.resolve(state.result).then(resolve),
   }
-  return chain as AdminFromBuilder & {
-    _state: typeof state
-  }
+  return chain
 }
 
 function makeServiceClient(tableHandlers: Record<string, () => AdminFromBuilder>) {

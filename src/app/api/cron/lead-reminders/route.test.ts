@@ -45,7 +45,7 @@ function buildQuery() {
         not: vi.fn(() => q),
         gte: vi.fn(() => q),
         lt: vi.fn(() => q),
-        is: vi.fn((col: string, _val: unknown) => {
+        is: vi.fn((col: string) => {
             if (col === "lead_reminder_t10_sent_at") bucket = "t10"
             else if (col === "lead_reminder_t20_sent_at") bucket = "t20"
             return q
@@ -76,7 +76,7 @@ function buildUpdateBuilder(payload: Record<string, unknown>) {
 vi.mock("@/utils/supabase/server", () => ({
     createServiceRoleClient: vi.fn(async () => ({
         from: vi.fn(() => ({
-            select: (..._a: unknown[]) => buildQuery(),
+            select: () => buildQuery(),
             update: (payload: Record<string, unknown>) => buildUpdateBuilder(payload),
         })),
     })),
