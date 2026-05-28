@@ -3,6 +3,13 @@ import { createClient, createServiceRoleClient } from '@/utils/supabase/server'
 import { sendWelcomeEmail } from '@/lib/email'
 import type { SupabaseClient, User } from '@supabase/supabase-js'
 
+const VALID_OTP_TYPES = ['signup', 'magiclink', 'email', 'recovery', 'invite', 'email_change'] as const
+type OtpType = typeof VALID_OTP_TYPES[number]
+
+function isValidOtpType(t: string | null): t is OtpType {
+    return t !== null && (VALID_OTP_TYPES as readonly string[]).includes(t)
+}
+
 // Decides if this is the user's very first authenticated visit. Supabase
 // stamps last_sign_in_at on every successful login; on the first one it
 // equals created_at. Using these two timestamps (instead of a wall-clock
@@ -31,27 +38,76 @@ async function claimWelcomeEmail(admin: SupabaseClient, userId: string): Promise
     return !!data
 }
 
+// First-time lead provisioning: insert the auto-grant row for "Lezioni Gratis"
+// + set the 14-day expiry window. Idempotent via the unique constraint on
+// one_time_purchases(user_id, package_id).
+async function provisionLeadIfNeeded(admin: SupabaseClient, userId: string) {
+    const leadPackageId = process.env.LEAD_MAGNET_PACKAGE_ID
+    if (!leadPackageId) return
+
+    const { data: profile } = await admin
+        .from('profiles')
+        .select('account_type, lead_expires_at')
+        .eq('id', userId)
+        .single()
+
+    if (profile?.account_type !== 'lead' || profile.lead_expires_at) return
+
+    await admin.from('one_time_purchases').upsert({
+        user_id: userId,
+        package_id: leadPackageId,
+        item_type: 'package',
+        amount: 0,
+        status: 'lead',
+    }, { onConflict: 'user_id,package_id', ignoreDuplicates: true })
+
+    await admin.from('profiles')
+        .update({ lead_expires_at: new Date(Date.now() + 14 * 24 * 3600 * 1000).toISOString() })
+        .eq('id', userId)
+}
+
 export async function GET(request: Request) {
     const { searchParams, origin } = new URL(request.url)
     const code = searchParams.get('code')
-    const next = searchParams.get('next') ?? '/dashboard'
-    const type = searchParams.get('type')
-    const source = searchParams.get('source')
-    const terms = searchParams.get('terms')
+    const tokenHash = searchParams.get('token_hash')
+    // Some email clients render HTML entities literally (&amp;) instead of
+    // decoding them, so URL params arrive as `amp;type=...` instead of
+    // `type=...`. Read both shapes defensively for type/next/source/terms.
+    const type = searchParams.get('type') ?? searchParams.get('amp;type')
+    const next = (searchParams.get('next') ?? searchParams.get('amp;next')) ?? '/dashboard'
+    const source = searchParams.get('source') ?? searchParams.get('amp;source')
+    const terms = searchParams.get('terms') ?? searchParams.get('amp;terms')
 
-    if (!code) {
-        return NextResponse.redirect(`${origin}/auth/auth-code-error?error=missing_code`)
+    if (!code && !tokenHash) {
+        return NextResponse.redirect(`${origin}/auth/auth-code-error?error=missing_credentials`)
     }
 
     // Preserve verifier cookie during email_change so the second leg of the
     // change-email flow can still validate.
     const supabase = await createClient({ preventVerifierDeletion: type === 'email_change' })
-    const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(code)
 
-    if (exchangeError) {
-        console.error('[auth-callback] exchange failed:', exchangeError.message)
+    // 1. Exchange the credential. Two flows:
+    //    - token_hash + type: email-driven auth (signup confirm, magic link,
+    //      email change, recovery, invite). Uses verifyOtp, no PKCE verifier
+    //      required — works reliably across browser tabs and mail clients.
+    //    - code: OAuth flow (Google). Uses exchangeCodeForSession, the PKCE
+    //      verifier cookie set during signInWithOAuth is read transparently.
+    let authError: { message: string } | null = null
+    if (tokenHash) {
+        if (!isValidOtpType(type)) {
+            return NextResponse.redirect(`${origin}/auth/auth-code-error?error=invalid_type`)
+        }
+        const result = await supabase.auth.verifyOtp({ type, token_hash: tokenHash })
+        authError = result.error
+    } else if (code) {
+        const result = await supabase.auth.exchangeCodeForSession(code)
+        authError = result.error
+    }
+
+    if (authError) {
+        console.error('[auth-callback] auth exchange failed:', authError.message)
         return NextResponse.redirect(
-            `${origin}/auth/auth-code-error?error=${encodeURIComponent(exchangeError.message)}`,
+            `${origin}/auth/auth-code-error?error=${encodeURIComponent(authError.message)}`,
         )
     }
 
@@ -68,14 +124,13 @@ export async function GET(request: Request) {
         return `${origin}${path}`
     }
 
-    // Email-change leg: no welcome, no terms gate. The DB trigger
-    // handle_user_email_change keeps profiles.email in sync automatically.
+    // Email-change leg: no welcome, no terms gate, no lead provisioning. The
+    // DB trigger handle_user_email_change keeps profiles.email in sync.
     if (type === 'email_change') {
         return NextResponse.redirect(buildRedirect(next))
     }
 
     if (!user) {
-        // Should not happen if exchangeCodeForSession succeeded, but guard.
         return NextResponse.redirect(`${origin}/auth/auth-code-error?error=no_user`)
     }
 
@@ -94,11 +149,12 @@ export async function GET(request: Request) {
         return NextResponse.redirect(`${origin}/login?error=terms-missing`)
     }
 
+    const admin = await createServiceRoleClient()
+
     // For Google fresh signups that DID carry terms=1, persist the consent
     // timestamp. The trigger only sets terms_accepted_at when it's present in
     // raw_user_meta_data, which is not the case for OAuth signups.
     if (source === 'google' && fresh && terms === '1') {
-        const admin = await createServiceRoleClient()
         await admin
             .from('profiles')
             .update({ terms_accepted_at: new Date().toISOString() })
@@ -106,11 +162,19 @@ export async function GET(request: Request) {
             .is('terms_accepted_at', null)
     }
 
-    // Welcome email: send exactly once per user, ever. The idempotency flag
-    // lives on profiles, so even if the callback runs again (Stripe retries,
-    // browser back/forward, duplicate tab) the claim fails and we skip.
-    if (fresh && user.email) {
-        const admin = await createServiceRoleClient()
+    // Lead provisioning: first magic-link callback for a lead account
+    // inserts the access grant + 14-day window. provisionLeadIfNeeded
+    // is itself idempotent (skips when lead_expires_at is already set),
+    // so we don't need an extra "fresh" gate here.
+    if (type === 'magiclink') {
+        await provisionLeadIfNeeded(admin, user.id)
+    }
+
+    // Welcome email: send exactly once per user, ever. The atomic claim on
+    // welcome_email_sent_at IS the idempotency — `fresh` is unreliable for
+    // email/password signup because verifyOtp moves last_sign_in_at forward,
+    // so created_at !== last_sign_in_at by the time we get here.
+    if (user.email) {
         const claimed = await claimWelcomeEmail(admin, user.id)
         if (claimed) {
             try {
@@ -126,10 +190,6 @@ export async function GET(request: Request) {
                     || ''
                 await sendWelcomeEmail(user.email, name)
             } catch (err) {
-                // Best-effort: the user is already authenticated. Don't fail
-                // the callback over a transient Resend hiccup. The claim
-                // stays committed so we won't double-send on retry — this is
-                // a deliberate trade-off (miss > duplicate).
                 console.error('[auth-callback] welcome email send failed', err)
             }
         }
