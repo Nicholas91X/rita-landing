@@ -889,6 +889,7 @@ function RealStamp({ type, name, date, index }: { type: string, name: string, da
             case 'rinascita': return 'text-indigo-700 border-indigo-700';
             case 'lavana': return 'text-orange-600 border-orange-600';
             case 'siviglia': return 'text-rose-700 border-rose-700';
+            case 'leggerezza': return 'text-teal-700 border-teal-700';
             default: return 'text-neutral-700 border-neutral-700';
         }
     };

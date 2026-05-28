@@ -332,6 +332,7 @@ export default function AdminPackages() {
                                         <option value="rinascita">🦋 Rinascita (Transformation)</option>
                                         <option value="lavana">🇨🇺 L&apos;Avana (Passione/Vitalità)</option>
                                         <option value="siviglia">💃 Siviglia (Passion/Dance)</option>
+                                        <option value="leggerezza">🪷 Leggerezza (Equilibrio/Calma)</option>
                                         <option value="generic">🏅 Generic (Medal)</option>
                                     </select>
                                 </div>
