@@ -180,6 +180,76 @@ export async function sendBadgeEarnedEmail(to: string, name: string, packageName
     })
 }
 
+export async function sendLeadMagicLinkEmail(to: string, name: string, magicUrl: string) {
+    const html = emailLayout(`
+        <h2 style="margin:0 0 16px;color:#2a2e30;font-size:24px;">Benvenuta su Rita Workout, ${name || 'cara'}!</h2>
+        <p style="color:#555;font-size:15px;line-height:1.7;">
+            Ecco i tuoi 3 video gratuiti del <strong>Rituale della Leggerezza</strong>.<br>
+            Clicca il bottone qui sotto per accedere subito.
+        </p>
+        ${button('SBLOCCA ORA', magicUrl)}
+        <p style="color:#555;font-size:15px;line-height:1.7;">
+            Hai <strong>14 giorni</strong> per accedere a Lezioni Gratis. Dopo, basta completare la registrazione (imposterai una password) per conservare l'accesso e sbloccare il resto del percorso Fit&amp;Smile.
+        </p>
+        <p style="color:#999;font-size:13px;margin-top:24px;">
+            Se non hai richiesto tu il magic link, ignora questa email.
+        </p>
+    `)
+
+    return resend.emails.send({
+        from: FROM_EMAIL,
+        to,
+        subject: 'I tuoi 3 video gratuiti sono pronti',
+        html,
+    })
+}
+
+export async function sendLeadReminderT10Email(to: string, name: string, daysLeft: number) {
+    const html = emailLayout(`
+        <h2 style="margin:0 0 16px;color:#2a2e30;font-size:24px;">Ti restano ${daysLeft} giorni, ${name || 'cara'}</h2>
+        <p style="color:#555;font-size:15px;line-height:1.7;">
+            Non perdere i tuoi 3 video gratuiti del <strong>Rituale della Leggerezza</strong>.
+        </p>
+        <p style="color:#555;font-size:15px;line-height:1.7;">
+            Completa la registrazione (basta una password) per conservare l'accesso anche dopo la scadenza e sbloccare tutto Fit&amp;Smile.
+        </p>
+        ${button('COMPLETA ORA', `${SITE_URL}/dashboard?upgrade=1`)}
+        <p style="color:#999;font-size:13px;margin-top:24px;">
+            Hai ricevuto questa email perch&eacute; hai dato il consenso a ricevere comunicazioni da Fit&amp;Smile.
+        </p>
+    `)
+
+    return resend.emails.send({
+        from: FROM_EMAIL,
+        to,
+        subject: `Ti restano ${daysLeft} giorni`,
+        html,
+    })
+}
+
+export async function sendLeadReminderT20Email(to: string, name: string) {
+    const html = emailLayout(`
+        <h2 style="margin:0 0 16px;color:#2a2e30;font-size:24px;">${name || 'Cara'}, il tuo accesso &egrave; scaduto</h2>
+        <p style="color:#555;font-size:15px;line-height:1.7;">
+            Il tuo periodo di prova ai 3 video del <strong>Rituale della Leggerezza</strong> &egrave; terminato.
+        </p>
+        <p style="color:#555;font-size:15px;line-height:1.7;">
+            Completa la registrazione (basta una password) per riavere accesso ai video e conservare ci&ograve; che hai conquistato.
+        </p>
+        ${button('RIPRENDI IL TUO POSTO', `${SITE_URL}/dashboard?upgrade=1`)}
+        <p style="color:#999;font-size:13px;margin-top:24px;">
+            Hai ricevuto questa email perch&eacute; hai dato il consenso a ricevere comunicazioni da Fit&amp;Smile.
+        </p>
+    `)
+
+    return resend.emails.send({
+        from: FROM_EMAIL,
+        to,
+        subject: 'Riprendi Lezioni Gratis',
+        html,
+    })
+}
+
 export async function sendRefundRequestEmail(to: string, name: string, packageName: string) {
     const html = emailLayout(`
         <h2 style="margin:0 0 16px;color:#2a2e30;font-size:24px;">Richiesta di Rimborso Ricevuta</h2>
