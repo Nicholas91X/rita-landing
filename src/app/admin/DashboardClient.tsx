@@ -9,8 +9,9 @@ import AdminRequests from './AdminRequests'
 import AdminUsers from './AdminUsers'
 import OneToOneClients from './OneToOneClients'
 import AdminBroadcasts from './AdminBroadcasts'
+import AdminLeads from './AdminLeads'
 import { Button } from '@/components/ui/button'
-import { Loader2, UploadCloud, CheckCircle, Trash2, Edit2, Video, Package as PackageIcon, CreditCard, Bell, Users, LayoutGrid, List, Megaphone } from 'lucide-react'
+import { Loader2, UploadCloud, CheckCircle, Trash2, Edit2, Video, Package as PackageIcon, CreditCard, Bell, Users, LayoutGrid, List, Megaphone, Sparkles } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { logger } from '@/lib/logger'
 import {
@@ -54,7 +55,7 @@ type AdminStatsData = {
 };
 
 export default function AdminDashboardClient({ packages, stats }: { packages: Package[], libraryId?: string, stats?: AdminStatsData }) {
-    const [activeTab, setActiveTab] = useState<'library' | 'packages' | 'payments' | 'requests' | 'users' | 'one-to-one' | 'broadcast'>('library')
+    const [activeTab, setActiveTab] = useState<'library' | 'packages' | 'payments' | 'requests' | 'users' | 'one-to-one' | 'broadcast' | 'leads'>('library')
 
     // Video State
     const [title, setTitle] = useState('')
@@ -219,7 +220,7 @@ export default function AdminDashboardClient({ packages, stats }: { packages: Pa
                     )}
 
                     {/* TAB NAVIGATION */}
-                    <div className="grid grid-cols-2 md:grid-cols-3 p-1 bg-neutral-900 border border-white/10 rounded-[2.5rem] shadow-2xl relative overflow-hidden w-full max-w-4xl">
+                    <div className="grid grid-cols-2 md:grid-cols-4 p-1 bg-neutral-900 border border-white/10 rounded-[2.5rem] shadow-2xl relative overflow-hidden w-full max-w-5xl">
                         <button
                             onClick={() => setActiveTab('library')}
                             className={`relative z-10 flex flex-col items-center justify-center py-6 transition-all duration-300 group ${activeTab === 'library' ? 'text-white' : 'text-neutral-400 hover:text-white'}`}
@@ -296,6 +297,17 @@ export default function AdminDashboardClient({ packages, stats }: { packages: Pa
                             <Megaphone className={`w-5 h-5 mb-2 transition-all duration-500 ${activeTab === 'broadcast' ? 'text-white scale-110 shadow-[0_0_15px_rgba(255,255,255,0.3)]' : 'group-hover:scale-110'}`} />
                             <span className="text-[10px] font-black uppercase tracking-widest text-center">Broadcast</span>
                         </button>
+
+                        <button
+                            onClick={() => setActiveTab('leads')}
+                            className={`relative z-10 flex flex-col items-center justify-center py-6 transition-all duration-300 group ${activeTab === 'leads' ? 'text-white' : 'text-neutral-400 hover:text-white'}`}
+                        >
+                            {activeTab === 'leads' && (
+                                <div className="absolute inset-2 bg-white/10 rounded-3xl z-[-1] animate-in fade-in zoom-in-95 duration-300" />
+                            )}
+                            <Sparkles className={`w-5 h-5 mb-2 transition-all duration-500 ${activeTab === 'leads' ? 'text-white scale-110 shadow-[0_0_15px_rgba(255,255,255,0.3)]' : 'group-hover:scale-110'}`} />
+                            <span className="text-[10px] font-black uppercase tracking-widest text-center">Lead Magnet</span>
+                        </button>
                     </div>
 
                     {activeTab === 'packages' ? (
@@ -321,6 +333,10 @@ export default function AdminDashboardClient({ packages, stats }: { packages: Pa
                     ) : activeTab === 'broadcast' ? (
                         <div className="w-full animate-in slide-in-from-bottom-4 duration-500">
                             <AdminBroadcasts />
+                        </div>
+                    ) : activeTab === 'leads' ? (
+                        <div className="w-full animate-in slide-in-from-bottom-4 duration-500">
+                            <AdminLeads />
                         </div>
                     ) : (
                         <div className="w-full grid grid-cols-1 lg:grid-cols-12 gap-8 items-start animate-in slide-in-from-bottom-4 duration-500">
