@@ -1,8 +1,10 @@
 'use client'
 
-import { useState } from 'react'
+import { Suspense, useEffect, useState } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
+import { toast } from 'sonner'
 import Logo from '@/components/Logo'
 import { Button } from '@/components/ui/button'
 import { Loader2, Mail, Lock, User, ArrowLeft, Eye, EyeOff } from 'lucide-react'
@@ -24,8 +26,42 @@ import { GoogleSignInButton } from '@/components/auth/GoogleSignInButton'
 type AuthMode = 'login' | 'signup' | 'forgot-password' | 'forgot-email'
 
 export default function LoginPage() {
+    return (
+        <Suspense fallback={null}>
+            <LoginPageInner />
+        </Suspense>
+    )
+}
+
+function LoginPageInner() {
     const [mode, setMode] = useState<AuthMode>('login')
     const [transitioning, setTransitioning] = useState(false)
+    const searchParams = useSearchParams()
+    const router = useRouter()
+
+    // Surface auth-callback errors that arrived via ?error= URL param.
+    // Currently the callback emits `terms-missing` when a Google OAuth user
+    // attempts signup without accepting the T&C — we cancel the half-created
+    // account server-side and bring the user back here with a clear toast,
+    // landing them on the signup form so they can retry.
+    useEffect(() => {
+        const error = searchParams.get('error')
+        if (!error) return
+
+        switch (error) {
+            case 'terms-missing':
+                toast.error(
+                    'Devi accettare i Termini e Condizioni per registrarti con Google. Spunta la casella nel form di registrazione e riprova.',
+                )
+                setMode('signup')
+                break
+            default:
+                toast.error("Si è verificato un errore durante l'accesso. Riprova.")
+        }
+
+        // Clean the URL so refreshes don't re-trigger the toast.
+        router.replace('/login')
+    }, [searchParams, router])
 
     const handleLoginSuccess = () => {
         setTransitioning(true)

@@ -661,12 +661,23 @@ export async function signUpAction(
         // fail-open for other errors (network failures)
     }
 
-    // 4. Supabase signup
+    // 4. Supabase signup.
+    // - emailRedirectTo points at /auth/callback so the confirmation link
+    //   routes through the welcome-email + idempotency logic there.
+    // - terms_accepted_at is forwarded to the handle_new_user() trigger via
+    //   raw_user_meta_data so we persist GDPR consent at row creation time.
     const supabase = await createClient()
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.fitandsmile.it'
     const { data, error } = await supabase.auth.signUp({
         email: parsed.email,
         password: parsed.password,
-        options: { data: { full_name: parsed.full_name } },
+        options: {
+            data: {
+                full_name: parsed.full_name,
+                terms_accepted_at: new Date().toISOString(),
+            },
+            emailRedirectTo: `${siteUrl}/auth/callback`,
+        },
     })
 
     if (error) {
