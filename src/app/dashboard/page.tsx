@@ -2,6 +2,7 @@ import { Suspense } from 'react'
 import { Loader2 } from 'lucide-react'
 import { getContentHierarchy } from '@/app/actions/content'
 import StandardDashboardClient from './StandardDashboardClient'
+import LeadDashboardClient from './LeadDashboardClient'
 import { isAdmin } from '@/utils/supabase/admin'
 import { createClient } from '@/utils/supabase/server'
 import { redirect } from 'next/navigation'
@@ -26,10 +27,7 @@ export default async function DashboardPage() {
     // 2. Recupera la gerarchia dei contenuti
     const levels = await getContentHierarchy()
 
-    // Lead branch will be wired in C5; for C4 we only rename + keep standard
-    // behavior intact. The profile fetch above is harmless additional work
-    // that C5 will start using.
-    void profile
+    const isLead = profile?.account_type === 'lead'
 
     return (
         <main className="min-h-screen bg-[var(--secondary)]">
@@ -39,7 +37,14 @@ export default async function DashboardPage() {
                     <p className="text-sm font-bold uppercase tracking-widest">Inizializzazione Dashboard...</p>
                 </div>
             }>
-                <StandardDashboardClient levels={levels} />
+                {isLead ? (
+                    <LeadDashboardClient
+                        levels={levels}
+                        leadExpiresAt={profile?.lead_expires_at ?? null}
+                    />
+                ) : (
+                    <StandardDashboardClient levels={levels} />
+                )}
             </Suspense>
         </main>
     )
