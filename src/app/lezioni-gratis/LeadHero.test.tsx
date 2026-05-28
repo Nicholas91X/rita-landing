@@ -10,10 +10,6 @@ vi.mock('next/image', () => ({
   },
 }))
 
-vi.mock('@/components/Logo', () => ({
-  default: () => <div data-testid="logo" />,
-}))
-
 import LeadHero from './LeadHero'
 
 describe('LeadHero', () => {

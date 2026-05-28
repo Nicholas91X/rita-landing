@@ -1,5 +1,4 @@
 import Image from 'next/image'
-import Logo from '@/components/Logo'
 
 export default function LeadHero() {
   return (
@@ -15,16 +14,6 @@ export default function LeadHero() {
       <div className="absolute inset-0 bg-black/30 z-10" />
 
       <div className="relative z-20 flex flex-col h-full min-h-[100vh] px-6 md:px-12">
-        <header className="flex items-center justify-between py-6">
-          <Logo variant="circle" height={48} showText={false} />
-          <span
-            className="text-white text-xl"
-            style={{ fontFamily: 'var(--font-caveat)' }}
-          >
-            Fit&amp;Smile
-          </span>
-        </header>
-
         <div className="flex-1 flex flex-col justify-center max-w-5xl mx-auto w-full pb-12">
           <h1 className="text-5xl md:text-7xl font-extrabold leading-tight tracking-tight">
             <span className="block">Non siamo qui</span>

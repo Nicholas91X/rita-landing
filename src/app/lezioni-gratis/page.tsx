@@ -3,7 +3,6 @@ import LeadHero from './LeadHero'
 import LeadStepsPreview from './LeadStepsPreview'
 import LeadCaptureForm from './LeadCaptureForm'
 import LeadTestimonials from './LeadTestimonials'
-import LeadLandingFooter from './LeadLandingFooter'
 
 export const metadata: Metadata = {
   title: 'Inizia gratis con il Rituale della Leggerezza | Fit&Smile',
@@ -18,7 +17,6 @@ export default function LezioniGratisPage() {
       <LeadStepsPreview />
       <LeadCaptureForm />
       <LeadTestimonials />
-      <LeadLandingFooter />
     </main>
   )
 }
