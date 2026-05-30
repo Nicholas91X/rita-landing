@@ -49,6 +49,7 @@ vi.mock("@/utils/supabase/server", () => ({
 
 vi.mock("@/lib/email", () => ({
   sendLeadMagicLinkEmail: mockSendEmail,
+  sendLeadInternalNotification: vi.fn().mockResolvedValue(undefined),
 }))
 
 vi.mock("@/lib/security/ratelimit", () => ({

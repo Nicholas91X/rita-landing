@@ -2,7 +2,7 @@
 
 import { headers } from 'next/headers'
 import { createClient, createServiceRoleClient } from '@/utils/supabase/server'
-import { sendLeadMagicLinkEmail } from '@/lib/email'
+import { sendLeadMagicLinkEmail, sendLeadInternalNotification } from '@/lib/email'
 import {
   enforceRateLimit,
   leadFormLimiter,
@@ -71,6 +71,9 @@ export async function requestLeadMagicLink(
       full_name: parsed.full_name,
       account_type: 'lead',
       lead_source: parsed.lead_source ?? 'landing',
+      // terms_accepted is required to submit the form, so record the consent
+      // timestamp for GDPR audit. The handle_new_user trigger persists it.
+      terms_accepted_at: new Date().toISOString(),
       marketing_consent_at: parsed.marketing_consent
         ? new Date().toISOString()
         : null,
@@ -118,6 +121,18 @@ export async function requestLeadMagicLink(
       ok: false,
       message: "Errore durante l'invio dell'email. Riprova.",
     }
+  }
+
+  // Internal team notification — best-effort, never blocks the lead's flow.
+  try {
+    await sendLeadInternalNotification({
+      name: parsed.full_name,
+      email: parsed.email,
+      marketingConsent: !!parsed.marketing_consent,
+      source: parsed.lead_source ?? 'landing',
+    })
+  } catch (err) {
+    console.error('[lead] internal notification send failed', err)
   }
 
   return { ok: true, data: undefined }

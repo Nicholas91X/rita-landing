@@ -5,6 +5,8 @@ const resend = new Resend(process.env.RESEND_API_KEY || 'placeholder')
 const FROM_EMAIL = 'Rita Workout <noreply@fitandsmile.it>'
 const SUPPORT_EMAIL = 'info@fitandsmile.it'
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://fitandsmile.it'
+// Internal inbox that gets a heads-up on every new lead form submission.
+const INTERNAL_LEAD_INBOX = process.env.LEAD_NOTIFY_EMAIL || 'widestudiodigitale@gmail.com'
 
 // Shared email wrapper with brand styling
 function emailLayout(content: string) {
@@ -49,6 +51,40 @@ function button(text: string, url: string) {
 }
 
 // ─── Email Functions ───
+
+/**
+ * Internal notification to the team inbox on every new lead form submission
+ * on /lezioni-gratis. Not customer-facing.
+ */
+export async function sendLeadInternalNotification(params: {
+    name: string
+    email: string
+    marketingConsent: boolean
+    source: string
+}) {
+    const { name, email, marketingConsent, source } = params
+    const submittedAt = new Date().toLocaleString('it-IT', { timeZone: 'Europe/Rome' })
+
+    const html = emailLayout(`
+        <h2 style="margin:0 0 16px;color:#2a2e30;font-size:22px;">🌱 Nuovo lead — Lezioni Gratis</h2>
+        <table width="100%" cellpadding="0" cellspacing="0" style="margin:8px 0 24px;background:#f8f5f2;border-radius:12px;padding:20px;">
+        <tr><td>
+            <p style="margin:0 0 6px;color:#2a2e30;font-size:15px;"><strong>Nome:</strong> ${name}</p>
+            <p style="margin:0 0 6px;color:#2a2e30;font-size:15px;"><strong>Email:</strong> ${email}</p>
+            <p style="margin:0 0 6px;color:#2a2e30;font-size:15px;"><strong>Consenso marketing:</strong> ${marketingConsent ? '✅ Sì' : '❌ No'}</p>
+            <p style="margin:0 0 6px;color:#2a2e30;font-size:15px;"><strong>Origine:</strong> ${source}</p>
+            <p style="margin:0;color:#846047;font-size:13px;"><strong>Data:</strong> ${submittedAt}</p>
+        </td></tr></table>
+        <p style="color:#999;font-size:12px;">Notifica interna automatica. Il lead ha ricevuto il magic link per i 3 video.</p>
+    `)
+
+    return resend.emails.send({
+        from: FROM_EMAIL,
+        to: INTERNAL_LEAD_INBOX,
+        subject: `Nuovo lead: ${name} (${email})`,
+        html,
+    })
+}
 
 export async function sendWelcomeEmail(to: string, name: string) {
     const html = emailLayout(`
