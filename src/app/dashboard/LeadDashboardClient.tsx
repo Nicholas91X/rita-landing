@@ -1,9 +1,9 @@
 'use client'
 
 import { useEffect, useMemo, useState } from 'react'
-import { BookOpen, User, LogOut, Loader2 } from 'lucide-react'
+import { BookOpen, User, LogOut, Loader2, IdCard } from 'lucide-react'
 import { toast } from 'sonner'
-import { unstable_rethrow } from 'next/navigation'
+import { unstable_rethrow, useSearchParams } from 'next/navigation'
 
 import { Level } from '@/app/actions/content'
 import { getLibraryProgress, type LibraryProgress } from '@/app/actions/video'
@@ -50,7 +50,14 @@ export default function LeadDashboardClient({
     leadExpiresAt,
     showCompletionModal,
 }: LeadDashboardClientProps) {
-    const [activeTab, setActiveTab] = useState<LeadTab>('library')
+    const searchParams = useSearchParams()
+    // Arriving from the completion modal's "Guarda il Passaporto" button
+    // (router.push('/dashboard?tab=profile&sub=badges')) should land directly
+    // on the profile's passport sub-tab.
+    const wantsBadges = searchParams.get('tab') === 'profile' && searchParams.get('sub') === 'badges'
+
+    const [activeTab, setActiveTab] = useState<LeadTab>(wantsBadges ? 'profile' : 'library')
+    const [profileSubTab, setProfileSubTab] = useState<'info' | 'badges'>(wantsBadges ? 'badges' : 'info')
     const [libraryProgress, setLibraryProgress] = useState<LibraryProgress[]>([])
     const [userProfile, setUserProfile] = useState<LeadDashboardProfile | null>(null)
     const [upgradeOpen, setUpgradeOpen] = useState(false)
@@ -157,7 +164,21 @@ export default function LeadDashboardClient({
                             <LeadProfileUpsellCard
                                 onUpgradeClick={() => setUpgradeOpen(true)}
                             />
-                            <ProfileSection activeSubTab="info" />
+                            <div className="flex gap-2 bg-[var(--dash-bg)] rounded-full p-1 w-fit">
+                                <TabButton
+                                    active={profileSubTab === 'info'}
+                                    onClick={() => setProfileSubTab('info')}
+                                    icon={<User className="h-4 w-4" />}
+                                    label="Dati"
+                                />
+                                <TabButton
+                                    active={profileSubTab === 'badges'}
+                                    onClick={() => setProfileSubTab('badges')}
+                                    icon={<IdCard className="h-4 w-4" />}
+                                    label="Passaporto"
+                                />
+                            </div>
+                            <ProfileSection activeSubTab={profileSubTab} />
                         </div>
                     )}
                 </main>

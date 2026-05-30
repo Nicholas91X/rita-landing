@@ -1,6 +1,6 @@
 'use server'
 
-import { createClient } from '@/utils/supabase/server'
+import { createClient, createServiceRoleClient } from '@/utils/supabase/server'
 import { createHash } from 'crypto'
 import { sendBadgeEarnedEmail } from '@/lib/email'
 import { saveVideoProgressSchema } from './video.schemas'
@@ -377,16 +377,27 @@ export async function getLibraryProgress() {
 export async function reconcileUserBadges(userId: string) {
     const supabase = await createClient()
 
-    // 1. Get all active packages for the user
+    // 1. Get all packages the user has access to — both active subscriptions
+    // AND one-time purchases (including lead grants, status='lead'). Reconciling
+    // only subscriptions silently skipped badges for every one-time/lead package.
     const { data: subs } = await supabase
         .from('user_subscriptions')
         .select('package_id')
         .eq('user_id', userId)
         .in('status', ['active', 'trialing'])
 
-    if (!subs || subs.length === 0) return
+    const { data: oneTimePurchases } = await supabase
+        .from('one_time_purchases')
+        .select('package_id')
+        .eq('user_id', userId)
+        .neq('status', 'refunded')
 
-    const packageIds = subs.map(s => s.package_id)
+    const packageIds = [
+        ...(subs?.map(s => s.package_id) || []),
+        ...(oneTimePurchases?.map(p => p.package_id) || []),
+    ]
+
+    if (packageIds.length === 0) return
 
     // 2. Get already earned badges
     const { data: existingBadges } = await supabase
@@ -425,13 +436,23 @@ export async function reconcileUserBadges(userId: string) {
                 .single()
 
             if (pkg && pkg.badge_type) {
-                await supabase.from('user_badges').upsert({
+                // Use the service-role client for the writes: awarding a badge
+                // is a system action, and RLS on user_badges blocks an INSERT
+                // from the cookie-scoped user client (the failure was silent —
+                // the badge never appeared even though all videos were done).
+                const admin = await createServiceRoleClient()
+                const { error: badgeErr } = await admin.from('user_badges').upsert({
                     user_id: userId,
                     package_id: pkgId,
                     badge_type: pkg.badge_type
                 }, { onConflict: 'user_id,package_id' })
 
-                await supabase.from('user_notifications').insert({
+                if (badgeErr) {
+                    console.error('[reconcileUserBadges] badge upsert failed', pkgId, badgeErr.message)
+                    continue
+                }
+
+                await admin.from('user_notifications').insert({
                     user_id: userId,
                     title: '🎉 Nuovo Badge Sbloccato!',
                     message: `Complimenti! Hai completato tutti i video di "${pkg.name}" e hai ottenuto il badge ${pkg.badge_type.toUpperCase()}.`,
