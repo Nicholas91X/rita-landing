@@ -15,16 +15,16 @@ export default function LeadProfileUpsellCard({
                 <div className="w-10 h-10 rounded-full bg-[var(--brand)]/20 flex items-center justify-center">
                     <Sparkles className="h-5 w-5 text-[var(--brand)]" />
                 </div>
-                <h3 className="text-xl md:text-2xl font-bold text-[var(--secondary)]">
+                <h3 className="text-xl md:text-2xl font-bold text-[var(--dash-text)]">
                     Conserva il tuo viaggio
                 </h3>
             </div>
 
-            <p className="text-sm text-neutral-700 mb-5">
+            <p className="text-sm text-[var(--dash-muted)] mb-5">
                 Stai usando un accesso ospite. Imposta una password (basta un minuto) per non perdere quello che hai costruito.
             </p>
 
-            <ul className="space-y-3 text-sm text-neutral-800 mb-6">
+            <ul className="space-y-3 text-sm text-[var(--dash-text)] mb-6">
                 <li className="flex items-start gap-3">
                     <Sparkles className="h-4 w-4 text-[var(--brand)] flex-shrink-0 mt-0.5" />
                     <span>Mantieni i 3 video del Rituale della Leggerezza <strong>per sempre</strong></span>

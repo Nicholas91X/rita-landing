@@ -81,8 +81,10 @@ export default async function PackagePage(props: {
     const firstName = userProfile?.profile?.full_name?.split(' ')[0] || userProfile?.user?.email?.split('@')[0]
 
     // LOGICA DI RENDER
-    // Se è un pacchetto "payment" (One-Time) -> Mostra PersonalView
-    if (pkg?.payment_mode === 'payment' && oneTimePurchase) {
+    // Se è un pacchetto "payment" (One-Time 1:1) -> Mostra PersonalView.
+    // ECCEZIONE: gli accessi lead (status='lead') sono video gratuiti, non
+    // consulenze 1:1 — vanno mostrati come video gallery come gli abbonamenti.
+    if (pkg?.payment_mode === 'payment' && oneTimePurchase && oneTimePurchase.status !== 'lead') {
         return (
             <DashboardThemeProvider>
                 <PersonalView
@@ -113,5 +115,5 @@ export default async function PackagePage(props: {
         )
     }
 
-    return <DashboardThemeProvider><PackageClient pkg={pkg!} videos={videos} isAdmin={userIsAdmin} /></DashboardThemeProvider>
+    return <DashboardThemeProvider><PackageClient pkg={pkg!} videos={videos} isAdmin={userIsAdmin} flatLayout={oneTimePurchase?.status === 'lead'} /></DashboardThemeProvider>
 }

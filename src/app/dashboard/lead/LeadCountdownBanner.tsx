@@ -45,7 +45,7 @@ export default function LeadCountdownBanner({
     }
 
     const toneClasses: Record<typeof tone, string> = {
-        safe: 'bg-[var(--brand)]/10 border-[var(--brand)]/30 text-[var(--secondary)]',
+        safe: 'bg-[var(--brand)]/10 border-[var(--brand)]/30 text-[var(--dash-text)]',
         warn: 'bg-orange-50 border-orange-300 text-orange-900',
         expired: 'bg-red-50 border-red-300 text-red-900',
     }
