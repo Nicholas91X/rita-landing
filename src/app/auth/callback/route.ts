@@ -145,31 +145,50 @@ export async function GET(request: Request) {
     }
 
     const fresh = isFreshUser(user)
-
-    // Google fresh signup without terms: tear down the auth.users row (and
-    // its profile row via cascade) so the user can retry properly. The
-    // welcome email MUST NOT have been sent yet at this point.
-    if (source === 'google' && fresh && terms !== '1') {
-        try {
-            const admin = await createServiceRoleClient()
-            await admin.auth.admin.deleteUser(user.id)
-        } catch (err) {
-            console.error('[auth-callback] failed to delete unconsented user', err)
-        }
-        return NextResponse.redirect(`${origin}/login?error=terms-missing`)
-    }
-
     const admin = await createServiceRoleClient()
 
-    // For Google fresh signups that DID carry terms=1, persist the consent
-    // timestamp. The trigger only sets terms_accepted_at when it's present in
-    // raw_user_meta_data, which is not the case for OAuth signups.
-    if (source === 'google' && fresh && terms === '1') {
-        await admin
-            .from('profiles')
-            .update({ terms_accepted_at: new Date().toISOString() })
-            .eq('id', user.id)
-            .is('terms_accepted_at', null)
+    // Load the profile once: terms_accepted_at drives the consent gate,
+    // full_name is reused for the welcome email below.
+    const { data: profile } = await admin
+        .from('profiles')
+        .select('terms_accepted_at, full_name')
+        .eq('id', user.id)
+        .single()
+
+    // Terms gate for Google OAuth. The decisive question is "has this person
+    // EVER consented?", NOT "is this account fresh?". An account that already
+    // carries terms_accepted_at (i.e. it signed up properly) must always be
+    // allowed back in via plain login — it does not re-send terms=1.
+    //
+    // We only tear down an account when ALL of these hold:
+    //   - it came from Google,
+    //   - it has never recorded consent (terms_accepted_at is null),
+    //   - it isn't consenting right now (no terms=1),
+    //   - and it was just created (fresh) — this last guard protects legacy
+    //     Google accounts created before terms_accepted_at existed from being
+    //     deleted on an ordinary login.
+    if (source === 'google') {
+        const alreadyConsented = !!profile?.terms_accepted_at
+        const consentingNow = terms === '1'
+
+        if (!alreadyConsented && !consentingNow && fresh) {
+            try {
+                await admin.auth.admin.deleteUser(user.id)
+            } catch (err) {
+                console.error('[auth-callback] failed to delete unconsented user', err)
+            }
+            return NextResponse.redirect(`${origin}/login?error=terms-missing`)
+        }
+
+        // First-time consent via OAuth: persist it. The trigger can't, because
+        // Google's raw_user_meta_data carries no terms_accepted_at.
+        if (consentingNow && !alreadyConsented) {
+            await admin
+                .from('profiles')
+                .update({ terms_accepted_at: new Date().toISOString() })
+                .eq('id', user.id)
+                .is('terms_accepted_at', null)
+        }
     }
 
     // Lead provisioning: first magic-link callback for a lead account
@@ -198,11 +217,6 @@ export async function GET(request: Request) {
         const claimed = await claimWelcomeEmail(admin, user.id)
         if (claimed) {
             try {
-                const { data: profile } = await admin
-                    .from('profiles')
-                    .select('full_name')
-                    .eq('id', user.id)
-                    .single()
                 const name =
                     profile?.full_name
                     || (user.user_metadata?.name as string | undefined)
