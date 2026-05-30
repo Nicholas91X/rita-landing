@@ -12,11 +12,21 @@ function isValidOtpType(t: string | null): t is OtpType {
 
 // Decides if this is the user's very first authenticated visit. Supabase
 // stamps last_sign_in_at on every successful login; on the first one it
-// equals created_at. Using these two timestamps (instead of a wall-clock
-// window) makes the detection robust to network latency.
+// equals created_at. BUT Supabase writes created_at and last_sign_in_at in
+// separate operations, so even on a genuine first OAuth signup they differ
+// by microseconds — an exact-equality check wrongly reports fresh=false.
+// Instead, treat the user as "fresh" when the account was created very
+// recently: a real signup has created_at seconds ago, a re-login has it
+// days/weeks ago, so a generous window has zero false positives.
+// Generous window: a real OAuth signup lands within seconds, a genuine
+// re-login happens hours/days later, so anything in between is safely
+// treated as "fresh". The atomic claim on welcome_email_sent_at is the
+// true once-ever guarantee, so widening this never risks a double welcome.
+const FRESH_WINDOW_MS = 15 * 60 * 1000 // 15 minutes
 function isFreshUser(user: User): boolean {
-    if (!user.last_sign_in_at) return true
-    return user.last_sign_in_at === user.created_at
+    const createdMs = new Date(user.created_at).getTime()
+    if (Number.isNaN(createdMs)) return false
+    return Date.now() - createdMs < FRESH_WINDOW_MS
 }
 
 // Atomically claims the right to send the welcome email. Returns true only
@@ -170,11 +180,21 @@ export async function GET(request: Request) {
         await provisionLeadIfNeeded(admin, user.id)
     }
 
-    // Welcome email: send exactly once per user, ever. The atomic claim on
-    // welcome_email_sent_at IS the idempotency — `fresh` is unreliable for
-    // email/password signup because verifyOtp moves last_sign_in_at forward,
-    // so created_at !== last_sign_in_at by the time we get here.
-    if (user.email) {
+    // Welcome email: send only on a genuine new signup, never on re-login.
+    //   - type === 'signup': the email/password confirmation callback. This
+    //     fires ONLY at signup — password re-login goes straight through
+    //     signInWithPassword and never reaches this route — so it is always
+    //     a new account. (We can't use `fresh` here: verifyOtp has already
+    //     moved last_sign_in_at past created_at by the time we run.)
+    //   - source === 'google' && fresh: a brand-new Google signup. A Google
+    //     RE-login also hits this route with source=google but fresh=false,
+    //     which is exactly the case we must NOT welcome.
+    // Magic-link leads are intentionally excluded — they get their own custom
+    // "ecco i tuoi 3 video" email from requestLeadMagicLink.
+    // The atomic claim on welcome_email_sent_at remains as a second guard
+    // against duplicate sends on callback retries.
+    const isNewSignup = type === 'signup' || (source === 'google' && fresh)
+    if (isNewSignup && user.email) {
         const claimed = await claimWelcomeEmail(admin, user.id)
         if (claimed) {
             try {
