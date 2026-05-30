@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest"
 
 const {
   mockGenerateLink,
+  mockCreateUser,
   mockUpdateUser,
   mockSendEmail,
   mockGetUser,
@@ -13,6 +14,7 @@ const {
   mockHibp,
 } = vi.hoisted(() => ({
   mockGenerateLink: vi.fn(),
+  mockCreateUser: vi.fn(),
   mockUpdateUser: vi.fn(),
   mockSendEmail: vi.fn(),
   mockGetUser: vi.fn(),
@@ -39,7 +41,7 @@ vi.mock("@/utils/supabase/server", () => ({
   })),
   createServiceRoleClient: vi.fn(async () => ({
     auth: {
-      admin: { generateLink: mockGenerateLink },
+      admin: { generateLink: mockGenerateLink, createUser: mockCreateUser },
     },
     from: mockServiceFrom,
   })),
@@ -108,6 +110,7 @@ beforeEach(() => {
       user: { id: "u-1", email: "mario@example.com" },
     },
   })
+  mockCreateUser.mockResolvedValue({ data: { user: { id: "u-1" } }, error: null })
   mockHibp.mockResolvedValue(undefined)
 })
 
@@ -148,14 +151,22 @@ describe("requestLeadMagicLink", () => {
     const res = await requestLeadMagicLink(fd)
 
     expect(res.ok).toBe(true)
+
+    // Lead metadata is set when the user is created (generateLink only mints
+    // the OTP for the now-existing user).
+    expect(mockCreateUser).toHaveBeenCalledOnce()
+    const createArg = mockCreateUser.mock.calls[0][0]
+    expect(createArg.email).toBe("mario@example.com")
+    expect(createArg.email_confirm).toBe(true)
+    expect(createArg.user_metadata.account_type).toBe("lead")
+    expect(createArg.user_metadata.full_name).toBe("Mario Rossi")
+    expect(typeof createArg.user_metadata.marketing_consent_at).toBe("string")
+    expect(createArg.user_metadata.lead_source).toBe("landing")
+
     expect(mockGenerateLink).toHaveBeenCalledOnce()
-    const call = mockGenerateLink.mock.calls[0][0]
-    expect(call.type).toBe("magiclink")
-    expect(call.email).toBe("mario@example.com")
-    expect(call.options.data.account_type).toBe("lead")
-    expect(call.options.data.full_name).toBe("Mario Rossi")
-    expect(typeof call.options.data.marketing_consent_at).toBe("string")
-    expect(call.options.data.lead_source).toBe("landing")
+    const linkArg = mockGenerateLink.mock.calls[0][0]
+    expect(linkArg.type).toBe("magiclink")
+    expect(linkArg.email).toBe("mario@example.com")
 
     expect(mockSendEmail).toHaveBeenCalledOnce()
     expect(mockSendEmail.mock.calls[0][2]).toContain("token_hash=abc123")
@@ -176,8 +187,8 @@ describe("requestLeadMagicLink", () => {
 
     await requestLeadMagicLink(fd)
 
-    const call = mockGenerateLink.mock.calls[0][0]
-    expect(call.options.data.marketing_consent_at).toBeNull()
+    const createArg = mockCreateUser.mock.calls[0][0]
+    expect(createArg.user_metadata.marketing_consent_at).toBeNull()
   })
 
   it("returns generation error message when generateLink fails", async () => {
@@ -191,6 +202,46 @@ describe("requestLeadMagicLink", () => {
     fd.append("terms_accepted", "on")
     const res = await requestLeadMagicLink(fd)
     expect(res.ok).toBe(false)
+  })
+
+  it("proceeds for an already-registered email (passwordless login)", async () => {
+    mockCreateUser.mockResolvedValue({
+      data: null,
+      error: { message: "A user with this email address has already been registered" },
+    })
+    mockGenerateLink.mockResolvedValue({
+      data: { properties: { hashed_token: "tok" } },
+      error: null,
+    })
+    mockSendEmail.mockResolvedValue(undefined)
+
+    const fd = new FormData()
+    fd.append("full_name", "Mario")
+    fd.append("email", "existing@example.com")
+    fd.append("terms_accepted", "on")
+
+    const res = await requestLeadMagicLink(fd)
+
+    expect(res.ok).toBe(true)
+    expect(mockGenerateLink).toHaveBeenCalledOnce()
+    expect(mockSendEmail).toHaveBeenCalledOnce()
+  })
+
+  it("returns error for a non-duplicate createUser failure", async () => {
+    mockCreateUser.mockResolvedValue({
+      data: null,
+      error: { message: "database connection lost" },
+    })
+
+    const fd = new FormData()
+    fd.append("full_name", "Mario")
+    fd.append("email", "m@e.com")
+    fd.append("terms_accepted", "on")
+
+    const res = await requestLeadMagicLink(fd)
+
+    expect(res.ok).toBe(false)
+    expect(mockGenerateLink).not.toHaveBeenCalled()
   })
 })
 

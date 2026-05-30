@@ -125,8 +125,12 @@ export function videoPlaybackClaimLimiter(): Ratelimit {
 let _leadFormEmailLimiter: Ratelimit | null = null
 let _leadFormIpLimiter: Ratelimit | null = null
 export function leadFormLimiter(scope: "email" | "ip"): Ratelimit {
+  // Per-email: a handful of retries per hour absorbs typos/double-clicks
+  // without letting someone spam one inbox.
   if (scope === "email") {
-    return (_leadFormEmailLimiter ??= makeLimiter("lead:email", 1, "1 h"))
+    return (_leadFormEmailLimiter ??= makeLimiter("lead:email", 5, "1 h"))
   }
-  return (_leadFormIpLimiter ??= makeLimiter("lead:ip", 5, "24 h"))
+  // Per-IP: high enough that a shared IP (office, public wifi, mobile NAT)
+  // doesn't lock out legitimate visitors, low enough to stop bulk abuse.
+  return (_leadFormIpLimiter ??= makeLimiter("lead:ip", 40, "1 h"))
 }

@@ -58,18 +58,44 @@ export async function requestLeadMagicLink(
   const siteUrl =
     process.env.NEXT_PUBLIC_SITE_URL || 'https://www.fitandsmile.it'
 
+  // Create the lead user up-front. generateLink({type:'magiclink'}) does NOT
+  // create users — for a never-seen email Supabase returns an anti-enumeration
+  // placeholder token that always fails verifyOtp ("invalid or has expired").
+  // email_confirm:true skips the separate confirmation step (a lead is already
+  // proving ownership by clicking the magic link). The lead metadata is read by
+  // the handle_new_user trigger to set account_type='lead' on the profile.
+  const { error: createErr } = await admin.auth.admin.createUser({
+    email: parsed.email,
+    email_confirm: true,
+    user_metadata: {
+      full_name: parsed.full_name,
+      account_type: 'lead',
+      lead_source: parsed.lead_source ?? 'landing',
+      marketing_consent_at: parsed.marketing_consent
+        ? new Date().toISOString()
+        : null,
+    },
+  })
+
+  // An already-registered email is fine: an existing user (standard, or a
+  // returning lead) simply gets a passwordless login link. No new lead grant —
+  // the callback's provisionLeadIfNeeded only acts on account_type='lead' rows
+  // whose window hasn't been opened yet.
+  const alreadyExists = createErr
+    ? /already|exist|registered/i.test(createErr.message)
+    : false
+  if (createErr && !alreadyExists) {
+    console.error('[lead] createUser failed', createErr.message)
+    return {
+      ok: false,
+      message: 'Errore durante la registrazione. Riprova.',
+    }
+  }
+
   const { data, error } = await admin.auth.admin.generateLink({
     type: 'magiclink',
     email: parsed.email,
     options: {
-      data: {
-        full_name: parsed.full_name,
-        account_type: 'lead',
-        lead_source: parsed.lead_source ?? 'landing',
-        marketing_consent_at: parsed.marketing_consent
-          ? new Date().toISOString()
-          : null,
-      },
       redirectTo: `${siteUrl}/auth/callback`,
     },
   })
