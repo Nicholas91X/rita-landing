@@ -167,29 +167,3 @@ export async function markCompletionModalShown(): Promise<void> {
     .eq('id', user.id)
     .is('completion_modal_shown_at', null)
 }
-
-export type LeadPreviewVideo = {
-  id: string
-  title: string | null
-  bunny_video_id: string | null
-}
-
-export async function getLeadPackagePreview(): Promise<LeadPreviewVideo[]> {
-  const leadPackageId = process.env.LEAD_MAGNET_PACKAGE_ID
-  if (!leadPackageId) return []
-
-  const admin = await createServiceRoleClient()
-  const { data, error } = await admin
-    .from('videos')
-    .select('id, title, bunny_video_id')
-    .eq('package_id', leadPackageId)
-    .order('order_index', { ascending: true })
-    .limit(3)
-
-  if (error) {
-    console.error('[lead] getLeadPackagePreview failed', error.message)
-    return []
-  }
-
-  return (data ?? []) as LeadPreviewVideo[]
-}

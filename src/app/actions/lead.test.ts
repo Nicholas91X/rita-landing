@@ -73,7 +73,6 @@ import {
   requestLeadMagicLink,
   upgradeLeadToStandard,
   markCompletionModalShown,
-  getLeadPackagePreview,
 } from "./lead"
 
 beforeEach(() => {
@@ -244,35 +243,5 @@ describe("markCompletionModalShown", () => {
       "completion_modal_shown_at",
       null,
     )
-  })
-})
-
-describe("getLeadPackagePreview", () => {
-  it("returns empty when LEAD_MAGNET_PACKAGE_ID is not set", async () => {
-    delete process.env.LEAD_MAGNET_PACKAGE_ID
-    const result = await getLeadPackagePreview()
-    expect(result).toEqual([])
-  })
-
-  it("queries videos when env var is set", async () => {
-    process.env.LEAD_MAGNET_PACKAGE_ID = "pkg-uuid"
-    const chain = {
-      select: vi.fn().mockReturnThis(),
-      eq: vi.fn().mockReturnThis(),
-      order: vi.fn().mockReturnThis(),
-      limit: vi.fn().mockResolvedValue({
-        data: [
-          { id: "v1", title: "Video 1", bunny_video_id: "b1" },
-          { id: "v2", title: "Video 2", bunny_video_id: "b2" },
-          { id: "v3", title: "Video 3", bunny_video_id: "b3" },
-        ],
-        error: null,
-      }),
-    }
-    mockServiceFrom.mockReturnValue(chain)
-
-    const result = await getLeadPackagePreview()
-    expect(result.length).toBe(3)
-    expect(chain.eq).toHaveBeenCalledWith("package_id", "pkg-uuid")
   })
 })

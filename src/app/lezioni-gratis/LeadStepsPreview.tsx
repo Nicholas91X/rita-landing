@@ -1,9 +1,16 @@
 import Image from 'next/image'
-import { getLeadPackagePreview } from '@/app/actions/lead'
 
-export default async function LeadStepsPreview() {
-  const videos = await getLeadPackagePreview()
+// Static, brand-designed teaser thumbnails. They are intentionally NOT
+// playable: the videos themselves unlock only after the visitor leaves an
+// email and follows the magic link into the lead dashboard — that gate is
+// the whole point of the lead magnet.
+const THUMBNAILS = [
+  { src: '/lead-magnet/thumbnail-1.jpg', alt: 'Primo video del Rituale della Leggerezza' },
+  { src: '/lead-magnet/thumbnail-2.jpg', alt: 'Secondo video del Rituale della Leggerezza' },
+  { src: '/lead-magnet/thumbnail-3.jpg', alt: 'Terzo video del Rituale della Leggerezza' },
+]
 
+export default function LeadStepsPreview() {
   return (
     <section className="bg-[var(--bg)] py-20 px-6">
       <div className="max-w-5xl mx-auto text-center">
@@ -16,29 +23,20 @@ export default async function LeadStepsPreview() {
         </p>
 
         <div className="mt-12 grid grid-cols-1 md:grid-cols-3 gap-6">
-          {videos.length > 0
-            ? videos.map((v) => (
-                <div
-                  key={v.id}
-                  className="relative aspect-video rounded-lg overflow-hidden border-2 border-[var(--secondary)]/30 bg-neutral-200"
-                >
-                  {v.bunny_video_id && (
-                    <Image
-                      src={`/api/bunny-thumbnail/${v.bunny_video_id}`}
-                      alt={v.title ?? ''}
-                      fill
-                      sizes="(min-width: 768px) 33vw, 100vw"
-                      className="object-cover"
-                    />
-                  )}
-                </div>
-              ))
-            : Array.from({ length: 3 }).map((_, i) => (
-                <div
-                  key={i}
-                  className="relative aspect-video rounded-lg bg-neutral-200 border-2 border-[var(--secondary)]/30"
-                />
-              ))}
+          {THUMBNAILS.map((t) => (
+            <div
+              key={t.src}
+              className="relative aspect-video rounded-lg overflow-hidden border-2 border-[var(--secondary)]/30 bg-neutral-200"
+            >
+              <Image
+                src={t.src}
+                alt={t.alt}
+                fill
+                sizes="(min-width: 768px) 33vw, 100vw"
+                className="object-cover"
+              />
+            </div>
+          ))}
         </div>
       </div>
     </section>
