@@ -10,7 +10,7 @@ export default function PrivacyPage() {
         <main className="min-h-screen bg-[var(--bg)] py-20 px-4">
             <article className="max-w-3xl mx-auto prose prose-neutral">
                 <h1 className="text-3xl font-bold text-[var(--foreground)] mb-2">Informativa sulla Privacy</h1>
-                <p className="text-sm text-[var(--foreground)]/60 mb-10">Ultimo aggiornamento: Marzo 2026</p>
+                <p className="text-sm text-[var(--foreground)]/60 mb-10">Ultimo aggiornamento: Giugno 2026</p>
 
                 <section className="space-y-6 text-[var(--foreground)]/80 text-[15px] leading-relaxed">
                     <div>
@@ -114,7 +114,9 @@ export default function PrivacyPage() {
                         </ul>
                         <p className="mt-3">
                             Il sito <strong>non utilizza cookie di profilazione</strong> né strumenti di tracciamento pubblicitario.
-                            Non è pertanto necessario un banner di consenso cookie ai sensi della Direttiva ePrivacy.
+                            Non essendo presenti cookie che richiedono consenso ai sensi della Direttiva ePrivacy, mostriamo
+                            unicamente un breve banner <strong>informativo</strong> sull&apos;uso dei cookie tecnici, senza
+                            richiedere alcun consenso.
                         </p>
                     </div>
 
