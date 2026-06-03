@@ -6,7 +6,10 @@ Legenda effort: **S** = poche ore · **M** = ~1 giornata · **L** = 2-4 giorni �
 
 ---
 
-## 1. 🔴 Sblocco sequenziale dei pacchetti — effort **L**
+## 1. 🟢 Sblocco sequenziale dei pacchetti — effort **L** — FATTO (89e1c7d)
+
+Modello finale: **catena = course**. `packages.order_index` (migration 11), sblocco quando i predecessori dello stesso course sono completati (badge), gating in checkout + UI (`/pacchetti`, Discover). Utility pura `lib/package-unlock.ts` con 8 test. Lead e 1:1 esclusi naturalmente (soli nel loro course).
+
 
 **Obiettivo:** un pacchetto è acquistabile/accessibile solo dopo il completamento del precedente (es. New York si sblocca solo dopo aver completato tutti i video di Bali).
 
