@@ -53,7 +53,9 @@ export default async function PackagesPage() {
       course.packages.map(pkg => ({
         ...pkg,
         levelName: level.name,
-        courseName: course.name
+        courseName: course.name,
+        // A package is a "month" only when its course is a real chain (>1 package).
+        chainLength: course.packages.length
       }))
     )
   );
@@ -105,7 +107,7 @@ export default async function PackagesPage() {
                 <li className="flex gap-3">
                   <span className="font-semibold text-[var(--brand)]">1.</span>
                   <span>
-                    Scegli il pacchetto che preferisci qui sotto.
+                    Parti dal Mese 1: completalo per sbloccare la tappa successiva.
                   </span>
                 </li>
                 <li className="flex gap-3">
@@ -153,8 +155,15 @@ export default async function PackagesPage() {
                 </div>
                 <CardHeader className="border-b border-[var(--border)] pb-6 pt-6">
                   <div>
-                    <div className="text-xs uppercase tracking-wide text-[var(--brand)] mb-2 font-bold">
-                      {pkg.levelName} - {pkg.courseName}
+                    <div className="flex items-center gap-2 mb-2">
+                      <div className="text-xs uppercase tracking-wide text-[var(--brand)] font-bold">
+                        {pkg.levelName} - {pkg.courseName}
+                      </div>
+                      {pkg.chainLength > 1 && pkg.order_index != null && (
+                        <span className="text-[10px] uppercase tracking-widest font-black text-white bg-[var(--brand)] px-2 py-0.5 rounded-full">
+                          Mese {pkg.order_index + 1}
+                        </span>
+                      )}
                     </div>
                     <CardTitle className="text-2xl font-bold text-[var(--foreground)]">
                       {pkg.name}

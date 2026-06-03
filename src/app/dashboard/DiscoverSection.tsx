@@ -111,11 +111,7 @@ export default function DiscoverSection({
                         <div key={course.id} className="space-y-8">
                             <h3 className="text-2xl font-bold text-white flex items-center gap-3">
                                 <div className="w-2 h-2 rounded-full bg-brand" />
-                                {course.name.toLowerCase().includes('pilates') ? (
-                                    <span className="text-[var(--dash-accent)]">MESE 1</span>
-                                ) : (course.name.toLowerCase().includes('total') || course.name.toLowerCase().includes('body')) ? (
-                                    <span className="text-[var(--dash-accent)]">MESE 2</span>
-                                ) : course.name}
+                                <span className="text-[var(--dash-accent)]">{course.name}</span>
                             </h3>
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-12 relative">
                                 {course.packages.map((pkg, index) => {
@@ -172,11 +168,16 @@ export default function DiscoverSection({
                                                         ) : null}
                                                     </div>
 
-                                                    {/* Price Tag Overlay */}
-                                                    <div className="absolute bottom-4 left-6">
+                                                    {/* Price Tag + Month Overlay */}
+                                                    <div className="absolute bottom-4 left-6 flex items-center gap-2">
                                                         <div className="bg-[var(--dash-card)] backdrop-blur-md px-3 py-1 rounded-full border border-white/20 shadow-lg">
                                                             <span className="text-[var(--dash-accent)] font-black text-sm">€{pkg.price}</span>
                                                         </div>
+                                                        {course.packages.length > 1 && pkg.order_index != null && (
+                                                            <div className="bg-[var(--dash-accent)] px-3 py-1 rounded-full shadow-lg">
+                                                                <span className="text-white font-black text-[10px] uppercase tracking-widest">Mese {pkg.order_index + 1}</span>
+                                                            </div>
+                                                        )}
                                                     </div>
                                                 </div>
 
@@ -259,16 +260,15 @@ export default function DiscoverSection({
             <div className="mt-20 bg-[var(--dash-accent-soft)] p-8 sm:p-12 rounded-[40px] border border-[var(--dash-accent)]/10 shadow-sm text-center space-y-6 max-w-4xl mx-auto">
                 <div className="space-y-2">
                     <h3 className="text-2xl font-black text-[var(--dash-accent)] uppercase tracking-tight">
-                        Non sai quale biglietto prendere?
+                        Come funziona il viaggio?
                     </h3>
                     <div className="text-[var(--dash-text)] text-lg font-medium leading-relaxed max-w-3xl mx-auto">
-                        <p>Il mio consiglio è di seguire l&apos;ordine naturale:</p>
+                        <p>Si procede una destinazione alla volta. Completa ogni mese per sbloccare il successivo:</p>
                         <p className="text-[var(--dash-accent)] font-black text-2xl my-3">
-                            Bali → NY → Siviglia → Avana
+                            Mese 1 · Bali → Mese 2 · New York <span className="text-[var(--dash-muted)] text-base font-medium">✨ nuove mete in arrivo</span>
                         </p>
                         <div className="mt-4 text-base text-[var(--dash-muted)] space-y-2">
-                            <p>Il tuo corpo è stato progettato per questo percorso.</p>
-                            <p>Ma se ti senti già piena di energia, puoi volare subito a New York!</p>
+                            <p>Vieni accompagnata passo dopo passo, senza salti: ogni traguardo apre la porta al mese successivo.</p>
                         </div>
                     </div>
                 </div>

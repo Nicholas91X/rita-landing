@@ -30,6 +30,16 @@ type Package = {
     subtitle?: string | null
 }
 
+export type MonthTab = {
+    id: string
+    name: string
+    monthNumber: number
+    isCurrent: boolean
+    isOwned: boolean
+    isLocked: boolean
+    lockedBy: string | null
+}
+
 type WatchProgress = {
     video_id: string
     progress_seconds: number
@@ -38,9 +48,10 @@ type WatchProgress = {
     last_watched_at: string
 }
 
-export default function PackageClient({ pkg, videos, isAdmin = false, flatLayout = false }: { pkg: Package, videos: Video[], isAdmin?: boolean, flatLayout?: boolean }) {
+export default function PackageClient({ pkg, videos, isAdmin = false, flatLayout = false, months = [] }: { pkg: Package, videos: Video[], isAdmin?: boolean, flatLayout?: boolean, months?: MonthTab[] }) {
     const [activeVideo, setActiveVideo] = useState<Video>(videos[0])
     const [activeWeek, setActiveWeek] = useState(1)
+    const currentMonth = months.find((m) => m.isCurrent)?.monthNumber ?? 1
     const [progressData, setProgressData] = useState<Record<string, WatchProgress>>({})
     const [loadingProgress, setLoadingProgress] = useState(true)
     const [showCelebration, setShowCelebration] = useState(false)
@@ -165,7 +176,7 @@ export default function PackageClient({ pkg, videos, isAdmin = false, flatLayout
                             <div className="w-full max-w-6xl mx-auto px-4 lg:px-10 flex flex-col">
                                 {/* Immersive Video Container */}
                                 <h2 className="text-xl md:text-2xl font-black uppercase tracking-tight mb-10">
-                                    {!flatLayout && <span className="text-[var(--dash-accent)]">MESE 1: </span>}
+                                    {!flatLayout && <span className="text-[var(--dash-accent)]">MESE {currentMonth}: </span>}
                                     <span className="text-[var(--dash-text)]">{pkg.name}</span> {pkg.subtitle && <span className="font-black text-[var(--dash-muted)]">({pkg.subtitle})</span>} {pkg.name.toLowerCase().includes('bali') ? '🌿' : pkg.name.toLowerCase().includes('avana') ? '🇨🇺' : pkg.name.toLowerCase().includes('new york') ? '🗽' : '✨'}
                                 </h2>
                                 <div className="relative group flex-none">
@@ -259,16 +270,47 @@ export default function PackageClient({ pkg, videos, isAdmin = false, flatLayout
 
                             {!flatLayout && (
                                 <>
-                                    {/* Month Selectors (Visual Only for now as per image style) */}
-                                    <div className="flex gap-2 mb-6">
-                                        <button className="flex-1 py-2.5 rounded-xl bg-[var(--dash-accent)] text-white text-xs font-bold uppercase tracking-widest shadow-lg shadow-[var(--dash-accent)]/20">
-                                            Mese 1
-                                        </button>
-                                        <button className="flex-1 py-2.5 rounded-xl bg-[var(--dash-accent-soft)] text-[var(--dash-accent)]/40 text-xs font-bold uppercase tracking-widest flex items-center justify-center gap-2 cursor-not-allowed">
-                                            <span className="w-3 h-3 rounded-full border border-current flex items-center justify-center text-[8px]">🔒</span>
-                                            Mese 2
-                                        </button>
-                                    </div>
+                                    {/* Month Selectors — the packages of this course (the chain).
+                                        Current = active; owned = link to that month's page;
+                                        not owned = locked (complete the previous) or unlockable
+                                        (go buy it from Discover). */}
+                                    {months.length > 1 && (
+                                        <div className="flex gap-2 mb-6">
+                                            {months.map((m) => {
+                                                const label = `Mese ${m.monthNumber}`
+                                                if (m.isCurrent) {
+                                                    return (
+                                                        <span key={m.id} className="flex-1 py-2.5 rounded-xl bg-[var(--dash-accent)] text-white text-xs font-bold uppercase tracking-widest text-center shadow-lg shadow-[var(--dash-accent)]/20">
+                                                            {label}
+                                                        </span>
+                                                    )
+                                                }
+                                                if (m.isOwned) {
+                                                    return (
+                                                        <Link key={m.id} href={`/dashboard/package/${m.id}`} className="flex-1 py-2.5 rounded-xl bg-[var(--dash-accent-soft)] text-[var(--dash-accent)] text-xs font-bold uppercase tracking-widest text-center hover:bg-[var(--dash-accent)]/20 transition-colors">
+                                                            {label}
+                                                        </Link>
+                                                    )
+                                                }
+                                                if (m.isLocked) {
+                                                    return (
+                                                        <span key={m.id} title={`Completa ${m.lockedBy} per sbloccare`} className="flex-1 py-2.5 rounded-xl bg-[var(--dash-accent-soft)] text-[var(--dash-accent)]/40 text-xs font-bold uppercase tracking-widest flex items-center justify-center gap-2 cursor-not-allowed">
+                                                            <span className="w-3 h-3 rounded-full border border-current flex items-center justify-center text-[8px]">🔒</span>
+                                                            {label}
+                                                        </span>
+                                                    )
+                                                }
+                                                // Unlockable but not yet purchased → send to the training/discover
+                                                // surface where the package can be bought.
+                                                return (
+                                                    <Link key={m.id} href="/dashboard?tab=training" title="Disponibile: sblocca questo mese" className="flex-1 py-2.5 rounded-xl bg-[var(--dash-accent-soft)] text-[var(--dash-accent)]/70 text-xs font-bold uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-[var(--dash-accent)]/15 transition-colors">
+                                                        <span className="w-3 h-3 rounded-full border border-current flex items-center justify-center text-[8px]">🔓</span>
+                                                        {label}
+                                                    </Link>
+                                                )
+                                            })}
+                                        </div>
+                                    )}
 
                                     {/* Week Tabs */}
                                     <div className="flex border-b border-[var(--brand)]/10 relative">

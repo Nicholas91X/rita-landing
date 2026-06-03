@@ -2,10 +2,11 @@ import { createClient } from '@/utils/supabase/server'
 import { redirect } from 'next/navigation'
 import Section from '@/components/Section'
 import Link from 'next/link'
-import PackageClient from './PackageClient'
+import PackageClient, { type MonthTab } from './PackageClient'
 import PersonalView from './PersonalView'
 import { DashboardThemeProvider } from '../../ThemeContext'
 import { isAdmin as checkIsAdmin } from '@/utils/supabase/admin'
+import { computeUnlockStatus } from '@/lib/package-unlock'
 
 export default async function PackagePage(props: {
     params: Promise<{ id: string }>,
@@ -68,7 +69,7 @@ export default async function PackagePage(props: {
     // 4. Recupera info Pacchetto
     const { data: pkg } = await supabase
         .from('packages')
-        .select('id, name, description, subtitle, payment_mode')
+        .select('id, name, description, subtitle, payment_mode, course_id, order_index')
         .eq('id', packageId)
         .single()
 
@@ -115,5 +116,49 @@ export default async function PackagePage(props: {
         )
     }
 
-    return <DashboardThemeProvider><PackageClient pkg={pkg!} videos={videos} isAdmin={userIsAdmin} flatLayout={oneTimePurchase?.status === 'lead'} /></DashboardThemeProvider>
+    // 6. Build the month tabs = the packages of this course (the chain). Each
+    // is owned (active sub or non-refunded purchase), locked (a prior month
+    // isn't completed), or unlockable. Skipped for lead access (a single free
+    // package with no chain).
+    const isLead = oneTimePurchase?.status === 'lead'
+    let months: MonthTab[] = []
+    if (!isLead && pkg?.course_id) {
+        const [{ data: coursePkgs }, { data: userSubs }, { data: userOtp }, { data: userBadges }] = await Promise.all([
+            supabase.from('packages').select('id, name, course_id, order_index').eq('course_id', pkg.course_id),
+            supabase.from('user_subscriptions').select('package_id, status, current_period_end').eq('user_id', user.id).in('status', ['active', 'trialing']),
+            supabase.from('one_time_purchases').select('package_id').eq('user_id', user.id).neq('status', 'refunded'),
+            supabase.from('user_badges').select('package_id').eq('user_id', user.id),
+        ])
+
+        const nowMs = Date.now()
+        const ownedIds = new Set<string>([
+            ...((userSubs || [])
+                .filter((s: { current_period_end: string | null }) => !s.current_period_end || new Date(s.current_period_end).getTime() > nowMs)
+                .map((s: { package_id: string }) => s.package_id)),
+            ...((userOtp || []).map((p: { package_id: string }) => p.package_id)),
+        ])
+        const completedIds = new Set((userBadges || []).map((b: { package_id: string }) => b.package_id))
+        const chain = (coursePkgs || []) as Array<{ id: string; name: string; course_id: string | null; order_index: number }>
+
+        months = chain
+            .slice()
+            .sort((a, b) => a.order_index - b.order_index)
+            .map((m) => {
+                const owned = ownedIds.has(m.id)
+                const status = owned
+                    ? { isLocked: false, lockedBy: null as string | null }
+                    : computeUnlockStatus(m, chain, completedIds)
+                return {
+                    id: m.id,
+                    name: m.name,
+                    monthNumber: m.order_index + 1,
+                    isCurrent: m.id === packageId,
+                    isOwned: owned,
+                    isLocked: status.isLocked,
+                    lockedBy: status.lockedBy,
+                }
+            })
+    }
+
+    return <DashboardThemeProvider><PackageClient pkg={pkg!} videos={videos} isAdmin={userIsAdmin} flatLayout={isLead} months={months} /></DashboardThemeProvider>
 }
