@@ -4,6 +4,7 @@ import { fontSans } from "./font";
 import Nav from "@/components/Nav";
 import SeoJsonLd from "@/components/SeoJsonLd";
 import Footer from "@/components/Footer";
+import CookieBanner from "@/components/CookieBanner";
 import { Toaster } from "sonner";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
@@ -49,6 +50,7 @@ export default function RootLayout({
         {children}
         <Footer />
         <SeoJsonLd />
+        <CookieBanner />
         <Toaster richColors position="top-right" toastOptions={{ className: 'mt-14' }} />
         <Analytics />
         <SpeedInsights />

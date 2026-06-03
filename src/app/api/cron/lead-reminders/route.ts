@@ -5,6 +5,7 @@ import {
     sendLeadReminderT10Email,
     sendLeadReminderT20Email,
 } from "@/lib/email"
+import { buildUnsubscribeUrl } from "@/lib/marketing-consent"
 
 const DAY_MS = 24 * 60 * 60 * 1000
 
@@ -53,7 +54,8 @@ export async function GET(req: NextRequest) {
             Math.ceil((new Date(lead.lead_expires_at).getTime() - nowMs) / DAY_MS),
         )
         try {
-            await sendLeadReminderT10Email(lead.email, lead.full_name ?? "", daysLeft)
+            const unsubscribeUrl = await buildUnsubscribeUrl(lead.id)
+            await sendLeadReminderT10Email(lead.email, lead.full_name ?? "", daysLeft, unsubscribeUrl)
             await admin
                 .from("profiles")
                 .update({ lead_reminder_t10_sent_at: now.toISOString() })
@@ -86,7 +88,8 @@ export async function GET(req: NextRequest) {
     for (const lead of (t20Rows ?? []) as LeadRow[]) {
         if (!lead.email) continue
         try {
-            await sendLeadReminderT20Email(lead.email, lead.full_name ?? "")
+            const unsubscribeUrl = await buildUnsubscribeUrl(lead.id)
+            await sendLeadReminderT20Email(lead.email, lead.full_name ?? "", unsubscribeUrl)
             await admin
                 .from("profiles")
                 .update({ lead_reminder_t20_sent_at: now.toISOString() })

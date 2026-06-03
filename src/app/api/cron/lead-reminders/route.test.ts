@@ -8,6 +8,9 @@ vi.mock("@/lib/email", () => ({
     sendLeadReminderT10Email: sendT10,
     sendLeadReminderT20Email: sendT20,
 }))
+vi.mock("@/lib/marketing-consent", () => ({
+    buildUnsubscribeUrl: vi.fn(async (userId: string) => `https://x/api/unsubscribe?token=${userId}`),
+}))
 
 // In-memory mock of the supabase service-role client. Each test sets
 // `rowsByFilter` to control which leads the cron sees. The mock recognises the
@@ -170,7 +173,7 @@ describe("/api/cron/lead-reminders", () => {
         const res = await GET(req)
         const body = await res.json()
         expect(body.t20Sent).toBe(1)
-        expect(sendT20).toHaveBeenCalledWith("expired@example.com", "Lucia")
+        expect(sendT20).toHaveBeenCalledWith("expired@example.com", "Lucia", expect.stringContaining("token=u2"))
         const t20Update = state.updateCalls.find(
             c => c.id === "u2" && "lead_reminder_t20_sent_at" in c.payload,
         )

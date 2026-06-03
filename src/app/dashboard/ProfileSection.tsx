@@ -3,7 +3,8 @@
 import { useState, useEffect } from 'react'
 import Image from 'next/image'
 import { getUserProfile, updateProfileAction, updateEmail, updatePassword, getPassportStamps } from '@/app/actions/user'
-import { requestDataExport, requestAccountDeletionGdpr } from '@/app/actions/gdpr'
+import { requestDataExport, requestAccountDeletionGdpr, getMarketingConsent, updateMarketingConsent } from '@/app/actions/gdpr'
+import { Switch } from '@/components/ui/switch'
 import { listMySessions, revokeSession, revokeAllOtherSessions, type SessionInfo } from '@/app/actions/sessions'
 import { logger } from '@/lib/logger'
 import UserProfileNotifications from './UserProfileNotifications'
@@ -90,6 +91,27 @@ export default function ProfileSection({ onProfileUpdate, activeSubTab = 'info' 
     const supabase = createClient()
 
     const [fetchError, setFetchError] = useState(false)
+
+    // Marketing-email consent (GDPR Art. 21 revocation)
+    const [marketingConsent, setMarketingConsent] = useState(false)
+    const [consentSaving, setConsentSaving] = useState(false)
+    useEffect(() => {
+        getMarketingConsent().then(setMarketingConsent).catch(() => { /* default false */ })
+    }, [])
+
+    const handleToggleMarketing = async (next: boolean) => {
+        setConsentSaving(true)
+        const prev = marketingConsent
+        setMarketingConsent(next) // optimistic
+        const res = await updateMarketingConsent(next)
+        if (!res.ok) {
+            setMarketingConsent(prev)
+            toast.error('Errore durante il salvataggio. Riprova.')
+        } else {
+            toast.success(next ? 'Iscrizione alle comunicazioni attivata.' : 'Disiscrizione completata.')
+        }
+        setConsentSaving(false)
+    }
 
     useEffect(() => {
         const fetchProfile = async () => {
@@ -628,6 +650,28 @@ export default function ProfileSection({ onProfileUpdate, activeSubTab = 'info' 
                                                 {sessionActionId === '__others__' ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Termina tutte le altre sessioni'}
                                             </Button>
                                         )}
+                                    </div>
+                                </CardContent>
+                            </Card>
+
+                            {/* Marketing consent (GDPR Art. 21 — easy revocation) */}
+                            <Card className="bg-[var(--dash-card)] border-[var(--dash-border)] shadow-xl rounded-[32px] overflow-hidden">
+                                <CardContent className="p-6 md:p-8">
+                                    <div className="flex items-center gap-4">
+                                        <div className="p-3 bg-[var(--dash-card-header)] rounded-2xl border border-[var(--dash-border)] shrink-0">
+                                            <Mail className="w-5 h-5 text-[var(--dash-accent)]" />
+                                        </div>
+                                        <div className="flex-1 min-w-0">
+                                            <label className="text-[10px] text-[var(--dash-muted-light)] uppercase font-black tracking-widest block mb-1">Comunicazioni</label>
+                                            <p className="text-[var(--dash-text)] font-bold">Email di marketing</p>
+                                            <p className="text-xs text-[var(--dash-muted-light)] mt-1 leading-relaxed">Consigli, novità e offerte da Fit&amp;Smile. Le email di servizio sul tuo account arrivano comunque.</p>
+                                        </div>
+                                        <Switch
+                                            checked={marketingConsent}
+                                            onCheckedChange={handleToggleMarketing}
+                                            disabled={consentSaving}
+                                            aria-label="Consenso alle email di marketing"
+                                        />
                                     </div>
                                 </CardContent>
                             </Card>

@@ -52,13 +52,15 @@ describe("sendLeadReminderT10Email", () => {
     sendMock.mockClear()
   })
 
-  it("sends with countdown in subject and body", async () => {
-    await sendLeadReminderT10Email("a@e.com", "Mario", 4)
+  it("sends with countdown in subject and body, plus unsubscribe", async () => {
+    await sendLeadReminderT10Email("a@e.com", "Mario", 4, "https://x/api/unsubscribe?token=tok")
     expect(sendMock).toHaveBeenCalledOnce()
-    const args = sendMock.mock.calls[0][0] as { subject: string; html: string }
+    const args = sendMock.mock.calls[0][0] as { subject: string; html: string; headers?: Record<string, string> }
     expect(args.subject).toContain("4 giorni")
     expect(args.html).toContain("Mario")
     expect(args.html).toContain("Rituale della Leggerezza")
+    expect(args.html).toContain("Disiscriviti")
+    expect(args.headers?.["List-Unsubscribe"]).toContain("token=tok")
   })
 })
 
@@ -67,12 +69,14 @@ describe("sendLeadReminderT20Email", () => {
     sendMock.mockClear()
   })
 
-  it("sends the post-expiry recovery email", async () => {
-    await sendLeadReminderT20Email("a@e.com", "Asia")
+  it("sends the post-expiry recovery email with unsubscribe", async () => {
+    await sendLeadReminderT20Email("a@e.com", "Asia", "https://x/api/unsubscribe?token=tok")
     expect(sendMock).toHaveBeenCalledOnce()
-    const args = sendMock.mock.calls[0][0] as { subject: string; html: string }
+    const args = sendMock.mock.calls[0][0] as { subject: string; html: string; headers?: Record<string, string> }
     expect(args.subject.toLowerCase()).toContain("riprendi")
     expect(args.html).toContain("Asia")
     expect(args.html).toContain("scaduto")
+    expect(args.html).toContain("Disiscriviti")
+    expect(args.headers?.["List-Unsubscribe"]).toContain("token=tok")
   })
 })

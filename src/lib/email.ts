@@ -264,7 +264,23 @@ export async function sendLeadMagicLinkEmail(to: string, name: string, magicUrl:
     })
 }
 
-export async function sendLeadReminderT10Email(to: string, name: string, daysLeft: number) {
+// Consent line + unsubscribe link for marketing emails (GDPR/ePrivacy).
+function marketingFooter(unsubscribeUrl: string) {
+    return `<p style="color:#999;font-size:13px;margin-top:24px;">
+            Hai ricevuto questa email perch&eacute; hai dato il consenso a ricevere comunicazioni da Fit&amp;Smile.<br>
+            Non vuoi pi&ugrave; riceverle? <a href="${unsubscribeUrl}" style="color:#846047;text-decoration:underline;">Disiscriviti qui</a>.
+        </p>`
+}
+
+// RFC 8058 one-click unsubscribe headers for marketing sends.
+function unsubscribeHeaders(unsubscribeUrl: string) {
+    return {
+        'List-Unsubscribe': `<${unsubscribeUrl}>`,
+        'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click',
+    }
+}
+
+export async function sendLeadReminderT10Email(to: string, name: string, daysLeft: number, unsubscribeUrl: string) {
     const html = emailLayout(`
         <h2 style="margin:0 0 16px;color:#2a2e30;font-size:24px;">Ti restano ${daysLeft} giorni, ${name || 'cara'}</h2>
         <p style="color:#555;font-size:15px;line-height:1.7;">
@@ -274,9 +290,7 @@ export async function sendLeadReminderT10Email(to: string, name: string, daysLef
             Completa la registrazione (basta una password) per conservare l'accesso anche dopo la scadenza e sbloccare tutto Fit&amp;Smile.
         </p>
         ${button('COMPLETA ORA', `${SITE_URL}/dashboard?upgrade=1`)}
-        <p style="color:#999;font-size:13px;margin-top:24px;">
-            Hai ricevuto questa email perch&eacute; hai dato il consenso a ricevere comunicazioni da Fit&amp;Smile.
-        </p>
+        ${marketingFooter(unsubscribeUrl)}
     `)
 
     return resend.emails.send({
@@ -284,10 +298,11 @@ export async function sendLeadReminderT10Email(to: string, name: string, daysLef
         to,
         subject: `Ti restano ${daysLeft} giorni`,
         html,
+        headers: unsubscribeHeaders(unsubscribeUrl),
     })
 }
 
-export async function sendLeadReminderT20Email(to: string, name: string) {
+export async function sendLeadReminderT20Email(to: string, name: string, unsubscribeUrl: string) {
     const html = emailLayout(`
         <h2 style="margin:0 0 16px;color:#2a2e30;font-size:24px;">${name || 'Cara'}, il tuo accesso &egrave; scaduto</h2>
         <p style="color:#555;font-size:15px;line-height:1.7;">
@@ -297,9 +312,7 @@ export async function sendLeadReminderT20Email(to: string, name: string) {
             Completa la registrazione (basta una password) per riavere accesso ai video e conservare ci&ograve; che hai conquistato.
         </p>
         ${button('RIPRENDI IL TUO POSTO', `${SITE_URL}/dashboard?upgrade=1`)}
-        <p style="color:#999;font-size:13px;margin-top:24px;">
-            Hai ricevuto questa email perch&eacute; hai dato il consenso a ricevere comunicazioni da Fit&amp;Smile.
-        </p>
+        ${marketingFooter(unsubscribeUrl)}
     `)
 
     return resend.emails.send({
@@ -307,6 +320,7 @@ export async function sendLeadReminderT20Email(to: string, name: string) {
         to,
         subject: 'Riprendi Lezioni Gratis',
         html,
+        headers: unsubscribeHeaders(unsubscribeUrl),
     })
 }
 
