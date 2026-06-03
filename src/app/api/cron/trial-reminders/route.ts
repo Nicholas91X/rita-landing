@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { createServiceRoleClient } from "@/utils/supabase/server"
 import { sendToUser } from "@/lib/push/dispatch"
 import { trialReminderPayload } from "@/lib/push/payload-templates"
+import { sendTrialEndingEmail } from "@/lib/email"
 
 export async function GET(req: NextRequest) {
   const auth = req.headers.get("authorization")
@@ -43,6 +44,30 @@ export async function GET(req: NextRequest) {
         title: "Il tuo periodo di prova scade tra 2 giorni",
         message: "Rinnova per non perdere l'accesso.",
       })
+
+      // Email reminder — best-effort. A send failure must NOT prevent the
+      // dedup flag from being set, otherwise the next run would re-send the
+      // push. (Same trade-off as the welcome email: miss > duplicate.)
+      try {
+        const [{ data: profile }, { data: pkg }] = await Promise.all([
+          admin.from("profiles").select("email, full_name").eq("id", row.user_id).single(),
+          admin.from("packages").select("name").eq("id", row.package_id).single(),
+        ])
+        if (profile?.email) {
+          const expiryDate = row.current_period_end
+            ? new Date(row.current_period_end).toLocaleDateString("it-IT")
+            : ""
+          await sendTrialEndingEmail(
+            profile.email,
+            profile.full_name ?? "",
+            pkg?.name ?? "il tuo pacchetto",
+            expiryDate,
+          )
+        }
+      } catch (emailErr) {
+        console.error("[cron trial-reminders] email failed", row.id, emailErr)
+      }
+
       await admin.from("user_subscriptions").update({ trial_reminder_sent_at: new Date().toISOString() }).eq("id", row.id)
       processed++
     } catch (err) {

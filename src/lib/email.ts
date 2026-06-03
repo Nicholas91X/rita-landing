@@ -170,6 +170,30 @@ export async function sendOrderStatusEmail(to: string, name: string, packageName
     })
 }
 
+export async function sendTrialEndingEmail(to: string, name: string, packageName: string, expiryDate: string) {
+    const html = emailLayout(`
+        <h2 style="margin:0 0 16px;color:#2a2e30;font-size:24px;">La tua prova gratuita sta per finire</h2>
+        <p style="color:#555;font-size:15px;line-height:1.7;">
+            Ciao <strong>${name || 'cara'}</strong>,<br>
+            la tua prova gratuita di <strong>&quot;${packageName}&quot;</strong> termina il <strong>${expiryDate}</strong> — tra circa 2 giorni.
+        </p>
+        <p style="color:#555;font-size:15px;line-height:1.7;">
+            Al termine della prova l'abbonamento si attiver&agrave; automaticamente, cos&igrave; potrai continuare il tuo percorso senza interruzioni. Se preferisci non proseguire, puoi disdire in qualsiasi momento dalla dashboard, prima della scadenza.
+        </p>
+        ${button('Gestisci la prova', `${SITE_URL}/dashboard?tab=billing`)}
+        <p style="color:#999;font-size:13px;margin-top:24px;">
+            Per qualsiasi dubbio, scrivici a <a href="mailto:${SUPPORT_EMAIL}" style="color:#846047;">${SUPPORT_EMAIL}</a>.
+        </p>
+    `)
+
+    return resend.emails.send({
+        from: FROM_EMAIL,
+        to,
+        subject: `La tua prova di "${packageName}" scade tra 2 giorni`,
+        html,
+    })
+}
+
 export async function sendSubscriptionExpiringEmail(to: string, name: string, packageName: string, expiryDate: string) {
     const html = emailLayout(`
         <h2 style="margin:0 0 16px;color:#2a2e30;font-size:24px;">Il tuo abbonamento sta per scadere</h2>
