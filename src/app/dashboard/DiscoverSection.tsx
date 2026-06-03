@@ -6,7 +6,7 @@ import { Card, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
 import { Dialog, DialogContent } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import BuyButton from '@/components/BuyButton'
-import { Compass, Map, Check, Star, Calendar, Clock, Trophy, Contact, MessageCircle, ArrowRight } from 'lucide-react'
+import { Compass, Map, Check, Star, Calendar, Clock, Trophy, Contact, MessageCircle, ArrowRight, Lock } from 'lucide-react'
 import Image from 'next/image'
 
 interface DashboardProfile {
@@ -226,15 +226,24 @@ export default function DiscoverSection({
                                                         Vedi Itinerario Completo <ArrowRight className="w-4 h-4" />
                                                     </Button>
 
-                                                    <BuyButton
-                                                        packageId={pkg.id}
-                                                        packageName={pkg.name}
-                                                        price={pkg.price}
-                                                        isTrial={isTrialEligible}
-                                                        isDiscounted={isLoyaltyEligible}
-                                                        className="w-full bg-[var(--dash-heading)] hover:bg-[var(--dash-accent)] text-white rounded-xl h-11 font-bold uppercase tracking-widest text-[11px] transition-all shadow-lg hover:scale-[1.02] active:scale-[0.98] px-2 text-center"
-                                                        customLabel="Ottieni il Biglietto"
-                                                    />
+                                                    {pkg.isLocked ? (
+                                                        <div
+                                                            className="w-full flex items-center justify-center gap-2 rounded-xl h-11 bg-[var(--dash-card-header)] border border-[var(--dash-border)] text-[var(--dash-muted)] font-bold uppercase tracking-widest text-[11px] px-2 text-center"
+                                                            title={`Completa ${pkg.lockedBy} per sbloccare`}
+                                                        >
+                                                            <Lock className="w-4 h-4 shrink-0" /> Completa {pkg.lockedBy}
+                                                        </div>
+                                                    ) : (
+                                                        <BuyButton
+                                                            packageId={pkg.id}
+                                                            packageName={pkg.name}
+                                                            price={pkg.price}
+                                                            isTrial={isTrialEligible}
+                                                            isDiscounted={isLoyaltyEligible}
+                                                            className="w-full bg-[var(--dash-heading)] hover:bg-[var(--dash-accent)] text-white rounded-xl h-11 font-bold uppercase tracking-widest text-[11px] transition-all shadow-lg hover:scale-[1.02] active:scale-[0.98] px-2 text-center"
+                                                            customLabel="Ottieni il Biglietto"
+                                                        />
+                                                    )}
                                                 </CardFooter>
                                             </Card>
                                         </div>

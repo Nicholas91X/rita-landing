@@ -15,6 +15,7 @@ import {
     subscriptionCancelRequestedPayload,
 } from '@/lib/push/payload-templates'
 import { claimWithTtl, cacheResult } from '@/lib/security/ttl-idempotency'
+import { computeUnlockStatus } from '@/lib/package-unlock'
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || 'sk_test_placeholder', {
     apiVersion: '2025-12-15.clover' as unknown as Stripe.LatestApiVersion,
@@ -40,12 +41,39 @@ export async function createCheckoutSession(packageId: string) {
     // 2. Fetch package info and User eligibility
     const { data: pkg, error: pkgError } = await supabase
         .from('packages')
-        .select('stripe_price_id, payment_mode')
+        .select('stripe_price_id, payment_mode, course_id, order_index, name')
         .eq('id', packageId)
         .single()
 
     if (pkgError || !pkg || !pkg.stripe_price_id) {
         throw new Error('Package not found or price not configured')
+    }
+
+    // 2b. Sequential unlock gate: a package can only be bought once every
+    // earlier package in the same course (chain) is completed. Server-side
+    // enforcement — the UI also hides locked packages, this is the backstop.
+    if (pkg.course_id) {
+        const [{ data: coursePkgs }, { data: badges }] = await Promise.all([
+            supabase
+                .from('packages')
+                .select('id, name, course_id, order_index')
+                .eq('course_id', pkg.course_id),
+            supabase
+                .from('user_badges')
+                .select('package_id')
+                .eq('user_id', user.id),
+        ])
+        const completedIds = new Set((badges || []).map((b: { package_id: string }) => b.package_id))
+        const status = computeUnlockStatus(
+            { id: packageId, name: pkg.name, course_id: pkg.course_id, order_index: pkg.order_index ?? 0 },
+            (coursePkgs || []) as Array<{ id: string; name: string; course_id: string | null; order_index: number }>,
+            completedIds,
+        )
+        if (status.isLocked) {
+            throw new Error(
+                `Completa prima "${status.lockedBy}" per sbloccare questo pacchetto.`,
+            )
+        }
     }
 
     // Fetch profile and existing subscriptions for eligibility
