@@ -125,3 +125,42 @@ Quick wins prima (S), poi i due interventi sostanziali:
 4. Punto 2 (email reminder prova) — S
 5. Punto 1 (sblocco sequenziale) — L ← il più invasivo, richiede migration + gating in 3 punti
 6. NOTE A/B (PWA onboarding, casting) — da decidere scope dopo i punti bloccanti
+
+---
+
+# Pre-lancio: Analisi infrastruttura & compliance (2026-06-03)
+
+## A. Stripe — stato: TEST MODE 🔴 da portare in live
+
+Funzionalmente **completo** ma punta all'account di test (`sk_test_...`). Implementato: checkout (subscription + payment, trial 7gg, loyalty coupon), portal, refund (14gg), cancel, webhook (checkout.session.completed, invoice succeeded/failed, subscription updated/deleted) con idempotenza, mirroring `stripe_payments`. Prodotti/prezzi creati via admin (`createPackage`) → ID salvati su `packages.stripe_price_id/product_id`.
+
+**Per andare LIVE serve (azioni manuali):**
+1. Live keys (`sk_live_...`, publishable, `whsec_...` del webhook live).
+2. **Registrare il webhook endpoint** `/api/webhooks/stripe` nel dashboard Stripe LIVE → copiare il secret.
+3. **Ricreare TUTTI i pacchetti in live**: gli `stripe_price_id`/`product_id` attuali sono di TEST e **non esistono in live** → il checkout fallirebbe. Vanno ricreati (admin UI in modalità live, o script).
+4. `STRIPE_LOYALTY_COUPON_ID` non è settato → loyalty no-op finché non crei il coupon in live e setti la var.
+5. (consigliato) Sostituire i fallback `sk_test_placeholder` con errore esplicito in prod.
+
+**Decisione aperta:** lancio soft in TEST o subito LIVE?
+
+## B. GDPR / Compliance — base buona, gap mirati 🟡
+
+**C'è già:** export dati (ZIP completo), cancellazione account (richiesta → conferma email → delete + anonimizzazione fiscale 10 anni), audit log, pagine `/privacy` e `/terms` (con sezione `#newsletter`). Il cron reminder **rispetta il consenso** (`marketing_consent_at IS NOT NULL`).
+
+**Gap da chiudere prima del lancio (priorità):**
+1. 🔴 **Nessuna UI per revocare il consenso marketing** (Art. 21). `marketing_consent_at` viene solo settato, mai azzerato. → aggiungere toggle in ProfileSection (set/clear `marketing_consent_at`).
+2. 🔴 **Privacy policy con placeholder** `[INDIRIZZO DA COMPLETARE]`, `[P.IVA DA COMPLETARE]` → non-compliant, da completare con dati reali.
+3. 🟡 **Link/header unsubscribe nelle email marketing** — da verificare/aggiungere nei template `lib/email.ts` (List-Unsubscribe + link footer).
+4. 🟡 Banner cookie ePrivacy (anche minimale informativo).
+5. 🟢 Export/delete/audit già a posto.
+
+## C. Variabili d'ambiente — tutte usate, mancano azioni prod 🟡
+
+Nessuna var morta. Manca un `.env.example` (creato in questo commit).
+
+**Azioni critiche per il deploy su Vercel:**
+- 🔴 `NEXT_PUBLIC_SITE_URL` — ora è `http://localhost:3000` (override per i test auth locali). In prod DEVE essere il dominio reale (magic link, OAuth redirect, Referer Bunny dipendono da questo).
+- 🔴 `LEAD_MAGNET_PACKAGE_ID` — se non settato su Vercel, il flusso lead **no-op silenzioso**.
+- 🔴 `STRIPE_SECRET_KEY` + webhook secret — test → live.
+- Tutte le altre (Supabase, Bunny, Resend, Upstash, VAPID, CRON_SECRET, GDPR_DELETE_SECRET) → provisionare in prod.
+- Opzionali: `LEAD_NOTIFY_EMAIL` (default studio), `STRIPE_LOYALTY_COUPON_ID`, `NEXT_PUBLIC_MAINTENANCE_MODE`.
