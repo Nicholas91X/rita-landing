@@ -103,16 +103,7 @@ Modello finale: **catena = course**. `packages.order_index` (migration 11), sblo
 
 **Proposta (da decidere):** onboarding dedicato con screenshot annotati per i 2 casi principali (iOS Safari + Android Chrome), pulsante "Come installare l'app" sempre raggiungibile, schermata di conferma. Effort **M**.
 
-### B. Proiettare i videocorsi su TV (casting) — effort alto / vincolo architetturale
-
-**Vincolo critico:** i video sono in un **iframe cross-origin di Bunny** (`iframe.mediadelivery.net`), non un `<video>` nativo (`VideoPlayer.tsx`). Le API di casting del browser (AirPlay / Chromecast / Remote Playback) **non possono raggiungere un iframe cross-origin** dalla pagina padre. Quindi non possiamo costruire un pulsante "cast" nostro sopra il player attuale.
-
-**Opzioni reali:**
-1. **Pulsante cast nativo del player Bunny** — il player Bunny *potrebbe* avere già AirPlay/Chromecast nella sua UI (dipende da iOS/Chrome e versione player). Costo: ~0, ma UX incerta e non documentata. → **da verificare** aprendo un video su iPhone/iPad e Android e guardando se appare l'icona cast nel player.
-2. **Screen mirroring del dispositivo** (l'utente specchia tutto lo schermo su TV). Funziona oggi, zero codice, ma UX poco intuitiva per utenti poco tech. → utile come "fallback documentato" con una guida.
-3. **Cast custom (Chromecast/AirPlay nostro)** — richiede rifare il player con `<video>` nativo + URL HLS firmati a tempo per sessione cast + SDK Chromecast. **Riscrittura architetturale + complessità sicurezza token.** Effort **XL**, da evitare in fase di lancio.
-
-**Raccomandazione:** per il lancio, (1) verificare se Bunny espone già il cast nel suo player e, in caso, scrivere una mini-guida; (2) documentare lo screen mirroring come alternativa. Il casting custom è fuori scope per il lancio.
+> _(B. Casting TV — rimosso dallo scope su decisione del committente, 2026-06-03.)_
 
 ---
 
@@ -137,22 +128,22 @@ Funzionalmente **completo** ma punta all'account di test (`sk_test_...`). Implem
 **Per andare LIVE serve (azioni manuali):**
 1. Live keys (`sk_live_...`, publishable, `whsec_...` del webhook live).
 2. **Registrare il webhook endpoint** `/api/webhooks/stripe` nel dashboard Stripe LIVE → copiare il secret.
-3. **Ricreare TUTTI i pacchetti in live**: gli `stripe_price_id`/`product_id` attuali sono di TEST e **non esistono in live** → il checkout fallirebbe. Vanno ricreati (admin UI in modalità live, o script).
+3. **Ricreare i pacchetti a pagamento in live** (BALI, NEW YORK, Percorso Rinascita Guidata): gli `stripe_price_id`/`product_id` attuali sono di TEST e **non esistono in live** → il checkout fallirebbe. Vanno ricreati (admin UI in modalità live, o script) e aggiornati nel DB. Il lead magnet "Rituale della Leggerezza" (gratis) non passa da checkout → nessuna azione.
 4. `STRIPE_LOYALTY_COUPON_ID` non è settato → loyalty no-op finché non crei il coupon in live e setti la var.
-5. (consigliato) Sostituire i fallback `sk_test_placeholder` con errore esplicito in prod.
+5. 🟢 **FATTO** — Fallback `sk_test_placeholder` sostituito con helper centralizzato `src/lib/stripe.ts` (`getStripeKey()`): fallisce esplicitamente in produzione se la chiave manca, placeholder solo in dev/test.
 
-**Decisione aperta:** lancio soft in TEST o subito LIVE?
+**Prerequisito in corso:** account Stripe in attesa di verifica/attivazione pagamenti live (lato committente). Lo sviluppo locale resta in TEST; le chiavi live andranno solo su Vercel (prod) al lancio.
 
 ## B. GDPR / Compliance — base buona, gap mirati 🟡
 
 **C'è già:** export dati (ZIP completo), cancellazione account (richiesta → conferma email → delete + anonimizzazione fiscale 10 anni), audit log, pagine `/privacy` e `/terms` (con sezione `#newsletter`). Il cron reminder **rispetta il consenso** (`marketing_consent_at IS NOT NULL`).
 
 **Gap da chiudere prima del lancio (priorità):**
-1. 🔴 **Nessuna UI per revocare il consenso marketing** (Art. 21). `marketing_consent_at` viene solo settato, mai azzerato. → aggiungere toggle in ProfileSection (set/clear `marketing_consent_at`).
-2. 🔴 **Privacy policy con placeholder** `[INDIRIZZO DA COMPLETARE]`, `[P.IVA DA COMPLETARE]` → non-compliant, da completare con dati reali.
-3. 🟡 **Link/header unsubscribe nelle email marketing** — da verificare/aggiungere nei template `lib/email.ts` (List-Unsubscribe + link footer).
-4. 🟡 Banner cookie ePrivacy (anche minimale informativo).
-5. 🟢 Export/delete/audit già a posto.
+1. 🟢 **FATTO** — Toggle revoca consenso marketing (Art. 21) in `ProfileSection` (set/clear `marketing_consent_at`), stile coerente col toggle tema. Servito anche da `/api/unsubscribe`.
+2. 🔴 **Privacy policy con placeholder** `[INDIRIZZO DA COMPLETARE]`, `[P.IVA DA COMPLETARE]` → da completare con dati reali (ultimo step, dati dal committente).
+3. 🟢 **FATTO** — Header `List-Unsubscribe` + `List-Unsubscribe-Post` (RFC 8058) e link "Disiscriviti" nei template marketing (`lib/email.ts`), endpoint `/api/unsubscribe` con token firmato.
+4. 🟢 **FATTO** — Banner cookie ePrivacy informativo (`CookieBanner.tsx`), allineato il testo della privacy policy (sez. 8).
+5. 🟢 Export/delete/audit già a posto. Privacy policy: data aggiornata a Giugno 2026.
 
 ## C. Variabili d'ambiente — tutte usate, mancano azioni prod 🟡
 
