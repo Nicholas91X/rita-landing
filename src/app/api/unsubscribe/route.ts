@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server'
 import { createServiceRoleClient } from '@/utils/supabase/server'
 import { verifyUnsubscribeToken, setMarketingConsent } from '@/lib/marketing-consent'
 
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.fitandsmile.it'
+
 // Minimal styled HTML confirmation page (the recipient isn't logged in).
 function page(title: string, body: string, ok: boolean): string {
     return `<!DOCTYPE html><html lang="it"><head><meta charset="utf-8">
@@ -16,7 +18,7 @@ function page(title: string, body: string, ok: boolean): string {
 <div style="font-size:40px;margin-bottom:12px;">${ok ? '✅' : '⚠️'}</div>
 <h2 style="margin:0 0 12px;color:#2a2e30;font-size:22px;">${title}</h2>
 <p style="color:#555;font-size:15px;line-height:1.7;margin:0;">${body}</p>
-<a href="https://www.fitandsmile.it" style="display:inline-block;margin-top:28px;color:#846047;text-decoration:underline;font-size:14px;">Torna a fitandsmile.it</a>
+<a href="${SITE_URL}/dashboard" style="display:inline-block;margin-top:28px;background:#846047;color:#fff;text-decoration:none;font-size:14px;font-weight:700;padding:12px 26px;border-radius:999px;">Vai alla tua area personale</a>
 </td></tr></table></td></tr></table></body></html>`
 }
 

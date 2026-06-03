@@ -4,7 +4,6 @@ import { useState, useEffect } from 'react'
 import Image from 'next/image'
 import { getUserProfile, updateProfileAction, updateEmail, updatePassword, getPassportStamps } from '@/app/actions/user'
 import { requestDataExport, requestAccountDeletionGdpr, getMarketingConsent, updateMarketingConsent } from '@/app/actions/gdpr'
-import { Switch } from '@/components/ui/switch'
 import { listMySessions, revokeSession, revokeAllOtherSessions, type SessionInfo } from '@/app/actions/sessions'
 import { logger } from '@/lib/logger'
 import UserProfileNotifications from './UserProfileNotifications'
@@ -13,7 +12,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
-import { User, Mail, Shield, LogOut, Loader2, Camera, ChevronLeft, ChevronRight, Trash2, Sun, Moon, Download, Monitor, X, Eye, EyeOff } from 'lucide-react'
+import { User, Mail, Shield, LogOut, Loader2, Camera, ChevronLeft, ChevronRight, Trash2, Sun, Moon, Download, Monitor, X, Eye, EyeOff, Check } from 'lucide-react'
 import { createClient } from '@/utils/supabase/client'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
@@ -657,21 +656,38 @@ export default function ProfileSection({ onProfileUpdate, activeSubTab = 'info' 
                             {/* Marketing consent (GDPR Art. 21 — easy revocation) */}
                             <Card className="bg-[var(--dash-card)] border-[var(--dash-border)] shadow-xl rounded-[32px] overflow-hidden">
                                 <CardContent className="p-6 md:p-8">
-                                    <div className="flex items-center gap-4">
-                                        <div className="p-3 bg-[var(--dash-card-header)] rounded-2xl border border-[var(--dash-border)] shrink-0">
-                                            <Mail className="w-5 h-5 text-[var(--dash-accent)]" />
+                                    <div className="flex items-center justify-between gap-4">
+                                        <div className="flex items-center gap-4 min-w-0">
+                                            <div className="p-3 bg-[var(--dash-card-header)] rounded-2xl border border-[var(--dash-border)] shrink-0">
+                                                <Mail className="w-5 h-5 text-[var(--dash-accent)]" />
+                                            </div>
+                                            <div className="min-w-0">
+                                                <label className="text-[10px] text-[var(--dash-muted-light)] uppercase font-black tracking-widest block mb-1">Comunicazioni</label>
+                                                <p className="text-[var(--dash-text)] font-bold">Email di marketing</p>
+                                                <p className="text-xs text-[var(--dash-muted-light)] mt-1 leading-relaxed">Consigli, novità e offerte da Fit&amp;Smile. Le email di servizio sul tuo account arrivano comunque.</p>
+                                            </div>
                                         </div>
-                                        <div className="flex-1 min-w-0">
-                                            <label className="text-[10px] text-[var(--dash-muted-light)] uppercase font-black tracking-widest block mb-1">Comunicazioni</label>
-                                            <p className="text-[var(--dash-text)] font-bold">Email di marketing</p>
-                                            <p className="text-xs text-[var(--dash-muted-light)] mt-1 leading-relaxed">Consigli, novità e offerte da Fit&amp;Smile. Le email di servizio sul tuo account arrivano comunque.</p>
-                                        </div>
-                                        <Switch
-                                            checked={marketingConsent}
-                                            onCheckedChange={handleToggleMarketing}
+                                        <button
+                                            onClick={() => handleToggleMarketing(!marketingConsent)}
                                             disabled={consentSaving}
+                                            className="relative w-14 h-8 rounded-full transition-colors duration-300 focus:outline-none shrink-0 disabled:opacity-60 disabled:cursor-not-allowed"
+                                            style={{ backgroundColor: marketingConsent ? 'var(--dash-accent)' : 'var(--dash-border)' }}
                                             aria-label="Consenso alle email di marketing"
-                                        />
+                                            aria-pressed={marketingConsent}
+                                        >
+                                            <div
+                                                className="absolute top-1 left-1 w-6 h-6 rounded-full bg-white shadow-md transition-transform duration-300 flex items-center justify-center"
+                                                style={{ transform: marketingConsent ? 'translateX(24px)' : 'translateX(0)' }}
+                                            >
+                                                {consentSaving ? (
+                                                    <Loader2 className="w-3.5 h-3.5 text-[var(--dash-accent)] animate-spin" />
+                                                ) : marketingConsent ? (
+                                                    <Check className="w-3.5 h-3.5 text-[var(--dash-accent)]" />
+                                                ) : (
+                                                    <X className="w-3.5 h-3.5 text-zinc-400" />
+                                                )}
+                                            </div>
+                                        </button>
                                     </div>
                                 </CardContent>
                             </Card>
