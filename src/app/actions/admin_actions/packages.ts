@@ -7,9 +7,10 @@ import { revalidateTag } from 'next/cache'
 import { createPackageSchema, updatePackageSchema } from './packages.schemas'
 import { validate, ValidationError, formDataToObject } from '@/lib/security/validation'
 import type { ActionResult } from '@/lib/security/types'
+import { getStripeKey, STRIPE_API_VERSION } from '@/lib/stripe'
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || 'sk_test_placeholder', {
-    apiVersion: '2025-12-15.clover' as unknown as Stripe.LatestApiVersion,
+const stripe = new Stripe(getStripeKey(), {
+    apiVersion: STRIPE_API_VERSION,
 })
 
 export async function getAdminPackages() {

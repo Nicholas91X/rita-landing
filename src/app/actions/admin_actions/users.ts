@@ -402,8 +402,9 @@ export async function processAccountDeletion(notificationId: string, userId: str
 
     if (subs && subs.length > 0) {
         const Stripe = (await import('stripe')).default
-        const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', {
-            apiVersion: '2025-12-15.clover' as unknown as import('stripe').Stripe.LatestApiVersion,
+        const { getStripeKey, STRIPE_API_VERSION } = await import('@/lib/stripe')
+        const stripe = new Stripe(getStripeKey(), {
+            apiVersion: STRIPE_API_VERSION,
         })
         for (const sub of subs) {
             if (sub.stripe_subscription_id) {

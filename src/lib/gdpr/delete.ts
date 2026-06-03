@@ -2,6 +2,7 @@ import { SignJWT, jwtVerify } from "jose"
 import Stripe from "stripe"
 import { createServiceRoleClient } from "@/utils/supabase/server"
 import { logGdprAction } from "./audit"
+import { getStripeKey, STRIPE_API_VERSION } from "@/lib/stripe"
 
 const SECRET_NAME = "GDPR_DELETE_SECRET"
 
@@ -33,8 +34,8 @@ export async function verifyDeletionToken(token: string): Promise<{ userId: stri
 let stripeClient: Stripe | null = null
 function getStripe(): Stripe {
   if (!stripeClient) {
-    stripeClient = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-      apiVersion: "2025-12-15.clover" as unknown as Stripe.LatestApiVersion,
+    stripeClient = new Stripe(getStripeKey(), {
+      apiVersion: STRIPE_API_VERSION,
     })
   }
   return stripeClient

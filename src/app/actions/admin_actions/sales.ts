@@ -6,9 +6,10 @@ import { revalidatePath, unstable_cache } from 'next/cache'
 import Stripe from 'stripe'
 import { sendToUser } from '@/lib/push/dispatch'
 import { refundApprovedPayload } from '@/lib/push/payload-templates'
+import { getStripeKey, STRIPE_API_VERSION } from '@/lib/stripe'
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || 'sk_test_placeholder', {
-    apiVersion: '2025-12-15.clover' as unknown as Stripe.LatestApiVersion,
+const stripe = new Stripe(getStripeKey(), {
+    apiVersion: STRIPE_API_VERSION,
 })
 
 interface DBPayment {

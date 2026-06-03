@@ -19,9 +19,10 @@ import {
 } from '@/lib/security/ratelimit'
 import { assertPasswordNotLeaked, LeakedPasswordError } from '@/lib/security/password'
 import type { ActionResult } from '@/lib/security/types'
+import { getStripeKey, STRIPE_API_VERSION } from '@/lib/stripe'
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || 'sk_test_placeholder', {
-    apiVersion: '2025-12-15.clover' as unknown as Stripe.LatestApiVersion,
+const stripe = new Stripe(getStripeKey(), {
+    apiVersion: STRIPE_API_VERSION,
 })
 
 interface UserDocument {
