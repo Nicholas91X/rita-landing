@@ -22,7 +22,7 @@ interface NavItem {
 const NAV_ITEMS: NavItem[] = [
     { id: 'home', label: 'Home', icon: Home },
     { id: 'training', label: 'Allenamento', icon: BookOpen },
-    { id: '1to1' as TabType, label: '1 to 1', icon: Sparkles },
+    { id: '1to1' as TabType, label: '1:1', icon: Sparkles },
     { id: 'billing', label: 'Billing', icon: CreditCard },
     { id: 'profile', label: 'Profilo', icon: User },
 ]

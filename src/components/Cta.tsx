@@ -2,6 +2,7 @@
 import * as React from "react";
 import { Button } from "@/components/ui/button";
 import { waLink } from "@/utils/whatsapp";
+import { site } from "@/content/it";
 
 type WhatsAppProps = {
   phone?: string;
@@ -11,7 +12,7 @@ type WhatsAppProps = {
 };
 
 export function CtaWhatsApp({
-  phone = "+39 347 229 2627",
+  phone = site.phone,
   message = "Ciao Rita! Vorrei prenotare una consulenza gratuita.",
   children = "Scrivimi su WhatsApp",
   className,

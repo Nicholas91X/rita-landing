@@ -266,7 +266,7 @@ export default function DiscoverSection({
 
                 <div className="pt-4">
                     <Button
-                        onClick={() => window.open('https://wa.me/your-number', '_blank')}
+                        onClick={() => window.open('https://wa.me/393519398967?text=Ciao%20Rita%21%20Vorrei%20un%20consiglio.', '_blank')}
                         className="bg-emerald-500 hover:bg-emerald-600 text-white rounded-2xl h-12 px-8 font-bold uppercase tracking-wide text-xs gap-2 shadow-lg shadow-emerald-500/20 transition-all hover:scale-105 active:scale-95"
                     >
                         <MessageCircle className="w-5 h-5" /> Scrivimi per un consiglio

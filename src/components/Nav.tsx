@@ -10,7 +10,7 @@ import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 
 const CTA_WA =
-  "https://wa.me/393472292627?text=Ciao%20Rita%2C%20vorrei%20prenotare%20una%20consulenza%20gratuita";
+  "https://wa.me/393519398967?text=Ciao%20Rita%2C%20vorrei%20prenotare%20una%20consulenza%20gratuita";
 
 export default function Nav() {
   const pathname = usePathname();

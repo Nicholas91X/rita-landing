@@ -15,7 +15,7 @@ export default function Contact() {
         <div className="flex justify-center">
           <Button asChild size="lg" className="rounded-full px-8 py-6 text-lg bg-[var(--brand)] hover:bg-[var(--brand-2)] text-white shadow-xl shadow-[var(--brand)]/20 transition-all hover:-translate-y-1">
             <a
-              href="https://wa.me/393472292627?text=Ciao%20Rita%21%20Vorrei%20una%20consulenza."
+              href="https://wa.me/393519398967?text=Ciao%20Rita%21%20Vorrei%20una%20consulenza."
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center gap-2"

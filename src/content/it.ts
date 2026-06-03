@@ -1,6 +1,6 @@
 export const site = {
   brand: "Rita Zanicchi · PT",
-  phone: "+39 347 229 2627",
+  phone: "+39 351 939 8967",
   address: {
     street: "Via Ameglia, 74",
     city: "Romito Magra",

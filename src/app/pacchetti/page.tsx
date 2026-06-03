@@ -5,12 +5,12 @@ import Image from "next/image";
 import {
   Card,
   CardContent,
-  CardDescription,
   CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
 import { CtaRow, CtaWhatsApp } from "@/components/Cta";
+import CollapsibleHtml from "@/components/CollapsibleHtml";
 import { site } from "@/content/it";
 import { Dumbbell } from "lucide-react";
 import SideMarquees from "@/components/SideMarquees";
@@ -162,9 +162,13 @@ export default async function PackagesPage() {
                       {pkg.name?.toUpperCase().includes("NEW YORK") && " 🗽"}
                       {pkg.name?.toUpperCase().includes("AVANA") && " 🌴"}
                     </CardTitle>
-                    <CardDescription className="text-sm text-gray-700 mt-2 line-clamp-3">
-                      {pkg.description}
-                    </CardDescription>
+                    <div className="mt-2">
+                      <CollapsibleHtml
+                        html={pkg.description}
+                        maxWords={28}
+                        textColor="text-sm text-gray-700"
+                      />
+                    </div>
                   </div>
                 </CardHeader>
                 <CardContent className="space-y-6 py-6">
