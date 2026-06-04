@@ -30,7 +30,12 @@ export default function LeadCountdownBanner({
     let Icon = Sparkles
     let tone: 'safe' | 'warn' | 'expired'
 
-    if (expired || !expiry) {
+    if (!expiry) {
+        // Pre-launch / extended access: no countdown, warm Community message.
+        copy = 'Sei nella Community Fit&Smile 💛 — nuovi contenuti gratuiti ogni due settimane.'
+        Icon = Sparkles
+        tone = 'safe'
+    } else if (expired) {
         copy = 'Il tuo accesso a Lezioni Gratis è scaduto. Completa la registrazione per riprenderlo.'
         Icon = AlertTriangle
         tone = 'expired'
