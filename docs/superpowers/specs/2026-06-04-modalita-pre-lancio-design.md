@@ -101,38 +101,66 @@ Conseguenza della cornice Community: **eliminata** ogni tabella/logica di waitli
 ogni consenso per-prodotto. L'annuncio di lancio è **un broadcast** a tutti i lead iscritti
 (la Community), non una lista segmentata.
 
-## 6. Livelli di email e disiscrizione
+## 6. Architettura di consegna email e disiscrizione
 
-Tre livelli, con regole d'invio distinte:
+Resend espone due prodotti con quote **distinte** sul piano free. Li usiamo come due canali separati:
 
-| Livello | Esempi | Invio a | Disiscrivibile |
-|---|---|---|---|
-| **Transazionali** | magic link, ricevute, sicurezza, conferma cancellazione | sempre | No (necessarie) |
-| **Community** | nuovi video ogni 2 settimane, annuncio lancio | lead con `email_unsubscribed_at IS NULL` | Sì |
-| **Marketing ampio** | sconti/promo fuori perimetro (futuro) | `marketing_consent_at IS NOT NULL AND email_unsubscribed_at IS NULL` | Sì |
+| Livello | Esempi | Canale Resend | Quota free | Disiscrivibile |
+|---|---|---|---|---|
+| **Transazionali** | magic link, ricevute, sicurezza, conferma cancellazione | **Transactional** (`resend.emails.send`, codice nostro) | 3.000/mese · 100/giorno | No (necessarie) |
+| **Community** | nuovi video ogni 2 settimane, annuncio lancio | **Broadcasts + Audiences** | Broadcasts **illimitati** · 1.000 contatti | Sì |
+| **Marketing ampio** | sconti/promo fuori perimetro (futuro) | Broadcasts (segmento dedicato) | come sopra | Sì |
 
-### Interruttore master `email_unsubscribed_at`
+Le email Community **non** passano dal loop transazionale (così la quota dei magic link resta intatta)
+ma da **Broadcasts**, gratis e illimitati. Rita può comporle e inviarle dalla dashboard Resend
+(no-code) scegliendo l'audience Community, oppure si triggerano via Broadcast API.
 
-Nuova colonna su `profiles`: `email_unsubscribed_at timestamptz` (null = iscritto). È l'interruttore
-master che ferma **tutto il bulk** (Community + marketing).
+> **Deliverability / sottodominio (consigliato, opzionale):** inviare i Broadcasts da un sottodominio
+> dedicato (es. `community.fitandsmile.it`) e tenere il transazionale critico (magic link) sul dominio
+> principale. Così un eventuale calo di reputazione del bulk non compromette l'arrivo dei magic link.
+> Si aggiunge come dominio separato verificato in Resend. Non bloccante per partire.
 
-**Cosa accade alla disiscrizione** (link in email o one-click RFC 8058):
-1. `email_unsubscribed_at = now()` (e per pulizia anche `marketing_consent_at = null`).
-2. Niente più email Community né marketing.
-3. **Continua** a ricevere le transazionali (magic link, ricevute) — legalmente necessarie.
-4. **Mantiene** accesso all'app e ai video (disiscrizione ≠ cancellazione account).
-5. Può ri-iscriversi dal toggle nel Profilo.
+### 6.1 Audience Community (sincronizzazione)
+
+Una Audience Resend "Community" (id in env `RESEND_COMMUNITY_AUDIENCE_ID`). I lead vi sono sincronizzati
+come contatti (chiave = email, nessun id da memorizzare):
+- **Lead creato** → upsert contatto nell'Audience (iscritto). In `src/app/actions/lead.ts`.
+- Helper dedicato `src/lib/resend-audience.ts` (add/update/unsubscribe contatto).
+
+Cap 1.000 contatti sul free → avvicinandosi, valutare cleanup o piano.
+
+### 6.2 Disiscrizione e riconciliazione (il punto delicato)
+
+`email_unsubscribed_at timestamptz` su `profiles` (null = iscritto) è il **mirror locale** dello stato,
+usato per la UI del Profilo e la logica app. La fonte autorevole per i Broadcasts è il campo
+`unsubscribed` del contatto in Resend. Si tengono allineati nei due versi:
+
+1. **Disiscrizione da una newsletter** (link gestito da Resend nel Broadcast) → Resend marca il
+   contatto `unsubscribed` → **webhook** → `src/app/api/webhooks/resend/route.ts` (verifica firma
+   Svix) → setta `email_unsubscribed_at = now()`.
+2. **Disiscrizione/toggle dall'app** (Profilo, o link nostro) → server action: update contatto Resend
+   `unsubscribed = true` **+** `email_unsubscribed_at = now()` (e clear `marketing_consent_at`).
+3. **Ri-iscrizione dal toggle** → update contatto Resend `unsubscribed = false` + clear
+   `email_unsubscribed_at`.
+
+**Cosa accade alla disiscrizione:**
+1. niente più email Community/marketing (Resend esclude il contatto dai Broadcasts);
+2. **continua** a ricevere le transazionali (necessarie);
+3. **mantiene** l'accesso all'app e ai video (disiscrizione ≠ cancellazione account);
+4. può **ri-iscriversi** dal toggle nel Profilo.
 
 Modifiche conseguenti:
-- `src/app/api/unsubscribe/route.ts` → setta `email_unsubscribed_at` (oltre a clear `marketing_consent_at`).
-- Cron Community (vedi §7) → filtra su `email_unsubscribed_at IS NULL`, **non** su `marketing_consent_at`.
-- `src/app/dashboard/ProfileSection.tsx` → il toggle (costruito di recente) diventa l'interruttore
-  master "Email da Fit&Smile — contenuti gratuiti e novità", backed da `email_unsubscribed_at`.
-- `src/app/actions/gdpr.ts` → `getMarketingConsent`/`updateMarketingConsent` evolvono per leggere/
-  scrivere lo stato di iscrizione master.
+- **NEW** `src/app/api/webhooks/resend/route.ts` — webhook unsubscribe → DB.
+- **NEW** `src/lib/resend-audience.ts` — helper contatto Audience.
+- `src/app/dashboard/ProfileSection.tsx` — il toggle (costruito di recente) diventa l'interruttore
+  master "Email da Fit&Smile — contenuti gratuiti e novità", sincronizza Resend + DB.
+- `src/app/actions/gdpr.ts` — `getMarketingConsent`/`updateMarketingConsent` evolvono in get/set dello
+  stato master (Resend + `email_unsubscribed_at`).
+- `src/app/api/unsubscribe/route.ts` — resta come fallback token-based (setta DB + Resend); il canale
+  primario di disiscrizione Community è quello integrato nei Broadcasts Resend.
 
-> Gating del Livello 3 (marketing ampio) è **fuori scope** per il pre-lancio (non esistono ancora
-> campagne fuori perimetro). `marketing_consent_at` resta registrato dal form per uso futuro.
+> Gating del Livello 3 (marketing ampio) è **fuori scope** per il pre-lancio. `marketing_consent_at`
+> resta registrato dal form per segmentazione futura.
 
 ## 7. Ciclo di vita lead + email Community
 
@@ -146,13 +174,13 @@ esistente in `content.ts` è `account_type='lead' && lead_expires_at != null && 
 non mostra il conto alla rovescia ma un messaggio caldo: "Sei nella Community Fit&Smile 💛 — nuovi
 contenuti ogni due settimane."
 
-**Email Community (nurture):** `src/app/api/cron/lead-reminders/route.ts` oggi gira su finestre di
-scadenza filtrate per `marketing_consent_at`. Riadattamento in modalità pre-lancio:
-- Non invia i reminder "stai per scadere" (con expiry `null` non scattano comunque).
-- Invia gli aggiornamenti Community a **tutti i lead attivi** con `email_unsubscribed_at IS NULL`
-  (servizio, non marketing → non filtrato da `marketing_consent_at`).
-- `src/lib/email.ts` → template Community (annuncio nuovo contenuto / aggiornamento) con footer
-  disiscrizione + header List-Unsubscribe (riusa l'infra esistente).
+**Email Community (nurture):** vanno via **Resend Broadcasts** sull'Audience "Community" (§6), NON dal
+nostro cron/loop. Rita le compone e invia dalla dashboard Resend (no-code), oppure si triggerano via
+Broadcast API. Vantaggio: gratis/illimitate e fuori dalla quota transazionale; disiscrizione gestita
+da Resend e riconciliata via webhook (§6.2).
+- Il cron `src/app/api/cron/lead-reminders/route.ts` in pre-lancio **non** invia i reminder "stai per
+  scadere" (con expiry `null` le finestre non scattano comunque). Resta per i reminder transazionali
+  post-lancio (es. fine trial). Nessuna logica Community nel cron.
 
 ## 8. PWA: aggiornamento al lancio
 
@@ -176,10 +204,10 @@ Spegnere `NEXT_PUBLIC_PRELAUNCH_MODE` + chiavi Stripe live nello stesso deploy:
 - `BuyButton` tornano d'acquisto; guardia `createCheckoutSession` disattivata dal flag.
 - **Nuovi** lead tornano alla finestra 14 giorni; i lead "estesi" esistenti mantengono l'accesso
   (nessuno penalizzato al lancio).
-- Parte il **broadcast di lancio** alla Community: pulsante nell'admin che invia a tutti i lead con
-  `email_unsubscribed_at IS NULL` l'email "I percorsi completi sono ora disponibili" + link, con un
-  flag per-utente anti-duplicato (`launch_email_sent_at`). Build differibile al momento del lancio se
-  serve snellire il primo rilascio.
+- Parte il **broadcast di lancio**: un **Resend Broadcast** all'Audience Community ("I percorsi
+  completi sono ora disponibili" + link), inviato da Rita dalla dashboard o via Broadcast API. Niente
+  invio one-by-one né flag anti-duplicato nostro: Resend gestisce un Broadcast come invio singolo alla
+  lista, rispettando le disiscrizioni.
 - Toast PWA porta gli utenti installati sulla UI di lancio.
 
 ## 10. Modifiche al modello dati (migrazione)
@@ -192,23 +220,31 @@ Nuova migrazione `supabase/20260604_12_prelaunch_mode.sql` (l'ultima è `2026060
 
 Nessun'altra tabella nuova (waitlist eliminata).
 
+**Nuove env:** `NEXT_PUBLIC_PRELAUNCH_MODE`, `RESEND_COMMUNITY_AUDIENCE_ID`, `RESEND_WEBHOOK_SECRET`
+(verifica firma del webhook Resend). Da aggiungere a `.env.example`.
+
 ## 11. File da toccare
 
 - **NEW** `src/lib/prelaunch.ts` — helper `isPrelaunch()`.
+- **NEW** `src/lib/resend-audience.ts` — helper add/update/unsubscribe contatto nell'Audience Community.
+- **NEW** `src/app/api/webhooks/resend/route.ts` — webhook unsubscribe Resend → DB (verifica firma Svix).
 - **NEW** `src/components/PWAUpdatePrompt.tsx` — toast one-shot aggiornamento; montato in `layout.tsx`.
 - **NEW** migrazione SQL + aggiornamento `supabase/triggers.sql`.
 - `src/app/actions/stripe.ts` — guardia pre-lancio in `createCheckoutSession`.
 - `src/components/BuyButton.tsx` — ramo pre-lancio → CTA Community.
-- `src/app/actions/lead.ts` — `lead_expires_at = null` quando `isPrelaunch()`.
+- `src/app/actions/lead.ts` — `lead_expires_at = null` quando `isPrelaunch()`; upsert contatto Audience.
 - `src/app/dashboard/lead/LeadCountdownBanner.tsx` — gestione `null`.
-- `src/app/api/cron/lead-reminders/route.ts` — modalità Community, filtro su `email_unsubscribed_at`.
-- `src/lib/email.ts` — template email Community.
-- `src/app/api/unsubscribe/route.ts` — setta `email_unsubscribed_at`.
-- `src/app/dashboard/ProfileSection.tsx` — toggle = interruttore master iscrizione.
-- `src/app/actions/gdpr.ts` — get/update stato iscrizione master.
+- `src/app/api/cron/lead-reminders/route.ts` — non invia reminder scadenza in pre-lancio (no logica Community).
+- `src/app/api/unsubscribe/route.ts` — setta `email_unsubscribed_at` + sync Resend (fallback token).
+- `src/app/dashboard/ProfileSection.tsx` — toggle = interruttore master iscrizione (sync Resend + DB).
+- `src/app/actions/gdpr.ts` — get/update stato iscrizione master (Resend + DB).
 - `src/app/lezioni-gratis/LeadCaptureForm.tsx` — copy Community.
 - `src/app/pacchetti/page.tsx` — badge "In arrivo" sui percorsi in pre-lancio (oltre al BuyButton).
-- (broadcast di lancio) azione admin minimale o procedura manuale documentata.
+- `.env.example` — nuove env (`NEXT_PUBLIC_PRELAUNCH_MODE`, `RESEND_COMMUNITY_AUDIENCE_ID`, `RESEND_WEBHOOK_SECRET`).
+- (broadcast di lancio) composto/inviato da Rita in dashboard Resend, oppure via Broadcast API.
+
+> Nota: i **template** delle email Community non vivono più in `src/lib/email.ts` (quello resta per le
+> transazionali). Le newsletter si compongono in Resend Broadcasts.
 
 ## 12. Fuori scope (YAGNI)
 
@@ -225,15 +261,20 @@ Nessun'altra tabella nuova (waitlist eliminata).
 - Cadenza "ogni due settimane": dev'essere sostenibile da Rita; in alternativa copy più morbida
   ("regolarmente"). La solidità legale dipende dall'erogare davvero contenuto con continuità.
 - P.IVA + indirizzo nella privacy policy: ultimo step, dati dal committente (già pianificato).
+- **Setup Resend (operativo, una tantum):** creare l'Audience "Community" e copiarne l'id
+  (`RESEND_COMMUNITY_AUDIENCE_ID`); configurare il webhook unsubscribe + segreto firma
+  (`RESEND_WEBHOOK_SECRET`); (opzionale) verificare il sottodominio bulk. Cap 1.000 contatti free.
+- Dominio `fitandsmile.it` già verificato ✅ (confermato).
 
 ## 14. Piano di test
 
-- **Unit/integration:** guardia `createCheckoutSession` in pre-lancio (throw); cron Community filtra
-  su `email_unsubscribed_at`; unsubscribe setta `email_unsubscribed_at`; `lead_expires_at = null` su
-  creazione lead in pre-lancio.
+- **Unit/integration:** guardia `createCheckoutSession` in pre-lancio (throw); `lead_expires_at = null`
+  su creazione lead in pre-lancio; upsert contatto Audience al signup (mock Resend); webhook Resend →
+  setta `email_unsubscribed_at`; toggle/azione app → sync contatto Resend + DB.
 - **Manuale (flag ON):** `/pacchetti` e Discover mostrano CTA Community al posto degli acquisti;
-  checkout bloccato anche via richiesta diretta; lead nuovo senza scadenza; banner Community; toggle
-  Profilo disiscrive davvero (niente più email Community); transazionali ancora inviate.
+  checkout bloccato anche via richiesta diretta; lead nuovo senza scadenza + comparso nell'Audience
+  Resend; banner Community; toggle Profilo disiscrive davvero (contatto Resend `unsubscribed`);
+  un Broadcast di prova NON arriva ai disiscritti; transazionali (magic link) ancora inviate.
 - **Manuale (flag OFF, simulazione go-live):** BuyButton tornano; checkout funziona (test mode);
-  broadcast di lancio invia una volta; toast PWA appare una sola volta dopo il "deploy".
+  Broadcast di lancio parte dalla dashboard; toast PWA appare una sola volta dopo il "deploy".
 - **Regressione:** lint, `npx tsc --noEmit`, `npx vitest run` verdi.
