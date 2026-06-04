@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { createClient, createServiceRoleClient } from '@/utils/supabase/server'
 import { sendWelcomeEmail } from '@/lib/email'
+import { isPrelaunch } from '@/lib/prelaunch'
 import type { SupabaseClient, User } from '@supabase/supabase-js'
 
 const VALID_OTP_TYPES = ['signup', 'magiclink', 'email', 'recovery', 'invite', 'email_change'] as const
@@ -72,7 +73,12 @@ async function provisionLeadIfNeeded(admin: SupabaseClient, userId: string) {
     }, { onConflict: 'user_id,package_id', ignoreDuplicates: true })
 
     await admin.from('profiles')
-        .update({ lead_expires_at: new Date(Date.now() + 14 * 24 * 3600 * 1000).toISOString() })
+        .update({
+            // Pre-launch: no expiry — Community access stays open until launch.
+            lead_expires_at: isPrelaunch()
+                ? null
+                : new Date(Date.now() + 14 * 24 * 3600 * 1000).toISOString(),
+        })
         .eq('id', userId)
 }
 
