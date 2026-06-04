@@ -54,12 +54,13 @@ export default function LeadCaptureForm() {
 
       <div className="relative z-20 max-w-3xl mx-auto text-center">
         <h2 className="text-3xl md:text-4xl font-bold text-white leading-snug">
-          Ritrova il tuo equilibrio naturale e una nuova sensazione di leggerezza con il{' '}
-          <span className="text-[var(--brand)]">percorso gratuito in 3 video</span>
+          Inizia il tuo viaggio ed entra nella{' '}
+          <span className="text-[var(--brand)]">Community Fit&amp;Smile</span>
         </h2>
 
-        <p className="mt-4 text-white uppercase tracking-widest text-xs font-bold">
-          Inserisci i tuoi dati per ricevere i 3 video del &ldquo;Rituale della Leggerezza&rdquo;
+        <p className="mt-4 text-white text-sm leading-relaxed max-w-xl mx-auto">
+          Riceverai subito i 3 video del Rituale della Leggerezza e, ogni due settimane, nuovi
+          contenuti gratuiti. Ti avviseremo quando partiranno i percorsi completi.
         </p>
 
         <div className="mt-10 bg-white rounded-2xl p-8 shadow-xl text-left">
