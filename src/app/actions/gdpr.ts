@@ -7,34 +7,28 @@ import { exportUserData } from "@/lib/gdpr/export"
 import { signDeletionToken, verifyDeletionToken, executeAccountDeletion } from "@/lib/gdpr/delete"
 import { logGdprAction } from "@/lib/gdpr/audit"
 import { enforceRateLimit, exportLimiter, deleteLimiter, RateLimitError } from "@/lib/security/ratelimit"
-import { setMarketingConsent } from "@/lib/marketing-consent"
+import { setEmailSubscription, getEmailSubscribed as readEmailSubscribed } from "@/lib/marketing-consent"
 import type { ActionResult } from "@/lib/security/types"
 
 const resend = new Resend(process.env.RESEND_API_KEY || "placeholder")
 
 /**
- * Get/set the logged-in user's marketing-email consent (GDPR Art. 21 — easy
- * revocation). Stored as profiles.marketing_consent_at (timestamp or null).
+ * Get/set the logged-in user's email subscription state (GDPR Art. 21 — easy
+ * revocation). Backed by profiles.email_unsubscribed_at (NULL = subscribed).
  */
-export async function getMarketingConsent(): Promise<boolean> {
+export async function getEmailSubscribed(): Promise<boolean> {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return false
-  const { data } = await supabase
-    .from('profiles')
-    .select('marketing_consent_at')
-    .eq('id', user.id)
-    .single()
-  return !!data?.marketing_consent_at
+  return readEmailSubscribed(supabase, user.id)
 }
 
-export async function updateMarketingConsent(consent: boolean): Promise<ActionResult<void>> {
+export async function updateEmailSubscribed(subscribe: boolean): Promise<ActionResult<void>> {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { ok: false, message: 'Non autorizzato' }
-
   const admin = await createServiceRoleClient()
-  await setMarketingConsent(admin, user.id, consent)
+  await setEmailSubscription(admin, user.id, subscribe)
   return { ok: true, data: undefined }
 }
 

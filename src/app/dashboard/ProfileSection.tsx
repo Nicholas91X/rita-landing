@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import Image from 'next/image'
 import { getUserProfile, updateProfileAction, updateEmail, updatePassword, getPassportStamps } from '@/app/actions/user'
-import { requestDataExport, requestAccountDeletionGdpr, getMarketingConsent, updateMarketingConsent } from '@/app/actions/gdpr'
+import { requestDataExport, requestAccountDeletionGdpr, getEmailSubscribed, updateEmailSubscribed } from '@/app/actions/gdpr'
 import { listMySessions, revokeSession, revokeAllOtherSessions, type SessionInfo } from '@/app/actions/sessions'
 import { logger } from '@/lib/logger'
 import UserProfileNotifications from './UserProfileNotifications'
@@ -91,25 +91,25 @@ export default function ProfileSection({ onProfileUpdate, activeSubTab = 'info' 
 
     const [fetchError, setFetchError] = useState(false)
 
-    // Marketing-email consent (GDPR Art. 21 revocation)
-    const [marketingConsent, setMarketingConsent] = useState(false)
-    const [consentSaving, setConsentSaving] = useState(false)
+    // Email subscription state (Community bulk email; GDPR Art. 21 revocation)
+    const [emailSubscribed, setEmailSubscribed] = useState(false)
+    const [subSaving, setSubSaving] = useState(false)
     useEffect(() => {
-        getMarketingConsent().then(setMarketingConsent).catch(() => { /* default false */ })
+        getEmailSubscribed().then(setEmailSubscribed).catch(() => { /* default false */ })
     }, [])
 
-    const handleToggleMarketing = async (next: boolean) => {
-        setConsentSaving(true)
-        const prev = marketingConsent
-        setMarketingConsent(next) // optimistic
-        const res = await updateMarketingConsent(next)
+    const handleToggleSubscription = async (next: boolean) => {
+        setSubSaving(true)
+        const prev = emailSubscribed
+        setEmailSubscribed(next) // optimistic
+        const res = await updateEmailSubscribed(next)
         if (!res.ok) {
-            setMarketingConsent(prev)
+            setEmailSubscribed(prev)
             toast.error('Errore durante il salvataggio. Riprova.')
         } else {
             toast.success(next ? 'Iscrizione alle comunicazioni attivata.' : 'Disiscrizione completata.')
         }
-        setConsentSaving(false)
+        setSubSaving(false)
     }
 
     useEffect(() => {
@@ -653,7 +653,7 @@ export default function ProfileSection({ onProfileUpdate, activeSubTab = 'info' 
                                 </CardContent>
                             </Card>
 
-                            {/* Marketing consent (GDPR Art. 21 — easy revocation) */}
+                            {/* Email subscription (Community bulk email; GDPR Art. 21 — easy revocation) */}
                             <Card className="bg-[var(--dash-card)] border-[var(--dash-border)] shadow-xl rounded-[32px] overflow-hidden">
                                 <CardContent className="p-6 md:p-8">
                                     <div className="flex items-center justify-between gap-4">
@@ -663,25 +663,25 @@ export default function ProfileSection({ onProfileUpdate, activeSubTab = 'info' 
                                             </div>
                                             <div className="min-w-0">
                                                 <label className="text-[10px] text-[var(--dash-muted-light)] uppercase font-black tracking-widest block mb-1">Comunicazioni</label>
-                                                <p className="text-[var(--dash-text)] font-bold">Email di marketing</p>
-                                                <p className="text-xs text-[var(--dash-muted-light)] mt-1 leading-relaxed">Consigli, novità e offerte da Fit&amp;Smile. Le email di servizio sul tuo account arrivano comunque.</p>
+                                                <p className="text-[var(--dash-text)] font-bold">Email da Fit&amp;Smile</p>
+                                                <p className="text-xs text-[var(--dash-muted-light)] mt-1 leading-relaxed">Contenuti gratuiti e novità della Community. Le email di servizio sul tuo account arrivano comunque.</p>
                                             </div>
                                         </div>
                                         <button
-                                            onClick={() => handleToggleMarketing(!marketingConsent)}
-                                            disabled={consentSaving}
+                                            onClick={() => handleToggleSubscription(!emailSubscribed)}
+                                            disabled={subSaving}
                                             className="relative w-14 h-8 rounded-full transition-colors duration-300 focus:outline-none shrink-0 disabled:opacity-60 disabled:cursor-not-allowed"
-                                            style={{ backgroundColor: marketingConsent ? 'var(--dash-accent)' : 'var(--dash-border)' }}
-                                            aria-label="Consenso alle email di marketing"
-                                            aria-pressed={marketingConsent}
+                                            style={{ backgroundColor: emailSubscribed ? 'var(--dash-accent)' : 'var(--dash-border)' }}
+                                            aria-label="Iscrizione alle email di Fit&Smile"
+                                            aria-pressed={emailSubscribed}
                                         >
                                             <div
                                                 className="absolute top-1 left-1 w-6 h-6 rounded-full bg-white shadow-md transition-transform duration-300 flex items-center justify-center"
-                                                style={{ transform: marketingConsent ? 'translateX(24px)' : 'translateX(0)' }}
+                                                style={{ transform: emailSubscribed ? 'translateX(24px)' : 'translateX(0)' }}
                                             >
-                                                {consentSaving ? (
+                                                {subSaving ? (
                                                     <Loader2 className="w-3.5 h-3.5 text-[var(--dash-accent)] animate-spin" />
-                                                ) : marketingConsent ? (
+                                                ) : emailSubscribed ? (
                                                     <Check className="w-3.5 h-3.5 text-[var(--dash-accent)]" />
                                                 ) : (
                                                     <X className="w-3.5 h-3.5 text-zinc-400" />
