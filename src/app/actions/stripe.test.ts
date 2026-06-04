@@ -130,11 +130,35 @@ describe("requestRefund — dedup", () => {
   })
 })
 
+describe("createCheckoutSession — pre-lancio", () => {
+  beforeEach(() => vi.resetModules())
+
+  it("rifiuta il checkout in modalità pre-lancio", async () => {
+    vi.doMock("@/lib/prelaunch", () => ({ isPrelaunch: vi.fn(() => true) }))
+
+    vi.doMock("@/utils/supabase/server", () => ({
+      createClient: vi.fn().mockResolvedValue({
+        auth: { getUser: async () => ({ data: { user: { id: "u1", email: "t@example.com" } } }) },
+      }),
+      createServiceRoleClient: vi.fn(),
+    }))
+
+    vi.doMock("next/navigation", () => ({
+      redirect: vi.fn((url: string) => { throw new Error("NEXT_REDIRECT:" + url) }),
+    }))
+
+    const { createCheckoutSession } = await import("./stripe")
+    await expect(createCheckoutSession("any-package-id")).rejects.toThrow(/apriranno a breve/i)
+  })
+})
+
 describe("createCheckoutSession — idempotency", () => {
   beforeEach(() => vi.resetModules())
 
   it("reuses cached URL on duplicate call within 60s", async () => {
     const stripeCreateSpy = vi.fn()
+
+    vi.doMock("@/lib/prelaunch", () => ({ isPrelaunch: vi.fn(() => false) }))
 
     vi.doMock("stripe", () => {
       const StripeConstructor = function () {

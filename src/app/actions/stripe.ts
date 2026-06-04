@@ -17,6 +17,7 @@ import {
 import { claimWithTtl, cacheResult } from '@/lib/security/ttl-idempotency'
 import { computeUnlockStatus } from '@/lib/package-unlock'
 import { getStripeKey, STRIPE_API_VERSION } from '@/lib/stripe'
+import { isPrelaunch } from '@/lib/prelaunch'
 
 const stripe = new Stripe(getStripeKey(), {
     apiVersion: STRIPE_API_VERSION,
@@ -37,6 +38,12 @@ export async function createCheckoutSession(packageId: string) {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) {
         redirect('/login')
+    }
+
+    // Pre-launch: purchases are disabled (Stripe can't go live without a VAT
+    // number). Hard server-side block — the UI also hides buy buttons.
+    if (isPrelaunch()) {
+        throw new Error('Le iscrizioni ai percorsi apriranno a breve.')
     }
 
     // 2. Fetch package info and User eligibility
