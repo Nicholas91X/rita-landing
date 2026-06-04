@@ -20,13 +20,14 @@ import {
 } from "@/components/ui/dialog"
 import { logger } from '@/lib/logger'
 
-type TargetType = 'all' | 'package' | 'level'
+type TargetType = 'all' | 'package' | 'level' | 'lead'
 type Channels = { inApp: boolean; push: boolean; email: boolean }
 type TargetOption = { id: string; name: string }
 
 export default function AdminBroadcasts() {
     const [title, setTitle] = useState('')
     const [message, setMessage] = useState('')
+    const [emailBody, setEmailBody] = useState('')
     const [url, setUrl] = useState('/dashboard')
     const [targetType, setTargetType] = useState<TargetType>('all')
     const [targetId, setTargetId] = useState<string | undefined>(undefined)
@@ -47,7 +48,7 @@ export default function AdminBroadcasts() {
 
     // Live recipient count (debounced)
     useEffect(() => {
-        if (targetType !== 'all' && !targetId) { setCounts(null); return }
+        if (targetType !== 'all' && targetType !== 'lead' && !targetId) { setCounts(null); return }
         const t = setTimeout(async () => {
             const r = await countBroadcastRecipients({ targetType, targetId })
             setCounts(r)
@@ -57,7 +58,7 @@ export default function AdminBroadcasts() {
 
     // Reset targetId when switching away from level/package
     useEffect(() => {
-        if (targetType === 'all') setTargetId(undefined)
+        if (targetType === 'all' || targetType === 'lead') setTargetId(undefined)
     }, [targetType])
 
     const handleSend = async () => {
@@ -65,11 +66,11 @@ export default function AdminBroadcasts() {
             toast.error('Inserisci titolo e messaggio')
             return
         }
-        if (targetType !== 'all' && !targetId) {
+        if (targetType !== 'all' && targetType !== 'lead' && !targetId) {
             toast.error('Seleziona un livello o pacchetto')
             return
         }
-        if (!channels.inApp && !channels.push) {
+        if (!channels.inApp && !channels.push && !channels.email) {
             toast.error('Abilita almeno un canale')
             return
         }
@@ -81,18 +82,20 @@ export default function AdminBroadcasts() {
         setLoading(true)
         try {
             const result = await sendBroadcast({
-                title, body: message, url, targetType, targetId, channels,
+                title, body: message, emailBody: emailBody || undefined, url, targetType, targetId, channels,
             })
             if (result.ok) {
-                const { recipients, inApp, pushSent, pushSkipped, pushFailed } = result.data
+                const { recipients, inApp, pushSent, pushSkipped, pushFailed, emailSent } = result.data
                 const pushTotal = pushSent + pushSkipped + pushFailed
                 toast.success(
                     `Inviato a ${recipients} utenti` +
                     (channels.inApp ? ` · in-app ${inApp}` : '') +
-                    (channels.push ? ` · push ${pushSent}/${pushTotal}` : '')
+                    (channels.push ? ` · push ${pushSent}/${pushTotal}` : '') +
+                    (channels.email ? ` · email ${emailSent}` : '')
                 )
                 setTitle('')
                 setMessage('')
+                setEmailBody('')
             } else {
                 toast.error(result.message)
                 if (result.retryAfter) toast.error(`Riprova tra ${result.retryAfter}s`)
@@ -127,10 +130,14 @@ export default function AdminBroadcasts() {
                             {/* Target type radios */}
                             <div className="space-y-2">
                                 <label className="text-[10px] font-black uppercase text-neutral-300 tracking-widest ml-1">Destinatari</label>
-                                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                                     <TargetButton
                                         active={targetType === 'all'} icon={<Users className="w-5 h-5" />}
                                         label="Tutti" onClick={() => setTargetType('all')}
+                                    />
+                                    <TargetButton
+                                        active={targetType === 'lead'} icon={<Megaphone className="w-5 h-5" />}
+                                        label="Community" onClick={() => setTargetType('lead')}
                                     />
                                     <TargetButton
                                         active={targetType === 'level'} icon={<Layers className="w-5 h-5" />}
@@ -144,7 +151,7 @@ export default function AdminBroadcasts() {
                             </div>
 
                             {/* Target dropdown when package/level */}
-                            {targetType !== 'all' && (
+                            {(targetType === 'level' || targetType === 'package') && (
                                 <div className="space-y-2">
                                     <label className="text-[10px] font-black uppercase text-neutral-300 tracking-widest ml-1">
                                         {targetType === 'level' ? 'Seleziona livello' : 'Seleziona pacchetto'}
@@ -176,7 +183,7 @@ export default function AdminBroadcasts() {
                                 <div className="flex flex-wrap gap-3">
                                     <ChannelToggle checked={channels.inApp} onChange={(v) => setChannels({ ...channels, inApp: v })} label="In-app" />
                                     <ChannelToggle checked={channels.push} onChange={(v) => setChannels({ ...channels, push: v })} label="Push" />
-                                    <ChannelToggle checked={channels.email} onChange={() => {}} label="Email (presto)" disabled />
+                                    <ChannelToggle checked={channels.email} onChange={(v) => setChannels({ ...channels, email: v })} label="Email" />
                                 </div>
                             </div>
 
@@ -186,12 +193,12 @@ export default function AdminBroadcasts() {
                                 <input
                                     type="text"
                                     value={title}
-                                    maxLength={50}
+                                    maxLength={80}
                                     onChange={(e) => setTitle(e.target.value)}
                                     placeholder="es: Nuova Masterclass disponibile!"
                                     className="h-14 w-full rounded-2xl border border-white/10 bg-white/5 px-6 text-sm text-white focus:outline-none focus:border-brand/40 transition-colors font-medium"
                                 />
-                                <div className="text-[10px] text-neutral-500 ml-1">{title.length}/50</div>
+                                <div className="text-[10px] text-neutral-500 ml-1">{title.length}/80</div>
                             </div>
 
                             {/* Body */}
@@ -208,6 +215,22 @@ export default function AdminBroadcasts() {
                                 <div className="text-[10px] text-neutral-500 ml-1">{message.length}/150</div>
                             </div>
 
+                            {/* Email body (shown only when email channel enabled) */}
+                            {channels.email && (
+                                <div className="space-y-2">
+                                    <label className="text-[10px] font-black uppercase text-neutral-300 tracking-widest ml-1">Corpo Email (opzionale)</label>
+                                    <textarea
+                                        value={emailBody}
+                                        maxLength={2000}
+                                        onChange={(e) => setEmailBody(e.target.value)}
+                                        placeholder="Testo esteso per l'email — se vuoto, usa il messaggio breve."
+                                        rows={6}
+                                        className="flex w-full rounded-2xl border border-white/10 bg-white/5 px-6 py-4 text-sm text-white focus:outline-none focus:border-brand/40 transition-colors font-medium resize-none"
+                                    />
+                                    <div className="text-[10px] text-neutral-500 ml-1">{emailBody.length}/2000</div>
+                                </div>
+                            )}
+
                             {/* URL */}
                             <div className="space-y-2">
                                 <label className="text-[10px] font-black uppercase text-neutral-300 tracking-widest ml-1">URL al click</label>
@@ -222,7 +245,7 @@ export default function AdminBroadcasts() {
 
                             <Button
                                 onClick={handleSend}
-                                disabled={loading || !title.trim() || !message.trim() || (targetType !== 'all' && !targetId)}
+                                disabled={loading || !title.trim() || !message.trim() || ((targetType === 'level' || targetType === 'package') && !targetId)}
                                 className="w-full h-16 bg-white hover:bg-white/90 text-black font-black uppercase tracking-widest rounded-2xl transition-all shadow-lg shadow-white/5 gap-3 text-base"
                             >
                                 {loading ? (
@@ -254,6 +277,10 @@ export default function AdminBroadcasts() {
                                     <li className="flex gap-2">
                                         <span className="text-brand font-black">•</span>
                                         In-app: campanellino. Push: notifica nativa (solo chi ha dato il permesso).
+                                    </li>
+                                    <li className="flex gap-2">
+                                        <span className="text-brand font-black">•</span>
+                                        Email: inviata via Resend ai destinatari iscritti (email_unsubscribed_at IS NULL).
                                     </li>
                                     <li className="flex gap-2">
                                         <span className="text-brand font-black">•</span>
@@ -303,7 +330,7 @@ export default function AdminBroadcasts() {
                             {channels.push && counts && ` (${counts.withPush} con push attive)`}.
                             <br />
                             Canali: <span className="text-white font-bold">
-                                {[channels.inApp && 'in-app', channels.push && 'push'].filter(Boolean).join(' + ') || 'nessuno'}
+                                {[channels.inApp && 'in-app', channels.push && 'push', channels.email && 'email'].filter(Boolean).join(' + ') || 'nessuno'}
                             </span>.
                         </DialogDescription>
                     </DialogHeader>
