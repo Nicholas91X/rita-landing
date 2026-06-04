@@ -16,6 +16,7 @@ import { Dumbbell, Lock } from "lucide-react";
 import SideMarquees from "@/components/SideMarquees";
 import Link from "next/link";
 import { getPublicContentHierarchy } from "../actions/content";
+import { isPrelaunch } from "@/lib/prelaunch";
 
 const leftImgs = [
   "https://hel1.your-objectstorage.com/nicholas-bucket/rita-zanicchi/side/left-1.png",
@@ -155,6 +156,11 @@ export default async function PackagesPage() {
                 </div>
                 <CardHeader className="border-b border-[var(--border)] pb-6 pt-6">
                   <div>
+                    {isPrelaunch() && (
+                      <span className="inline-block mb-2 rounded-full bg-[var(--accent)]/15 text-[var(--navy)] text-xs font-bold px-3 py-1">
+                        In arrivo
+                      </span>
+                    )}
                     <div className="flex items-center gap-2 mb-2">
                       <div className="text-xs uppercase tracking-wide text-[var(--brand)] font-bold">
                         {pkg.levelName} - {pkg.courseName}
