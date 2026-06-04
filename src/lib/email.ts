@@ -324,6 +324,38 @@ export async function sendLeadReminderT20Email(to: string, name: string, unsubsc
     })
 }
 
+function escapeHtml(s: string): string {
+    return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+}
+
+/**
+ * Community newsletter to ≤100 recipients in one Resend Batch call. Each message
+ * carries its own unsubscribe link + List-Unsubscribe headers. bodyText is plain
+ * text (admin-authored): escaped and newline-to-<br>.
+ */
+export async function sendCommunityBatch(
+    recipients: Array<{ email: string; name: string; unsubscribeUrl: string }>,
+    subject: string,
+    bodyText: string,
+    ctaUrl?: string,
+    ctaLabel?: string,
+) {
+    const bodyHtml = `<p style="color:#555;font-size:15px;line-height:1.7;">${escapeHtml(bodyText).replace(/\n/g, '<br>')}</p>`
+    const messages = recipients.map((r) => ({
+        from: FROM_EMAIL,
+        to: r.email,
+        subject,
+        html: emailLayout(`
+            <h2 style="margin:0 0 16px;color:#2a2e30;font-size:22px;">Ciao ${escapeHtml(r.name) || 'cara'}!</h2>
+            ${bodyHtml}
+            ${ctaUrl ? button(ctaLabel || 'SCOPRI', ctaUrl) : ''}
+            ${marketingFooter(r.unsubscribeUrl)}
+        `),
+        headers: unsubscribeHeaders(r.unsubscribeUrl),
+    }))
+    return resend.batch.send(messages)
+}
+
 export async function sendRefundRequestEmail(to: string, name: string, packageName: string) {
     const html = emailLayout(`
         <h2 style="margin:0 0 16px;color:#2a2e30;font-size:24px;">Richiesta di Rimborso Ricevuta</h2>

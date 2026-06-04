@@ -1,11 +1,13 @@
 import { describe, it, expect, vi, beforeEach } from "vitest"
 
-const { sendMock } = vi.hoisted(() => ({
+const { sendMock, sendBatchMock } = vi.hoisted(() => ({
   sendMock: vi.fn().mockResolvedValue({ data: { id: "msg-1" }, error: null }),
+  sendBatchMock: vi.fn().mockResolvedValue({ data: {}, error: null }),
 }))
 vi.mock("resend", () => ({
   Resend: class {
     emails = { send: sendMock }
+    batch = { send: sendBatchMock }
   },
 }))
 
@@ -13,6 +15,7 @@ import {
   sendLeadMagicLinkEmail,
   sendLeadReminderT10Email,
   sendLeadReminderT20Email,
+  sendCommunityBatch,
 } from "./email"
 
 describe("sendLeadMagicLinkEmail", () => {
@@ -78,5 +81,33 @@ describe("sendLeadReminderT20Email", () => {
     expect(args.html).toContain("scaduto")
     expect(args.html).toContain("Disiscriviti")
     expect(args.headers?.["List-Unsubscribe"]).toContain("token=tok")
+  })
+})
+
+describe("sendCommunityBatch", () => {
+  beforeEach(() => {
+    sendBatchMock.mockClear()
+  })
+
+  it("costruisce un messaggio per destinatario con disiscrizione", async () => {
+    await sendCommunityBatch(
+      [{ email: "a@e.com", name: "Mara", unsubscribeUrl: "https://x/api/unsubscribe?token=t1" }],
+      "Nuovo video",
+      "È uscito un nuovo allenamento.",
+      "https://x/dashboard",
+      "GUARDA ORA",
+    )
+    expect(sendBatchMock).toHaveBeenCalledOnce()
+    const messages = sendBatchMock.mock.calls[0][0] as Array<{
+      to: string
+      subject: string
+      html: string
+      headers: Record<string, string>
+    }>
+    expect(messages).toHaveLength(1)
+    expect(messages[0].to).toBe("a@e.com")
+    expect(messages[0].subject).toBe("Nuovo video")
+    expect(messages[0].html).toContain("Disiscriviti")
+    expect(messages[0].headers["List-Unsubscribe"]).toContain("token=t1")
   })
 })
