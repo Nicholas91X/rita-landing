@@ -4,6 +4,8 @@ import { createClient, createServiceRoleClient } from "@/utils/supabase/server"
 import { enforceRateLimit, RateLimitError, broadcastLimiter } from "@/lib/security/ratelimit"
 import { validate, ValidationError } from "@/lib/security/validation"
 import { sendToAll } from "@/lib/push/dispatch"
+import { sendCommunityBatch } from "@/lib/email"
+import { buildUnsubscribeUrl } from "@/lib/marketing-consent"
 import { broadcastSchema, type BroadcastInput } from "./broadcasts.schemas"
 import type { ActionResult } from "@/lib/security/types"
 
@@ -19,6 +21,14 @@ async function resolveRecipientIds(
 ): Promise<string[]> {
   if (input.targetType === "all") {
     const { data } = await admin.from("profiles").select("id")
+    return (data ?? []).map((r) => r.id as string)
+  }
+  if (input.targetType === "lead") {
+    const { data } = await admin
+      .from("profiles")
+      .select("id")
+      .eq("account_type", "lead")
+      .is("email_unsubscribed_at", null)
     return (data ?? []).map((r) => r.id as string)
   }
   if (input.targetType === "package") {
@@ -73,6 +83,7 @@ export async function sendBroadcast(input: BroadcastInput): Promise<ActionResult
   pushSent: number
   pushSkipped: number
   pushFailed: number
+  emailSent: number
 }>> {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
@@ -131,5 +142,36 @@ export async function sendBroadcast(input: BroadcastInput): Promise<ActionResult
     pushSent = r.sent; pushSkipped = r.skipped; pushFailed = r.failed
   }
 
-  return { ok: true, data: { recipients: ids.length, inApp, pushSent, pushSkipped, pushFailed } }
+  let emailSent = 0
+  if (parsed.channels.email) {
+    const { data: recips } = await admin
+      .from("profiles")
+      .select("id, email, full_name, email_unsubscribed_at")
+      .in("id", ids)
+      .is("email_unsubscribed_at", null)
+      .not("email", "is", null)
+    const list = (recips ?? []) as Array<{ id: string; email: string; full_name: string | null }>
+    if (list.length > 0) {
+      const recipients = await Promise.all(
+        list.map(async (r) => ({
+          email: r.email,
+          name: r.full_name ?? "",
+          unsubscribeUrl: await buildUnsubscribeUrl(r.id),
+        })),
+      )
+      // Resend batch caps at 100 per call; chunk for safety.
+      for (let i = 0; i < recipients.length; i += 100) {
+        await sendCommunityBatch(
+          recipients.slice(i, i + 100),
+          parsed.title,
+          parsed.emailBody ?? parsed.body,
+          parsed.url.startsWith("/") ? `${process.env.NEXT_PUBLIC_SITE_URL || "https://www.fitandsmile.it"}${parsed.url}` : parsed.url,
+          "SCOPRI",
+        )
+      }
+      emailSent = recipients.length
+    }
+  }
+
+  return { ok: true, data: { recipients: ids.length, inApp, pushSent, pushSkipped, pushFailed, emailSent } }
 }
