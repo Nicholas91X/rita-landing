@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { createServiceRoleClient } from '@/utils/supabase/server'
-import { verifyUnsubscribeToken, setMarketingConsent } from '@/lib/marketing-consent'
+import { verifyUnsubscribeToken, setEmailSubscription } from '@/lib/marketing-consent'
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.fitandsmile.it'
 
@@ -32,7 +32,7 @@ async function unsubscribe(token: string | null): Promise<NextResponse> {
     try {
         const { userId } = await verifyUnsubscribeToken(token)
         const admin = await createServiceRoleClient()
-        await setMarketingConsent(admin, userId, false)
+        await setEmailSubscription(admin, userId, false)
         return new NextResponse(
             page(
                 'Disiscrizione completata',
