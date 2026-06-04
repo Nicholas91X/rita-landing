@@ -1,11 +1,13 @@
 'use client'
 
 import { useState } from 'react'
+import Link from 'next/link'
 import { createCheckoutSession } from '@/app/actions/stripe'
 import { Button } from '@/components/ui/button'
 import { Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { logger } from '@/lib/logger'
+import { isPrelaunch } from '@/lib/prelaunch'
 
 import { CheckoutConfirmationModal } from './CheckoutConfirmationModal'
 
@@ -30,6 +32,18 @@ export default function BuyButton({
 }: BuyButtonProps) {
     const [isLoading, setIsLoading] = useState(false)
     const [isModalOpen, setIsModalOpen] = useState(false)
+
+    // Pre-launch: no purchases. Funnel the user into the free Community.
+    if (isPrelaunch()) {
+        return (
+            <Link
+                href="/lezioni-gratis"
+                className={className || "w-full inline-flex items-center justify-center bg-[var(--foreground)] text-[var(--background)] hover:opacity-90 transition-opacity rounded-full font-semibold px-4 py-2 min-h-[44px] text-sm md:text-base"}
+            >
+                Entra nella Community gratis
+            </Link>
+        )
+    }
 
     const handleConfirm = async () => {
         try {
