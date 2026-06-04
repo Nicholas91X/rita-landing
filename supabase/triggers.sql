@@ -23,6 +23,7 @@ create table if not exists public.profiles (
   upgraded_from_lead_at timestamptz,
   lead_source text,
   marketing_consent_at timestamptz,
+  email_unsubscribed_at timestamptz,
   lead_reminder_t10_sent_at timestamptz,
   lead_reminder_t20_sent_at timestamptz,
   completion_modal_shown_at timestamptz,
