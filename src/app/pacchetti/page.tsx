@@ -101,29 +101,52 @@ export default async function PackagesPage() {
               <div className="flex items-center gap-3 mb-4">
                 <Dumbbell className="h-6 w-6 text-[var(--brand)]" />
                 <p className="text-sm font-semibold text-[var(--accent-foreground)] uppercase tracking-wide">
-                  Come iniziare
+                  {isPrelaunch() ? "Inizia gratis" : "Come iniziare"}
                 </p>
               </div>
-              <ul className="space-y-4 text-sm">
-                <li className="flex gap-3">
-                  <span className="font-semibold text-[var(--brand)]">1.</span>
-                  <span>
-                    Parti dal Mese 1: completalo per sbloccare la tappa successiva.
-                  </span>
-                </li>
-                <li className="flex gap-3">
-                  <span className="font-semibold text-[var(--brand)]">2.</span>
-                  <span>
-                    Acquista in sicurezza tramite Stripe.
-                  </span>
-                </li>
-                <li className="flex gap-3">
-                  <span className="font-semibold text-[var(--brand)]">3.</span>
-                  <span>
-                    Accedi subito alla tua Area Riservata e inizia ad allenarti.
-                  </span>
-                </li>
-              </ul>
+              {isPrelaunch() ? (
+                <ul className="space-y-4 text-sm">
+                  <li className="flex gap-3">
+                    <span className="font-semibold text-[var(--brand)]">1.</span>
+                    <span>
+                      Lascia nome ed email: ricevi subito i 3 video gratuiti del Rituale della Leggerezza.
+                    </span>
+                  </li>
+                  <li className="flex gap-3">
+                    <span className="font-semibold text-[var(--brand)]">2.</span>
+                    <span>
+                      Ogni due settimane nuovi contenuti gratuiti nella Community Fit&amp;Smile.
+                    </span>
+                  </li>
+                  <li className="flex gap-3">
+                    <span className="font-semibold text-[var(--brand)]">3.</span>
+                    <span>
+                      Ti avviseremo per prima quando partiranno i percorsi completi.
+                    </span>
+                  </li>
+                </ul>
+              ) : (
+                <ul className="space-y-4 text-sm">
+                  <li className="flex gap-3">
+                    <span className="font-semibold text-[var(--brand)]">1.</span>
+                    <span>
+                      Parti dal Mese 1: completalo per sbloccare la tappa successiva.
+                    </span>
+                  </li>
+                  <li className="flex gap-3">
+                    <span className="font-semibold text-[var(--brand)]">2.</span>
+                    <span>
+                      Acquista in sicurezza tramite Stripe.
+                    </span>
+                  </li>
+                  <li className="flex gap-3">
+                    <span className="font-semibold text-[var(--brand)]">3.</span>
+                    <span>
+                      Accedi subito alla tua Area Riservata e inizia ad allenarti.
+                    </span>
+                  </li>
+                </ul>
+              )}
             </div>
           </div>
         </Section>
