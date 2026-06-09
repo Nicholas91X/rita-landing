@@ -1,4 +1,5 @@
 import { Resend } from 'resend'
+import { isPrelaunch } from './prelaunch'
 
 const resend = new Resend(process.env.RESEND_API_KEY || 'placeholder')
 
@@ -241,6 +242,12 @@ export async function sendBadgeEarnedEmail(to: string, name: string, packageName
 }
 
 export async function sendLeadMagicLinkEmail(to: string, name: string, magicUrl: string) {
+    // Pre-launch: no 14-day window and no "unlock the rest of the path" (purchases
+    // are off) — the lead is joining the free Community with open access.
+    const accessLine = isPrelaunch()
+        ? `Sei ufficialmente nella <strong>Community Fit&amp;Smile</strong> 💛. I 3 video sono tuoi e, ogni due settimane, riceverai nuovi contenuti gratuiti. Ti avviseremo per prima quando partiranno i percorsi completi.`
+        : `Hai <strong>14 giorni</strong> per accedere a Lezioni Gratis. Dopo, basta completare la registrazione (imposterai una password) per conservare l'accesso e sbloccare il resto del percorso Fit&amp;Smile.`
+
     const html = emailLayout(`
         <h2 style="margin:0 0 16px;color:#2a2e30;font-size:24px;">Benvenuta su Rita Workout, ${name || 'cara'}!</h2>
         <p style="color:#555;font-size:15px;line-height:1.7;">
@@ -249,7 +256,7 @@ export async function sendLeadMagicLinkEmail(to: string, name: string, magicUrl:
         </p>
         ${button('SBLOCCA ORA', magicUrl)}
         <p style="color:#555;font-size:15px;line-height:1.7;">
-            Hai <strong>14 giorni</strong> per accedere a Lezioni Gratis. Dopo, basta completare la registrazione (imposterai una password) per conservare l'accesso e sbloccare il resto del percorso Fit&amp;Smile.
+            ${accessLine}
         </p>
         <p style="color:#999;font-size:13px;margin-top:24px;">
             Se non hai richiesto tu il magic link, ignora questa email.
