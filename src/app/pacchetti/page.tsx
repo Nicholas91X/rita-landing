@@ -198,7 +198,15 @@ export default async function PackagesPage() {
                 </CardContent>
                 <CardFooter className="mt-auto pb-6">
                   <div className="w-full">
-                    {pkg.isLocked ? (
+                    {isPrelaunch() ? (
+                      // Pre-launch: no purchases — funnel into the free Community.
+                      <Link
+                        href="/lezioni-gratis"
+                        className="inline-flex w-full items-center justify-center rounded-full bg-[var(--foreground)] px-4 py-3 text-sm font-semibold text-[var(--background)] transition-transform hover:scale-[1.02] hover:opacity-90 active:scale-[0.98]"
+                      >
+                        Entra nella Community gratis
+                      </Link>
+                    ) : pkg.isLocked ? (
                       <div
                         className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-gray-200 px-4 py-3 text-sm font-semibold text-gray-500"
                         title={`Completa ${pkg.lockedBy} per sbloccare`}
