@@ -27,18 +27,22 @@ import { logger } from '@/lib/logger'
 
 type StatusFilter = LeadStatus | ''
 
-function deriveStatus(lead: LeadRow): 'convertito' | 'attivo' | 'scaduto' {
+type LeadDisplayStatus = 'convertito' | 'attivo' | 'scaduto' | 'community'
+
+function deriveStatus(lead: LeadRow): LeadDisplayStatus {
     if (lead.upgraded_from_lead_at) return 'convertito'
-    if (lead.lead_expires_at && new Date(lead.lead_expires_at) > new Date()) {
-        return 'attivo'
-    }
+    // NULL lead_expires_at = no expiry (open Community access, e.g. pre-launch).
+    if (lead.lead_expires_at == null) return 'community'
+    if (new Date(lead.lead_expires_at) > new Date()) return 'attivo'
     return 'scaduto'
 }
 
-function statusBadgeClass(status: 'convertito' | 'attivo' | 'scaduto'): string {
+function statusBadgeClass(status: LeadDisplayStatus): string {
     switch (status) {
         case 'convertito':
             return 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
+        case 'community':
+            return 'bg-sky-500/10 text-sky-400 border-sky-500/20'
         case 'attivo':
             return 'bg-[var(--brand)]/10 text-[var(--brand)] border-[var(--brand)]/20'
         case 'scaduto':
@@ -272,7 +276,7 @@ export default function AdminLeads() {
                                                           'd MMM yyyy',
                                                           { locale: it },
                                                       )
-                                                    : '—'}
+                                                    : 'Nessuna'}
                                             </td>
                                             <td className="px-6 py-4 text-center">
                                                 {lead.marketing_consent_at ? (
@@ -286,27 +290,36 @@ export default function AdminLeads() {
                                                 )}
                                             </td>
                                             <td className="px-6 py-4 text-right">
-                                                <Button
-                                                    variant="ghost"
-                                                    size="sm"
-                                                    onClick={() => handleExtend(lead)}
-                                                    disabled={
-                                                        isConverted || extendingId === lead.id
-                                                    }
-                                                    className="h-8 px-3 text-[10px] text-neutral-300 hover:text-white hover:bg-neutral-800 border border-white/5 font-black uppercase tracking-widest disabled:opacity-30"
-                                                    title={
-                                                        isConverted
-                                                            ? 'Lead già convertito'
-                                                            : 'Estendi finestra di 7 giorni'
-                                                    }
-                                                >
-                                                    {extendingId === lead.id ? (
-                                                        <Loader2 className="h-3 w-3 mr-2 animate-spin" />
-                                                    ) : (
-                                                        <CalendarPlus className="h-3 w-3 mr-2" />
-                                                    )}
-                                                    +7gg
-                                                </Button>
+                                                {/* "+7gg" extends the 14-day window — only meaningful when a
+                                                    window exists. Community leads (no expiry) have nothing to
+                                                    extend, so we show a dash instead. */}
+                                                {!lead.lead_expires_at ? (
+                                                    <span className="text-[10px] text-neutral-600 font-bold uppercase tracking-widest" title="Accesso Community senza scadenza">
+                                                        —
+                                                    </span>
+                                                ) : (
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="sm"
+                                                        onClick={() => handleExtend(lead)}
+                                                        disabled={
+                                                            isConverted || extendingId === lead.id
+                                                        }
+                                                        className="h-8 px-3 text-[10px] text-neutral-300 hover:text-white hover:bg-neutral-800 border border-white/5 font-black uppercase tracking-widest disabled:opacity-30"
+                                                        title={
+                                                            isConverted
+                                                                ? 'Lead già convertito'
+                                                                : 'Estendi finestra di 7 giorni'
+                                                        }
+                                                    >
+                                                        {extendingId === lead.id ? (
+                                                            <Loader2 className="h-3 w-3 mr-2 animate-spin" />
+                                                        ) : (
+                                                            <CalendarPlus className="h-3 w-3 mr-2" />
+                                                        )}
+                                                        +7gg
+                                                    </Button>
+                                                )}
                                             </td>
                                         </tr>
                                     )

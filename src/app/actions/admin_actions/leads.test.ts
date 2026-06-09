@@ -220,7 +220,12 @@ describe('admin lead actions', () => {
       await getLeadsList({ status: 'active' })
       const ops = captured!._state.filters.map(f => f.op + ':' + f.args[0])
       expect(ops).toContain('eq:account_type')
-      expect(ops).toContain('gte:lead_expires_at')
+      // "active" now includes no-expiry (Community) leads via an OR:
+      // lead_expires_at IS NULL OR lead_expires_at >= now
+      const orFilter = captured!._state.filters.find(f => f.op === 'or')
+      expect(orFilter).toBeDefined()
+      expect(orFilter!.args[0]).toContain('lead_expires_at.is.null')
+      expect(orFilter!.args[0]).toContain('lead_expires_at.gte.')
     })
 
     it('filters by status=converted', async () => {

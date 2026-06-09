@@ -2,6 +2,7 @@
 
 import { createServiceRoleClient } from '@/utils/supabase/server'
 import { isAdmin } from '@/utils/supabase/admin'
+import { isPrelaunch } from '@/lib/prelaunch'
 
 export type LeadStatus = 'active' | 'expired' | 'converted'
 
@@ -47,12 +48,16 @@ export async function getLeadKPIs(): Promise<LeadKPIs> {
   const admin = await createServiceRoleClient()
   const now = new Date().toISOString()
 
+  // "Active" = a lead whose access hasn't expired. A NULL lead_expires_at means
+  // no expiry (open Community access, e.g. pre-launch) → counts as active.
   const { count: activeLeads } = await admin
     .from('profiles')
     .select('id', { count: 'exact', head: true })
     .eq('account_type', 'lead')
-    .gte('lead_expires_at', now)
+    .or(`lead_expires_at.is.null,lead_expires_at.gte.${now}`)
 
+  // "Expired" = past its window. NULL expiry is NOT expired (it never expires),
+  // and `lt` already excludes NULLs in Postgres, so this stays correct.
   const { count: expiredLeads } = await admin
     .from('profiles')
     .select('id', { count: 'exact', head: true })
@@ -103,7 +108,8 @@ export async function getLeadsList(
     .select(LEAD_LIST_COLUMNS, { count: 'exact' })
 
   if (filters.status === 'active') {
-    query = query.eq('account_type', 'lead').gte('lead_expires_at', now)
+    // NULL lead_expires_at = no expiry (open Community access) → still active.
+    query = query.eq('account_type', 'lead').or(`lead_expires_at.is.null,lead_expires_at.gte.${now}`)
   } else if (filters.status === 'expired') {
     query = query.eq('account_type', 'lead').lt('lead_expires_at', now)
   } else if (filters.status === 'converted') {
@@ -141,6 +147,12 @@ export async function extendLeadWindow(
   days: number,
 ): Promise<ExtendLeadWindowResult> {
   await requireAdmin()
+  // In pre-launch leads have no expiry (open Community access); extending a
+  // window that doesn't exist would re-introduce a countdown. The UI already
+  // hides the action for no-expiry leads — this is the server-side backstop.
+  if (isPrelaunch()) {
+    throw new Error('In pre-lancio i lead non hanno una scadenza da estendere.')
+  }
   if (!Number.isFinite(days) || days < 1 || days > 30) {
     throw new Error('Days must be between 1 and 30')
   }
@@ -175,7 +187,9 @@ function csvEscape(value: unknown): string {
 
 function statusOf(lead: LeadRow): 'converted' | 'active' | 'expired' {
   if (lead.upgraded_from_lead_at) return 'converted'
-  if (lead.lead_expires_at && new Date(lead.lead_expires_at) > new Date()) return 'active'
+  // NULL lead_expires_at = no expiry (open Community access) → active, not expired.
+  if (lead.lead_expires_at == null) return 'active'
+  if (new Date(lead.lead_expires_at) > new Date()) return 'active'
   return 'expired'
 }
 
