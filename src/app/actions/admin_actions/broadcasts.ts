@@ -151,7 +151,10 @@ export async function sendBroadcast(input: BroadcastInput): Promise<ActionResult
       .is("email_unsubscribed_at", null)
       .not("email", "is", null)
     const list = (recips ?? []) as Array<{ id: string; email: string; full_name: string | null }>
-    if (list.length > 0) {
+    console.log(`[broadcast:email] target=${parsed.targetType} ids=${ids.length} recipients=${list.length}`, list.map((r) => r.email))
+    if (list.length === 0) {
+      console.warn("[broadcast:email] nessun destinatario email (tutti disiscritti o senza email)")
+    } else {
       const recipients = await Promise.all(
         list.map(async (r) => ({
           email: r.email,
@@ -161,13 +164,21 @@ export async function sendBroadcast(input: BroadcastInput): Promise<ActionResult
       )
       // Resend batch caps at 100 per call; chunk for safety.
       for (let i = 0; i < recipients.length; i += 100) {
-        await sendCommunityBatch(
+        const res = await sendCommunityBatch(
           recipients.slice(i, i + 100),
           parsed.title,
           parsed.emailBody ?? parsed.body,
           parsed.url.startsWith("/") ? `${process.env.NEXT_PUBLIC_SITE_URL || "https://www.fitandsmile.it"}${parsed.url}` : parsed.url,
           "SCOPRI",
         )
+        console.log("[broadcast:email] resend response:", JSON.stringify(res))
+        if (res && typeof res === "object" && "error" in res && res.error) {
+          console.error("[broadcast:email] resend error:", res.error)
+          return {
+            ok: false,
+            message: `Errore invio email: ${(res.error as { message?: string }).message ?? "sconosciuto"} (vedi log server)`,
+          }
+        }
       }
       emailSent = recipients.length
     }
