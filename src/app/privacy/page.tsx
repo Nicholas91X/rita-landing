@@ -61,7 +61,8 @@ export default function PrivacyPage() {
                             <li><strong>Stripe Inc.</strong> — elaborazione dei pagamenti (conforme al GDPR, certificato PCI DSS)</li>
                             <li><strong>Bunny.net</strong> — distribuzione dei contenuti video (CDN con server europei)</li>
                             <li><strong>Vercel Inc.</strong> — hosting dell&apos;applicazione web</li>
-                            <li><strong>Resend Inc.</strong> — invio di email transazionali</li>
+                            <li><strong>Resend Inc.</strong> — invio di email transazionali e delle comunicazioni della Community</li>
+                            <li><strong>Upstash Inc.</strong> — limitazione del traffico (rate limiting) per la sicurezza dei moduli, tramite trattamento temporaneo dell&apos;indirizzo IP</li>
                         </ul>
                         <p className="mt-3">I dati non vengono venduti o condivisi con terzi per finalità di marketing.</p>
                     </div>

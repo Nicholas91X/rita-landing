@@ -68,8 +68,8 @@ export default function LeadCaptureForm() {
             <div className="text-center py-10 space-y-4">
               <h3 className="text-2xl font-bold text-[var(--secondary)]">Controlla la tua email</h3>
               <p className="text-neutral-700">
-                Ti abbiamo inviato il magic link per accedere ai 3 video.<br />
-                Hai 14 giorni di tempo per fruirne.
+                Ti abbiamo inviato il magic link per accedere subito ai 3 video del Rituale della Leggerezza.<br />
+                Controlla anche la cartella spam.
               </p>
             </div>
           ) : (
@@ -137,8 +137,8 @@ export default function LeadCaptureForm() {
                   className="mt-1"
                 />
                 <span className="text-xs text-neutral-600">
-                  Voglio ricevere consigli, novit&agrave; e offerte da Fit&amp;Smile via email (puoi
-                  disiscriverti in qualsiasi momento)
+                  Voglio ricevere <strong>anche</strong> offerte e promozioni dedicate via email, oltre ai
+                  contenuti della Community (facoltativo, puoi disiscriverti in qualsiasi momento)
                 </span>
               </label>
 
