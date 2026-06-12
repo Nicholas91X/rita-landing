@@ -17,7 +17,7 @@ export default function PrivacyPage() {
                         <h2 className="text-xl font-bold text-[var(--foreground)] mt-10 mb-3">1. Titolare del Trattamento</h2>
                         <p>
                             Il Titolare del trattamento dei dati personali è <strong>Rita Zanicchi</strong>, con sede operativa
-                            in <strong>[INDIRIZZO DA COMPLETARE]</strong>, P.IVA <strong>[P.IVA DA COMPLETARE]</strong>,
+                            in <strong>Via della Resistenza 80, 19020 Follo (SP)</strong>, P.IVA <strong>in corso di registrazione</strong>,
                             email: <strong>info@fitandsmile.it</strong> (di seguito &quot;Titolare&quot;).
                         </p>
                     </div>
@@ -121,33 +121,42 @@ export default function PrivacyPage() {
                     </div>
 
                     <div id="newsletter">
-                        <h2 className="text-xl font-bold text-[var(--foreground)] mt-10 mb-3">9. Newsletter e contenuti gratuiti (Lead Magnet)</h2>
+                        <h2 className="text-xl font-bold text-[var(--foreground)] mt-10 mb-3">9. Community Fit&amp;Smile e contenuti gratuiti</h2>
                         <p>
                             Quando lasci il tuo nome ed email tramite la pagina &ldquo;Inizia gratis&rdquo;
-                            (<code>/lezioni-gratis</code>), i tuoi dati vengono memorizzati sui server Supabase
-                            del Titolare per crearti un account &ldquo;lead&rdquo; e darti accesso ai 3 video gratuiti
-                            del &ldquo;Rituale della Leggerezza&rdquo;. L&apos;accesso ai video &egrave; valido per
-                            <strong> 14 giorni</strong>, al termine dei quali ti invitiamo a completare la
-                            registrazione impostando una password.
+                            (<code>/lezioni-gratis</code>) entri nella <strong>Community Fit&amp;Smile</strong>: i tuoi
+                            dati vengono memorizzati sui server Supabase del Titolare per crearti un account e darti
+                            accesso immediato ai 3 video gratuiti del &ldquo;Rituale della Leggerezza&rdquo;. Come
+                            parte della Community ricevi inoltre, periodicamente (di norma ogni due settimane), nuovi
+                            contenuti gratuiti via email, e ti avviseremo quando saranno disponibili i percorsi
+                            completi. Nella fase attuale l&apos;accesso ai contenuti gratuiti &egrave; aperto e senza
+                            scadenza prefissata.
                         </p>
-                        <p className="mt-3">
-                            Al momento della richiesta ti vengono presentati due consensi distinti:
-                        </p>
+                        <p className="mt-3">Finalit&agrave; e basi giuridiche:</p>
                         <ul className="list-disc pl-6 space-y-2 mt-3">
                             <li>
-                                <strong>Consenso operativo</strong> (obbligatorio) &mdash; necessario per creare
-                                l&apos;account e ricevere il magic link di accesso. Base giuridica:
-                                esecuzione di misure precontrattuali su tua richiesta (Art. 6.1.b GDPR).
+                                <strong>Adesione alla Community e consegna dei contenuti</strong> &mdash; le email con
+                                cui ti recapitiamo i nuovi contenuti gratuiti e gli aggiornamenti della Community (incluso
+                                l&apos;avviso di lancio dei percorsi) costituiscono il <strong>servizio che hai
+                                richiesto</strong> iscrivendoti, non comunicazioni promozionali a s&eacute; stanti. Base
+                                giuridica: esecuzione di misure precontrattuali / del servizio su tua richiesta
+                                (Art. 6.1.b GDPR).
                             </li>
                             <li>
-                                <strong>Consenso marketing</strong> (facoltativo) &mdash; ci autorizza a inviarti
-                                occasionalmente consigli, novit&agrave; e offerte di Fit&amp;Smile via email
-                                (es. i promemoria di scadenza del lead magnet, comunicazioni promozionali).
-                                Base giuridica: consenso (Art. 6.1.a GDPR). Puoi revocarlo in qualsiasi momento
-                                scrivendo a <strong>info@fitandsmile.it</strong> o cliccando sul link di
-                                disiscrizione presente in ogni email.
+                                <strong>Marketing ulteriore</strong> (facoltativo) &mdash; un consenso separato e
+                                opzionale, che puoi prestare al momento dell&apos;iscrizione, per ricevere comunicazioni
+                                promozionali <em>non</em> legate alla Community (es. offerte su prodotti diversi). Base
+                                giuridica: consenso (Art. 6.1.a GDPR).
                             </li>
                         </ul>
+                        <p className="mt-3">
+                            <strong>Come fermare le email.</strong> Puoi interrompere in qualsiasi momento la ricezione
+                            delle email della Community e di marketing tramite il link &ldquo;Disiscriviti&rdquo;
+                            presente in ogni email, oppure dall&apos;interruttore &ldquo;Email da Fit&amp;Smile&rdquo;
+                            nella sezione Profilo del tuo account. Dopo la disiscrizione continuerai a ricevere solo le
+                            comunicazioni di servizio strettamente necessarie (es. il link di accesso al tuo account).
+                            Puoi inoltre scrivere a <strong>info@fitandsmile.it</strong>.
+                        </p>
                         <p className="mt-3">
                             I dati dei lead che non completano la registrazione (non impostano una password)
                             vengono conservati per <strong>24 mesi</strong>, dopo i quali vengono automaticamente
