@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { createClient } from "@/utils/supabase/client";
 import { Calendar, Users, Clock, Dumbbell, Sparkles, CheckCircle2 } from "lucide-react";
 import Image from "next/image";
+import { isPrelaunch } from "@/lib/prelaunch";
 
 export default function Storia({
   isLoggedIn: initialIsLoggedIn = false,
@@ -145,15 +146,7 @@ export default function Storia({
                 </div>
               </div>
 
-              <div className="flex items-center justify-between pt-4 mt-auto">
-                <div className="flex -space-x-2.5">
-                  <div className="w-8 h-8 rounded-full border-2 border-white bg-neutral-200" />
-                  <div className="w-8 h-8 rounded-full border-2 border-white bg-neutral-300" />
-                  <div className="w-8 h-8 rounded-full border-2 border-white bg-neutral-400" />
-                  <div className="flex items-center justify-center w-8 h-8 rounded-full border-2 border-white bg-[#f3efec] text-[9px] font-black text-neutral-500">
-                    +1.2k
-                  </div>
-                </div>
+              <div className="flex items-center justify-end pt-4 mt-auto">
                 <div className="text-right">
                   <div className="flex items-baseline gap-2">
                     <span className="text-slate-300 line-through text-sm font-bold">30€</span>
@@ -173,8 +166,8 @@ export default function Storia({
               )}
 
               <Button asChild className="w-full bg-[var(--steel)] hover:bg-[var(--steel)]/90 text-[var(--accent)] rounded-2xl py-6 h-auto text-lg font-bold shadow-lg shadow-blue-900/10 transition-transform active:scale-95 animate-pulse-cta">
-                <Link href={isLoggedIn ? "/dashboard?tab=training&packageId=trial" : "/login"} className="cursor-pointer">
-                  Inizia la Prova Gratuita
+                <Link href={isPrelaunch() ? "/lezioni-gratis" : (isLoggedIn ? "/dashboard?tab=training&packageId=trial" : "/login")} className="cursor-pointer">
+                  {isPrelaunch() ? "Entra nella Community gratis" : "Inizia la Prova Gratuita"}
                 </Link>
               </Button>
             </CardContent>
@@ -240,14 +233,7 @@ export default function Storia({
                 </div>
               </div>
 
-              <div className="flex items-center justify-between pt-4 mt-auto">
-                <div className="flex -space-x-2.5">
-                  <div className="w-8 h-8 rounded-full border-2 border-white bg-neutral-200" />
-                  <div className="w-8 h-8 rounded-full border-2 border-white bg-neutral-300" />
-                  <div className="w-8 h-8 rounded-full border-2 border-white bg-[#f3efec] text-[9px] font-black text-neutral-500">
-                    +420
-                  </div>
-                </div>
+              <div className="flex items-center justify-end pt-4 mt-auto">
                 <div className="text-right">
                   <div className="flex items-baseline gap-2">
                     <span className="text-slate-300 line-through text-sm font-bold">85€</span>
@@ -258,8 +244,8 @@ export default function Storia({
               </div>
 
               <Button asChild className="w-full bg-[var(--accent)] hover:bg-[var(--accent)]/90 text-white rounded-2xl py-6 h-auto text-lg font-bold shadow-lg shadow-amber-900/10 transition-transform active:scale-95 animate-pulse-cta">
-                <Link href={isLoggedIn ? "/dashboard?tab=1to1" : "/login"} className="cursor-pointer">
-                  Sì, voglio essere guidata
+                <Link href={isPrelaunch() ? "/lezioni-gratis" : (isLoggedIn ? "/dashboard?tab=1to1" : "/login")} className="cursor-pointer">
+                  {isPrelaunch() ? "Entra nella Community gratis" : "Sì, voglio essere guidata"}
                 </Link>
               </Button>
             </CardContent>

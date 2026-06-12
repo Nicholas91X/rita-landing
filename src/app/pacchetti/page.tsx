@@ -189,7 +189,7 @@ export default async function PackagesPage() {
                         {pkg.levelName} - {pkg.courseName}
                       </div>
                       {pkg.chainLength > 1 && pkg.order_index != null && (
-                        <span className="text-[10px] uppercase tracking-widest font-black text-white bg-[var(--brand)] px-2 py-0.5 rounded-full">
+                        <span className="text-[10px] uppercase tracking-widest font-black text-white bg-[var(--brand)] px-2 py-0.5 rounded-full whitespace-nowrap shrink-0">
                           Mese {pkg.order_index + 1}
                         </span>
                       )}
